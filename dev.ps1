@@ -1,4 +1,4 @@
-# Windows development launcher. Keep this terminal open; Ctrl+C stops owned app processes.
+﻿# Windows development launcher. Keep this terminal open; Ctrl+C stops owned app processes.
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)][ValidateSet('up', 'down', 'reset')][string]$Command = 'up',
@@ -119,19 +119,11 @@ try {
     if (-not (Test-Path -LiteralPath $mlPython)) {
         throw 'ML environment is missing. Follow ml/README.md to create ml/.venv and install dependencies.'
     }
-<<<<<<< HEAD
-    foreach ($port in @(8080, 8002, 5173)) {
+    foreach ($port in @($searchPort, 5601, 8080, 8002, 5173)) {
         $state = if (Test-LocalPort $port) { 'in use (reuse)' } else { 'available' }
         Write-Host "Port ${port}: $state"
     }
-    if ($isLocalDatabase -and -not (Test-LocalPort $DatabasePort)) {
-=======
-    foreach ($port in @($DatabasePort, $searchPort, 5601, 8080, 8001, 5173)) {
-        $state = if (Test-LocalPort $port) { 'in use (reuse)' } else { 'available' }
-        Write-Host "Port ${port}: $state"
-    }
-    if (-not (Test-LocalPort $DatabasePort) -or -not (Test-LocalPort $searchPort)) {
->>>>>>> fe943476966c5a3cb271518b545315571ab574d3
+    if (($isLocalDatabase -and -not (Test-LocalPort $DatabasePort)) -or -not (Test-LocalPort $searchPort)) {
         Require-Command 'docker.exe'
         & docker info *> $null
         if ($LASTEXITCODE -ne 0) { throw 'Start Docker Desktop, or start your local MySQL and Elasticsearch servers, then retry.' }
@@ -176,13 +168,8 @@ try {
         Start-App 'spring-compile' 0 (Join-Path $projectRoot 'back') '& .\gradlew.bat --no-daemon classes --continuous --quiet'
     }
     Start-App 'spring' 8080 (Join-Path $projectRoot 'back') "`$env:SPRING_DATASOURCE_URL = '$dbUrl'; & .\gradlew.bat --no-daemon bootRun"
-<<<<<<< HEAD
     Start-App 'ml' 8002 $projectRoot '& .\ml\serve-candidates.ps1'
-    Start-App 'react' 5173 (Join-Path $projectRoot 'front') '& npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort'
-=======
-    Start-App 'ml' 8001 $projectRoot '& .\ml\serve.ps1'
     Start-App 'react' 5173 (Join-Path $projectRoot 'front') '& npm.cmd run dev -- --host 0.0.0.0 --port 5173 --strictPort'
->>>>>>> fe943476966c5a3cb271518b545315571ab574d3
 
     Write-Host "Logs: $logDirectory"
     Write-Host 'Waiting for servers. First Spring startup may take a few minutes. Ctrl+C to stop.'

@@ -16,7 +16,7 @@ const Main = styled.main`
 export default function Layout({ children }) {
   const memberId = useAuthStore((state) => state.member?.id);
   const { pathname } = useLocation();
-  const home = pathname === '/' || pathname === '/about';
+  const home = pathname === '/' || pathname === '/about' || pathname === '/about-preview';
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });

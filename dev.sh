@@ -13,11 +13,8 @@ cd "$ROOT_DIR"
 
 DEFAULT_DB_PORT=3307
 export DB_PORT="${DB_PORT:-$DEFAULT_DB_PORT}"
-<<<<<<< HEAD
 export DB_HOST="${DB_HOST:-192.168.10.18}"
-=======
 export ES_PORT="${ES_PORT:-9200}"
->>>>>>> fe943476966c5a3cb271518b545315571ab574d3
 
 require_docker() {
   if ! docker info >/dev/null 2>&1; then
@@ -166,16 +163,11 @@ start_apps() {
 
 case "${1:-up}" in
   up)
-<<<<<<< HEAD
+    require_docker
     if [ "$DB_HOST" = "localhost" ] || [ "$DB_HOST" = "127.0.0.1" ]; then
-      require_docker
       start_db
     fi
-=======
-    require_docker
-    start_db
     start_search
->>>>>>> fe943476966c5a3cb271518b545315571ab574d3
     start_apps
     ;;
   down)

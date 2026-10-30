@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { refreshAccessToken } from './shared/api/tokenRefresh';
 import GuestOnly from './components/GuestOnly';
@@ -8,7 +8,7 @@ import RequireAuth from './components/RequireAuth';
 import RequireAdmin from './components/RequireAdmin';
 import CompanyDetailPage from './features/company/pages/detail/CompanyDetailPage';
 import CompanyListPage from './features/company/pages/list/CompanyListPage';
-import AboutPage from './pages/about/AboutPage';
+import AboutPreviewPage from './pages/about-preview/AboutPreviewPage';
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/login/LoginPage';
 import FinancialPage from './features/financial/pages/overview/FinancialPage';
@@ -51,7 +51,8 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
+        <Route path="/about" element={<AboutPreviewPage />} />
+        <Route path="/about-preview" element={<Navigate to="/about" replace />} />
         <Route path="/dream-car" element={<DreamCarPlannerPage />} />
         <Route path="/dream-car/calculation-guide" element={<DreamCarCalculationGuidePage />} />
         <Route path="/dream-car/progress" element={<SavingsProgressPage />} />

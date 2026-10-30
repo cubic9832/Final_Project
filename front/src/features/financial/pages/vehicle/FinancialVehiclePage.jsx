@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { sizeOptions, fuelOptions, bodyPreferenceOptions, normalizeBodyPreference, bodyTypeLabel } from '../../vehiclePreferences.js';
 import useCandidateRecommendations from './useCandidateRecommendations.js';
 import BodyTypePreview from './BodyTypePreview.jsx';
+import { readFinancialSession, saveFinancialSession } from '../../financialSession.js';
 import FinancialBudgetSummary from '../../components/FinancialBudgetSummary.jsx';
 import FinancialFlowHeader from '../../components/FinancialFlowHeader.jsx';
 import '../../styles/FinancialPages.css';
@@ -18,13 +19,17 @@ const initialVehicle = {
   fuelImportance: '3', seatingImportance: '3', purposeImportance: '1',
 };
 export default function FinancialVehiclePage() {
-  const { state } = useLocation();
+  const { state: routeState } = useLocation();
+  const [state] = useState(() => ({ ...routeState, ...readFinancialSession() }));
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState(() => ({ ...initialVehicle, ...state?.vehicle,
     preferredBodyType: normalizeBodyPreference(state?.vehicle?.preferredBodyType),
     ...Object.fromEntries(priorities.map(([name]) => { const value = Number(state?.vehicle?.[name] ?? initialVehicle[name]); return [name, String(value <= 2 ? 1 : value >= 4 ? 5 : 3)]; })) }));
 
   const diagnosis = { ...state, vehicle };
+  useEffect(() => {
+    saveFinancialSession({ vehicle });
+  }, [vehicle]);
   const { notice, recommending, showRecommendations } = useCandidateRecommendations(diagnosis);
   const inactive = name => (name === 'bodyImportance' && vehicle.preferredBodyType === 'any') || (name === 'fuelImportance' && vehicle.fuel === '상관없음') || (name === 'spaceImportance' && vehicle.preferredSize === 'any') || (name === 'seatingImportance' && Number(vehicle.minimumSeats) === 0);
 
@@ -59,11 +64,7 @@ export default function FinancialVehiclePage() {
                 {availableBodyTypeOptions.map(item => <label key={item.value}><input type="radio" name="preferredBodyType" value={item.value} checked={vehicle.preferredBodyType === item.value} onChange={() => setVehicle(previous => ({ ...previous, preferredBodyType: item.value }))} /><span>{item.label}</span></label>)}
               </div>
               <BodyTypePreview value={vehicle.preferredBodyType} label={bodyTypeLabel(vehicle.preferredBodyType)} />
-<<<<<<< HEAD
               <p className="vehicle-field-help">그 외 차체에는 쿠페·오픈카·해치백·왜건·미니밴·픽업·박스카가 포함돼요. 차체는 추천 순위에 반영되는 선호 조건이에요.</p>
-=======
-              <p className="vehicle-field-help">그 외 차체에는 해치백·왜건·미니밴·픽업·박스카가 포함돼요. 차체는 필수 제한이 아닌 선호 조건이에요.</p>
->>>>>>> fe943476966c5a3cb271518b545315571ab574d3
             </fieldset>
             <fieldset className="vehicle-purpose vehicle-size-preference">
               <legend>선호 크기</legend>

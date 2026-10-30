@@ -4,6 +4,7 @@ import FinancialBudgetSummary from '../../components/FinancialBudgetSummary.jsx'
 import FinancialFlowHeader from '../../components/FinancialFlowHeader.jsx';
 import LoanCalculator from './LoanCalculator.jsx';
 import { formatFinancialMoney } from '../../formatFinancialMoney.js';
+import { readFinancialSession, saveFinancialSession } from '../../financialSession.js';
 import '../../styles/FinancialPages.css';
 
 const expenseFields = [
@@ -14,7 +15,8 @@ const totalExpenses = values => expenseFields.reduce((sum, [key]) => sum + Numbe
 
 
 export default function FinancialPage() {
-  const { state } = useLocation();
+  const { state: routeState } = useLocation();
+  const [state] = useState(() => ({ ...routeState, ...readFinancialSession() }));
   const navigate = useNavigate();
   const formRef = useRef(null);
   useEffect(() => {
@@ -30,14 +32,22 @@ export default function FinancialPage() {
     monthlyExpenses: state?.values?.monthlyExpenses ?? (state?.values ? String(totalExpenses(state.values)) : ''),
   }));
   const [deposit, setDeposit] = useState(state?.assets?.deposit ?? '');
-  const [loanPayment, setLoanPayment] = useState(() => String((state?.loans ?? []).reduce((sum, loan) => sum + Number(loan.payment || 0), 0)));
-  const [loanDetails, setLoanDetails] = useState(() => (state?.loans ?? []).filter(loan => loan.id).map(loan => ({ ...loan })));
+  const [loanPayment, setLoanPayment] = useState(() => state?.loanPayment ?? String((state?.loans ?? []).reduce((sum, loan) => sum + Number(loan.payment || 0), 0)));
+  const [loanDetails, setLoanDetails] = useState(() => state?.loanDetails ?? (state?.loans ?? []).filter(loan => loan.id).map(loan => ({ ...loan })));
   const [detailedLoans, setDetailedLoans] = useState(state?.detailedLoans ?? false);
   const [breakdown, setBreakdown] = useState(state?.expenseBreakdown ?? state?.values ?? {});
-  const [detailed, setDetailed] = useState(false);
+  const [detailed, setDetailed] = useState(state?.detailed ?? false);
   const [errors, setErrors] = useState({});
   const loans = detailedLoans ? loanDetails : [{ payment: loanPayment || '0' }];
   const totalLoanPayment = loans.reduce((sum, loan) => sum + Number(loan.payment || 0), 0);
+
+  useEffect(() => {
+    saveFinancialSession({
+      values, assets: { deposit },
+      loans: detailedLoans ? loanDetails : [{ payment: loanPayment || '0' }],
+      loanPayment, loanDetails, detailedLoans, expenseBreakdown: breakdown, detailed,
+    });
+  }, [values, deposit, loanPayment, loanDetails, detailedLoans, breakdown, detailed]);
 
   function input(name, label, value, onChange, { required = false, help, readOnly = false } = {}) {
     return <div className="financial-field" key={name}>
@@ -59,7 +69,7 @@ export default function FinancialPage() {
     event.preventDefault();
     if (!event.currentTarget.reportValidity()) return;
     if (detailedLoans && loanDetails.some(loan => loan.payment === '')) { setErrors(previous => ({ ...previous, loanPayment: '등록한 대출의 월 상환액을 계산하거나 직접 입력해 주세요.' })); return; }
-    navigate('/financial/vehicle', { state: { values, assets: { deposit }, loans, detailedLoans, vehicle: state?.vehicle, expenseBreakdown: breakdown } });
+    navigate('/financial/vehicle', { state: { values, assets: { deposit }, loans, detailedLoans, vehicle: readFinancialSession().vehicle ?? state?.vehicle, expenseBreakdown: breakdown } });
   }
 
   return <div className="financial-page">
