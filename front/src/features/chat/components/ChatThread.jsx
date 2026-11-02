@@ -1,0 +1,89 @@
+import { Fragment, useEffect, useRef, useState } from 'react';
+import QuickReplyPicker from './QuickReplyPicker';
+import './ChatThread.css';
+
+// "2026-10-30T13:05:12" → "13:05"
+const timeOf = (value) => value?.slice(11, 16) ?? '';
+
+// "2026-10-30T13:05:12" → "2026-10-30" (날짜가 바뀌었는지 비교용)
+const dayOf = (value) => value?.slice(0, 10);
+
+// "2026-10-30T13:05:12" → "2026년 10월 30일 (금)"
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const dateLabel = (value) => {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+  const weekday = WEEKDAYS[new Date(year, month - 1, day).getDay()];
+  return `${year}년 ${month}월 ${day}일 (${weekday})`;
+};
+
+// 8단계: 대화 목록 + 입력칸 (회원 상담 화면 · 관리자 상담 탭이 같이 쓴다)
+// viewer: 'member' 면 내 말 = USER, 'admin' 이면 내 말 = ADMIN. 상대 이름: 회원 화면은 "상담원", 관리자 화면은 회원 닉네임
+// canSend 가 false 면 입력칸을 막고 disabledText 를 보여 준다 (종료된 상담 · 담당이 아닌 관리자)
+// quickReplies: true 면 입력칸 왼쪽에 [자주 쓰는 문구 ▾] (상담원만) — 고르면 입력칸에 넣고 커서를 옮긴다 (고쳐 보낼 수 있게)
+export default function ChatThread({ messages, viewer, memberName, connected, error, canSend, disabledText, onSend, quickReplies = false }) {
+  const [text, setText] = useState('');
+  const boardRef = useRef(null);
+  const inputRef = useRef(null);
+  const mineType = viewer === 'member' ? 'USER' : 'ADMIN';
+
+  // 새 메시지가 오면 맨 아래로 스크롤
+  useEffect(() => {
+    boardRef.current?.scrollTo({ top: boardRef.current.scrollHeight });
+  }, [messages]);
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    if (onSend(text)) setText('');
+  }
+
+  function senderLabel(message) {
+    if (message.senderType === mineType) return '나';
+    return message.senderType === 'ADMIN' ? '상담원' : memberName;
+  }
+
+  return (
+    <div className="chat-thread">
+      <p className={`chat-connection${connected ? ' is-on' : ''}`} role="status">
+        {connected ? '● 실시간 연결됨' : '연결 중… 끊기면 자동으로 다시 연결합니다.'}
+      </p>
+      <ul className="chat-board" ref={boardRef} aria-label="상담 대화" aria-live="polite">
+        {messages.length === 0 && <li className="chat-empty">아직 대화가 없습니다.</li>}
+        {messages.map((m, index) => (
+          <Fragment key={m.id}>
+            {/* 날짜가 바뀌는 첫 메시지 앞에 날짜 구분선 (메시지 위에는 시각만 보인다) */}
+            {dayOf(m.createdAt) !== dayOf(messages[index - 1]?.createdAt) && (
+              <li className="chat-date" aria-label="날짜"><span>{dateLabel(m.createdAt)}</span></li>
+            )}
+            {m.senderType === 'SYSTEM'
+              ? <li className="chat-system">{m.content}</li>
+              : (
+                <li className={`chat-bubble${m.senderType === mineType ? ' is-mine' : ''}`}>
+                  <small>{senderLabel(m)} · {timeOf(m.createdAt)}</small>
+                  {/* 글자로만 그린다 — 상대가 보낸 <script> 가 실행되지 않게 */}
+                  <p>{m.content}</p>
+                </li>
+              )}
+          </Fragment>
+        ))}
+      </ul>
+      {error && <p className="chat-error" role="alert">{error}</p>}
+      {canSend ? (
+        <form className="chat-send" onSubmit={handleSubmit}>
+          {quickReplies && (
+            <QuickReplyPicker disabled={!connected} onPick={(reply) => { setText(reply); inputRef.current?.focus(); }} />
+          )}
+          <input
+            ref={inputRef}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder={connected ? '메시지를 입력하세요 (최대 1000자)' : '연결 중…'}
+            maxLength={1000}
+            disabled={!connected}
+            aria-label="메시지"
+          />
+          <button type="submit" disabled={!connected || !text.trim()}>보내기</button>
+        </form>
+      ) : <p className="chat-disabled">{disabledText}</p>}
+    </div>
+  );
+}
