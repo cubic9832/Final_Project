@@ -100,7 +100,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
             adminMemberMapper.revokeAdmin(targetId);
             chatRoomService.releaseRoomsOf(targetId); // 8단계: 맡던 진행 중 상담 → 대기 (다른 관리자가 다시 맡는다)
         } else {
-            adminMemberMapper.grantAdmin(targetId, role, actorId);
+            adminMemberMapper.grantAdmin(targetId, role); // 누가 지정했는지는 아래 운영 로그(ROLE_CHANGE)에 남는다
         }
         // 운영 로그: 누가 누구를 무엇으로 바꿨는지 (같은 트랜잭션 → 기록이 실패하면 권한 변경도 취소)
         adminAuditLogMapper.insert(actorId, "ROLE_CHANGE", "MEMBER", targetId, current + " → " + role);

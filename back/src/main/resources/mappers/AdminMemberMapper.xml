@@ -60,8 +60,8 @@
 
     <!-- 보완 11: 관리자 · 총관리자로 지정 (이미 있으면 권한 · 지정한 사람만 바꾼다) -->
     <insert id="grantAdmin">
-        INSERT INTO admin_accounts (user_id, role, granted_by) VALUES (#{id}, #{role}, #{grantedBy})
-        ON DUPLICATE KEY UPDATE role = VALUES(role), granted_by = VALUES(granted_by)
+        INSERT INTO admin_accounts (user_id, role) VALUES (#{id}, #{role})
+        ON DUPLICATE KEY UPDATE role = VALUES(role)
     </insert>
 
     <!-- 보완 11: 관리자 해제 = 표에서 지운다 → 일반 회원(USER) -->

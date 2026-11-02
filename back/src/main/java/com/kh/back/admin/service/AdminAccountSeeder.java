@@ -54,7 +54,7 @@ public class AdminAccountSeeder {
         if (existing != null) {
             // 이미 가입한 회원: 권한만 총관리자로 (로그 · 비밀번호는 찍지 않는다)
             if (!"SUPER_ADMIN".equals(existing.getRole())) {
-                adminMemberMapper.grantAdmin(existing.getId(), "SUPER_ADMIN", null);
+                adminMemberMapper.grantAdmin(existing.getId(), "SUPER_ADMIN");
                 log.info("admin seed: existing member {} promoted to SUPER_ADMIN", existing.getId());
             }
             return;
@@ -75,7 +75,7 @@ public class AdminAccountSeeder {
         member.setNickName(memberMapper.countByNickName(SEED_NICKNAME) == 0 ? SEED_NICKNAME : SEED_NICKNAME + System.currentTimeMillis() % 10000);
         member.setRole("USER");
         memberMapper.insert(member);
-        adminMemberMapper.grantAdmin(member.getId(), "SUPER_ADMIN", null);
+        adminMemberMapper.grantAdmin(member.getId(), "SUPER_ADMIN");
         log.info("admin seed: SUPER_ADMIN account created (id {})", member.getId());
     }
 }
