@@ -3,9 +3,10 @@ import babel from '@rolldown/plugin-babel';
 import { defineConfig } from 'vite';
 
 // /api 로 시작하는 요청을 Spring Boot 로 전달한다 (개발 서버 전용)
-const API_TARGET = 'http://localhost:8080';
+const API_TARGET = process.env.VITE_API_TARGET || 'http://localhost:8080';
 
 export default defineConfig({
+  cacheDir: process.env.VITE_CACHE_DIR || 'node_modules/.vite',
   plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
   server: {
     // 같은 네트워크의 다른 PC에서도 개발 서버에 접속한다. 기본값은 localhost뿐이라 끈다.
@@ -13,7 +14,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api/v2': {
-        target: 'http://127.0.0.1:8002',
+        target: process.env.VITE_ML_TARGET || 'http://127.0.0.1:8002',
         changeOrigin: true,
       },
       '/api/v1/recommendations': {
