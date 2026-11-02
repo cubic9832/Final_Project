@@ -183,7 +183,7 @@ function MemberList({ version, onChanged }) {
         </div>
 
         <form className="admin-filters" onSubmit={handleSearch}>
-          <label className="admin-search-field">
+          <label className="admin-search-field form-focus-group">
             <Search size={theme.iconSize.sm} aria-hidden="true" />
             <input
               type="search"

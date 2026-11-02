@@ -5,7 +5,7 @@
 .fvr-toolbar { display: flex; gap: var(--space-16); margin: var(--space-16) 0; }
 .fvr-search { display: flex; flex: 1; align-items: center; gap: var(--space-8); padding: 0 var(--space-16); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
 .fvr-search input { width: 100%; min-width: 0; border: 0; background: transparent; padding: var(--space-8) 0; min-height: 44px; outline: 0; font: inherit; font-size: 14px; }
-.fvr-search:focus-within { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+
 .fvr-sort select { min-height: 44px; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-8); background: var(--color-surface); color: var(--color-primary); }
 .fvr-filters { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 .fvr-filters button { min-height: 40px; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-8) var(--space-16); background: var(--color-surface); color: var(--color-primary); }
