@@ -6,7 +6,8 @@ import math
 from vehicle_matching.explanations import candidate_evidence, evaluation_summary, ranking_comparison
 from vehicle_matching.finance import assess
 from vehicle_matching.preferences import assumes_standard_seating, exclusions, preference_assessment
-from vehicle_matching.budget import recommendation_budget
+from vehicle_matching.budget import recommendation_budget, top_catalog_fallback
+from vehicle_matching.height_preferences import matches_height
 from vehicle_matching.recommendation_policy import POLICY, seating_status, ranking_key, preference_penalties
 
 
@@ -31,22 +32,43 @@ class CandidateService:
         profile = replace(profile, down_payment=0, months=0, annual_rate=0, financing_mode='recommendation', purpose='commute', purpose_importance=1)
         eligible, costs, excluded = [], {}, Counter()
         for vehicle in self.vehicles:
+            if not matches_height(profile.preferred_height, vehicle.height_mm):
+                excluded['outside-selected-height'] += 1
+                continue
             cost = assess(profile, vehicle, self.ranker.assumptions)
             if cost['eligible']:
                 eligible.append(vehicle)
                 costs[vehicle.id] = cost
             else:
                 excluded.update(cost['exclusions'])
-        seating_unknown = [v for v in eligible if seating_status(profile,v) == 'unknown']
-        seating_rejected = [v for v in eligible if seating_status(profile,v) == 'insufficient']
-        candidates = [v for v in eligible if seating_status(profile,v) == 'match']
         band = recommendation_budget(profile,eligible,costs)
-        candidates = [v for v in candidates if v.price<=band['upper']]
+        in_band = [v for v in eligible if band['lower'] <= v.price <= band['upper']]
+        if not any(seating_status(profile, vehicle) == 'match' for vehicle in in_band):
+            fallback = top_catalog_fallback(profile, self.vehicles, eligible, band)
+            if fallback:
+                in_band = fallback
+                band = {**band, 'policy': 'catalog-top-price-fallback-v1',
+                        'requestedLower': band['lower'], 'lower': min(v.price for v in fallback),
+                        'catalogUpper': max(v.price for v in self.vehicles),
+                        'fallbackApplied': True, 'fallbackModelLimit': 9,
+                        'fallbackReason': 'requested-band-above-catalog'}
+        band = {**band, 'lowerBoundRequired': False, 'supplementationAllowed': True}
+        seating_unknown = [v for v in in_band if seating_status(profile,v) == 'unknown']
+        seating_rejected = [v for v in in_band if seating_status(profile,v) == 'insufficient']
+        candidates = [v for v in in_band if seating_status(profile,v) == 'match']
+        preferred_models = {(v.brand, v.model) for v in candidates}
+        if len(preferred_models) < k and not band.get('fallbackApplied'):
+            candidates += [v for v in eligible if v.price < band['lower']
+                           and v.price <= band['upper'] and seating_status(profile,v) == 'match'
+                           and (v.brand, v.model) not in preferred_models]
+        elif not band.get('fallbackApplied'):
+            excluded['below-preferred-price-band'] += sum(v.price < band['lower'] for v in eligible)
         scores, outside = self.ranker.score_candidates(profile, candidates)
         if len(scores) != len(candidates) or len(outside) != len(candidates) or not all(math.isfinite(s) for s in scores):
             raise ValueError('Invalid ML ranking scores')
         assessments = {v.id: preference_assessment(profile, v, costs[v.id]) for v in eligible}
-        ordered = sorted(zip(candidates, scores, outside), key=lambda row: self.ranking_key(profile,row[0],row[1]))
+        ordered = sorted(zip(candidates, scores, outside),
+                         key=lambda row: (row[0].price < band['lower'], self.ranking_key(profile,row[0],row[1])))
         chosen, models = [], set()
         # One configuration per model; never fill remaining slots with infeasible vehicles.
         for vehicle, score, out_of_range in ordered:
@@ -87,8 +109,10 @@ class CandidateService:
                            'seatingVerificationRequired': 'seats-unverified' in gaps,
                            'lengthVerificationRequired': 'length-unverified' in gaps,
                            'preferenceGaps': gaps,
-                           'budgetTier': 'within-financial-ceiling',
+                           'budgetTier': ('catalog-top-price-fallback' if band.get('fallbackApplied') else
+                                          'below-preferred-price-band' if vehicle.price < band['lower'] else 'within-importance-price-band'),
                            'reasons': reasons, 'outsideTrainingRange': out_of_range})
+        band['supplementedCount'] = sum(item['budgetTier'] == 'below-preferred-price-band' for item in chosen)
         for index, item in enumerate(chosen):
             if len(chosen) > 1:
                 higher, lower = (item, chosen[index + 1]) if index < len(chosen) - 1 else (chosen[index - 1], item)

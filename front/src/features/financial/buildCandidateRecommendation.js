@@ -1,10 +1,13 @@
 const fuels = { 가솔린: 'GASOLINE', 하이브리드: 'HYBRID', 디젤: 'DIESEL', LPG: 'LPG', 전기: 'ELECTRIC', 상관없음: null };
 
+import { createVehiclePreferences } from './createVehiclePreferences.js';
 import { buildLifestylePreferences } from './lifestylePreferences.js';
 import { buildScenarioPreferences } from './scenarioPreferences.js';
 
 // UI 금액(만 원)을 v2 계약(원)으로 변환한다. 미입력 필수값을 임의로 만들지 않는다.
 export function buildCandidateRecommendation({ values = {}, assets = {}, loans, vehicle = {} } = {}) {
+  const defaults = createVehiclePreferences();
+  vehicle = Object.fromEntries(Object.entries(vehicle).map(([key, value]) => [key, value === null ? defaults[key] : value]));
   const errors = [];
   function amount(value, label, optional = false) {
     if (optional && (value === undefined || value === '')) return 0;
@@ -36,6 +39,7 @@ export function buildCandidateRecommendation({ values = {}, assets = {}, loans, 
     purpose_importance: 1,
     minimum_seats: Number(vehicle.minimumSeats ?? 0),
     preferred_size: vehicle.preferredSize ?? 'any',
+    preferred_height: vehicle.preferredHeight ?? 'any',
     preferred_body_type: 'any', // Retired body selection must not affect recommendations.
     body_importance: 3,
   };
@@ -49,6 +53,7 @@ export function buildCandidateRecommendation({ values = {}, assets = {}, loans, 
   if (![profile.cost_importance, profile.space_importance, profile.fuel_importance, profile.seating_importance, profile.purpose_importance].every(value => Number.isInteger(value) && value >= 1 && value <= 5)) errors.push('요소 중요도');
   if (!Number.isInteger(profile.minimum_seats) || profile.minimum_seats < 0 || profile.minimum_seats > 9) errors.push('최소 탑승 인원');
   if (!['any', 'small', 'medium', 'large'].includes(profile.preferred_size)) errors.push('선호 크기');
+  if (!['any', 'low', 'medium', 'high'].includes(profile.preferred_height)) errors.push('선호 높이');
   if (!(vehicle.fuel in fuels)) errors.push('선호 연료');
   const preferences = vehicle.scenarioMode
     ? { scenario: buildScenarioPreferences(vehicle, profile, errors) }

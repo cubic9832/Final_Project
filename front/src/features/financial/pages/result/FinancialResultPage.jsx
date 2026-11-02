@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import FinancialAnalysis from '../recommendations/FinancialAnalysis.jsx';
-import FinancialFlowHeader from '../../components/FinancialFlowHeader.jsx';
+import './FinancialResultPage.css';
 import { calculateFinancialSummary } from '../../calculateFinancialSummary.js';
 import { buildDiagnosisSummary } from '../../diagnosisSummary.js';
 import { saveDiagnosis } from '../../../auth/memberApi';
@@ -33,9 +33,11 @@ export default function FinancialResultPage() {
   }, [ready, member, state, pathname, navigate]);
   if (!state?.diagnosis?.values || !isFinancialRecommendationResult(state?.result)) return <Navigate to={state?.values ? '/financial/vehicle' : '/financial'} state={state} replace />;
   const { diagnosis, result } = state;
-  return <div className="financial-recommendations-page">
-    <FinancialFlowHeader current={4} title="종합 분석 결과" description="입력한 재무 정보로 구매 전후의 자금 변화를 확인하세요." />
-    <FinancialAnalysis totals={calculateFinancialSummary(diagnosis.values, diagnosis.loans ?? [])} result={result} onShowRecommendations={() => navigate('/financial/recommendations', { state })} />
-    <div className="financial-next-row"><button type="button" className="financial-previous-button" onClick={() => navigate('/financial/vehicle', { state: diagnosis })}>차량 취향 수정</button><button type="button" className="financial-next-button" onClick={() => navigate('/financial/recommendations', { state })}>추천 차량 보기</button></div>
+  return <div className="financial-result-page">
+    <header className="result-heading">
+      <div><h1>재무 진단 결과</h1><p>구매 예산과 월 유지비, 차량 구매 후 남는 자금을 확인해 보세요.</p></div>
+    </header>
+    <FinancialAnalysis totals={calculateFinancialSummary(diagnosis.values, diagnosis.loans ?? [])} result={result} compact />
+    <div className="result-actions"><button type="button" className="result-edit" onClick={() => navigate('/financial/vehicle', { state: { ...diagnosis, returnToVehicleReview: true } })}>차량 취향 수정</button><button type="button" className="result-next" onClick={() => navigate('/financial/recommendations', { state })}>추천 차량 보기</button></div>
   </div>;
 }

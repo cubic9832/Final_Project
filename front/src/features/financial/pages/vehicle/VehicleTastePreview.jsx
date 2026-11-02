@@ -2,9 +2,9 @@ import './VehicleTastePreview.css';
 
 const examples = {
   exteriorAngularity: {
-    0: { image: 'models/ioniq6.webp', model: '현대 아이오닉 6', title: '둥글고 부드러운 윤곽', description: '지붕부터 뒤까지 둥글게 이어지는 곡선이 두드러져요.' },
-    0.5: { image: 'sonata.webp', model: '현대 쏘나타', title: '직선과 곡선의 조화', description: '또렷한 앞모습의 선과 부드러운 지붕 곡선이 함께 보여요.' },
-    1: { image: 'models/santafe.webp', model: '현대 싼타페', title: '각지고 또렷한 윤곽', description: '반듯한 지붕과 직선 위주의 모서리가 두드러져요.' },
+    0: { image: 'models/ioniq6.webp', model: '현대 아이오닉 6', title: '곡선이 많고 둥근 차', description: '지붕부터 뒤까지 둥글게 이어지는 곡선이 두드러져요.' },
+    0.5: { image: 'sonata.webp', model: '현대 쏘나타', title: '균형 잡힌 차', description: '또렷한 앞모습의 선과 부드러운 지붕 곡선이 함께 보여요.' },
+    1: { image: 'models/santafe.webp', model: '현대 싼타페', title: '각지고 날카로운 차', description: '반듯한 지붕과 직선 위주의 모서리가 두드러져요.' },
   },
 };
 

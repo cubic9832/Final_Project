@@ -10,6 +10,17 @@ function diagnosis() {
     vehicle: { purpose: '출퇴근', annualDistance: '15,000km', installment: '48개월', fuel: '하이브리드', charging: '충전 불가', minimumBuffer: '30' } };
 }
 
+test('height selection is sent to the API and invalid ranges are rejected', () => {
+  const state = diagnosis();
+  assert.equal(buildCandidateRecommendation(state).request.profile.preferred_height, 'any');
+  for (const height of ['low', 'medium', 'high']) {
+    state.vehicle.preferredHeight = height;
+    assert.equal(buildCandidateRecommendation(state).request.profile.preferred_height, height);
+  }
+  state.vehicle.preferredHeight = 'invalid';
+  assert.equal(buildCandidateRecommendation(state).request, null);
+});
+
 test('v2 request converts units and shares detailed debt totals with the displayed budget', () => {
   const state = diagnosis();
   const { request, errors } = buildCandidateRecommendation(state);

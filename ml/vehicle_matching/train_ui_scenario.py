@@ -8,6 +8,7 @@ import torch
 from torch import nn
 from vehicle_matching.catalog import ROOT, read_catalog
 from vehicle_matching.finance import Profile, assess
+from vehicle_matching.budget import recommendation_budget
 from vehicle_matching.recommendation_policy import seating_status
 from vehicle_matching.preference_model import preference_network
 from vehicle_matching.ui_scenario_features import FEATURE_NAMES, encode_ui_scenario, choice_utility
@@ -20,7 +21,7 @@ def read_rows(path):
     return [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines()]
 
 
-def audit(data, manifest, catalog, traits):
+def audit(data, manifest, catalog, traits, encoder=encode_ui_scenario):
     from decimal import Decimal
     groups=set();count=0;profile_count=0;correct=0;expected=0.;loss=0.
     for name,digest in manifest['files_sha256'].items():
@@ -28,6 +29,8 @@ def audit(data, manifest, catalog, traits):
     for shard in manifest['shards']:
         for role in ('train','validation','test'):
             users={row['id']:row for row in read_rows(data/shard['directory']/f'{role}_profiles.jsonl')}
+            bands = {identifier: recommendation_budget(Profile(**user['profile']), [], {})
+                     for identifier, user in users.items()} if manifest['version'] == 'ui-scenario-height-population-v2' else {}
             for user in users.values():
                 if user['group'] in groups or user['split']!=role:raise ValueError('Duplicate financial group or split leakage')
                 groups.add(user['group']);profile_count+=1
@@ -36,12 +39,14 @@ def audit(data, manifest, catalog, traits):
                 if not np.isfinite(rows['features']).all():raise ValueError('Nonfinite training features')
                 for x,user_id,index in zip(rows['features'],rows['profile_ids'],rows['vehicle_indices']):
                     user=users[int(user_id)];car=catalog[int(index)];p=Profile(**user['profile']);cost=assess(p,car)
+                    if bands and not bands[int(user_id)]['lower'] <= car.price <= bands[int(user_id)]['upper']:
+                        raise ValueError('Candidate is outside importance-specific price band')
                     if not cost['eligible'] or seating_status(p,car)!='match':raise ValueError('Ineligible training candidate')
                     cash=Decimal(str(p.liquid_assets))-Decimal(str(car.price))
                     available=Decimal(str(p.monthly_income))-Decimal(str(p.monthly_expenses))-Decimal(str(p.existing_monthly_payment))
                     deficit=max(Decimal(0),Decimal(str(cost['monthly_running_cost']))-available)
                     if cash<0 or cash<12*deficit:raise ValueError('Independent cash/runway audit failed')
-                    if not np.array_equal(x,encode_ui_scenario(user,car,traits[car.id],cost)):raise ValueError('Training/serving encoding mismatch')
+                    if not np.array_equal(x,encoder(user,car,traits[car.id],cost)):raise ValueError('Training/serving encoding mismatch')
                 choices=read_rows(data/shard['directory']/f'{role}_choices.jsonl')
                 if len(choices)!=len(rows['labels']):raise ValueError('Missing choice records')
                 for (a,b),label,choice in zip(rows['comparisons'],rows['labels'],choices):
@@ -62,30 +67,30 @@ def audit(data, manifest, catalog, traits):
     write_json(data/'validation_report.json',report);return report
 
 
-def train(data, output, epochs=30):
+def train(data, output, epochs=30, *, feature_names=FEATURE_NAMES, encoder=encode_ui_scenario, ranker_type=UiScenarioRanker):
     data,output=Path(data),Path(output)
     if output.exists():raise FileExistsError(output)
     torch.set_num_threads(4);torch.manual_seed(20261030);torch.use_deterministic_algorithms(True)
     manifest=json.loads((data/'manifest.json').read_text(encoding='utf-8'))
-    if manifest['feature_names']!=list(FEATURE_NAMES):raise ValueError('Dataset feature contract mismatch')
+    if manifest['feature_names']!=list(feature_names):raise ValueError('Dataset feature contract mismatch')
     catalog=read_catalog(data/'catalog.json');traits=json.loads((data/'vehicle_traits.json').read_text(encoding='utf-8'))['vehicles']
     print(json.dumps({'stage':'full-data-audit'}),flush=True)
-    validation=audit(data,manifest,catalog,traits)
+    validation=audit(data,manifest,catalog,traits,encoder)
     x=np.concatenate([load_shard(data,shard,'train')[0] for shard in manifest['shards']])
     mean=x.astype(np.float64).mean(axis=0).astype(np.float32);scale=x.astype(np.float64).std(axis=0).astype(np.float32)
     scale[scale<1e-6]=1
     stats=(mean,scale,x.min(axis=0),x.max(axis=0))
     del x
-    net=preference_network(len(FEATURE_NAMES))
-    print(json.dumps({'stage':'mlp-fit','features':len(FEATURE_NAMES),'epochs':epochs}),flush=True)
+    net=preference_network(len(feature_names))
+    print(json.dumps({'stage':'mlp-fit','features':len(feature_names),'epochs':epochs}),flush=True)
     history,epoch=fit(data,manifest,net,stats,epochs=epochs,batch_size=2048,seed=20261030)
     provenance={'dataset_version':manifest['version'],'dataset_manifest_sha256':file_hash(data/'manifest.json'),
                 'validation_report_sha256':file_hash(data/'validation_report.json'),'data_dir':str(data.resolve()),
                 'selected_epoch':epoch,'epochs':epochs,'selection':'lowest validation log loss; holdout evaluated after selection',
                 'seed':20261030,'source_sha256':{str(path.relative_to(ROOT)):file_hash(path) for path in
                     (Path(__file__),ROOT/'ml/vehicle_matching/ui_scenario_features.py',ROOT/'ml/vehicle_matching/ui_scenario_model.py')}}
-    model=UiScenarioRanker(net,stats,traits);model.save(output,provenance,data/'catalog.json',data/'vehicle_traits.json')
-    saved=UiScenarioRanker.load(output)
+    model=ranker_type(net,stats,traits);model.save(output,provenance,data/'catalog.json',data/'vehicle_traits.json')
+    saved=ranker_type.load(output)
     # Rebuild a held-out user's features through the production inference entry point.
     shard=manifest['shards'][0];user=read_rows(data/shard['directory']/'validation_profiles.jsonl')[0]
     with np.load(data/shard['directory']/'validation_choices.npz',allow_pickle=False) as rows:
@@ -93,7 +98,7 @@ def train(data, output, epochs=30):
     if not np.array_equal(saved.score_features(values),saved.score_candidates(user,cars)):raise ValueError('Saved inference mismatch')
     results={'mlp':evaluate(saved.net,data,manifest,'test',*stats[:2]),'generator':validation['generator_test']}
     print(json.dumps({'stage':'mlp-test',**results['mlp']}),flush=True)
-    torch.manual_seed(20261030);linear=nn.Linear(len(FEATURE_NAMES),1)
+    torch.manual_seed(20261030);linear=nn.Linear(len(feature_names),1)
     linear_history,linear_epoch=fit(data,manifest,linear,stats,epochs=epochs,batch_size=2048,seed=20261030)
     results['linear']=evaluate(linear,data,manifest,'test',*stats[:2])
     torch.save(linear.state_dict(),output/'linear_baseline.pt')

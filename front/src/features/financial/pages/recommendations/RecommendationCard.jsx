@@ -4,10 +4,12 @@ import theme from '../../../../styles/theme.js';
 import { candidateImage, candidateMoney, fuelLabels } from './candidatePresentation.js';
 import ExplainTerm from '../../../chatbot/ExplainTerm';
 import VehiclePreferenceSummary from './VehiclePreferenceSummary.jsx';
+import SurveyDialog from '../../components/SurveyDialog.jsx';
 
 
 export default function RecommendationCard({ candidate, rank, view, comparisonSelected, comparisonFull, onToggleComparison }) {
   const [failedSrc, setFailedSrc] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const { vehicle, cost } = candidate;
   const image = candidateImage(vehicle);
 
@@ -23,10 +25,14 @@ export default function RecommendationCard({ candidate, rank, view, comparisonSe
 
       {candidate.seatingVerificationRequired && <p className="financial-candidate-alert">희망 인원 탑승 가능 여부를 확인해 주세요.</p>}
       {candidate.lengthVerificationRequired && <p className="financial-candidate-alert">차량 크기 확인이 필요한 후보입니다.</p>}
-      {view?.financial?.fundingSource === 'assets' && <p className="financial-candidate-alert">예금 사용형 추천 · 생활 적자와 차량 유지비를 합해 예금에서 매월 {candidateMoney(view.financial.monthlyAssetDrawdown)}을 사용해요. 구매 후 예금으로 약 {view.financial.assetRunwayMonths}개월 유지 가능하며, 최소 {view.financial.requiredAssetCoverageMonths}개월 충당 기준을 적용했어요.</p>}
       <dl className="financial-recommendation-specs" aria-label={`${vehicle.model} 비용 정보`}>
-        {[['차량 가격', vehicle.price], ['예상 월 유지비', cost.monthly_running_cost], ['구매 후 남는 예금', view.financial?.cashAfterPurchase], ['유지비 지출 후 월 잔여금', cost.remaining_monthly]].map(([label, value]) => <div key={label}><dt><ExplainTerm term={label} context={`추천 차량 ${vehicle.brand} ${vehicle.model}의 비용 항목`} /></dt><dd>{candidateMoney(value)}</dd></div>)}
+        {[['차량 가격', vehicle.price], ['예상 월 유지비', cost.monthly_running_cost]].map(([label, value]) => <div key={label}><dt><ExplainTerm term={label} context={`추천 차량 ${vehicle.brand} ${vehicle.model}의 비용 항목`} /></dt><dd>{candidateMoney(value)}</dd></div>)}
       </dl>
+      </div></div>
+      <button type="button" className="recommendation-detail-button" onClick={() => setDetailsOpen(true)}>추천 근거·차량 상세 보기</button>
+      {detailsOpen && <SurveyDialog title={`${vehicle.brand} ${vehicle.model}`} onClose={() => setDetailsOpen(false)}>
+      <dl className="financial-recommendation-specs">{[['구매 후 남는 예금', view.financial?.cashAfterPurchase], ['유지비 지출 후 월 잔여금', cost.remaining_monthly]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{candidateMoney(value)}</dd></div>)}</dl>
+      {view?.financial?.fundingSource === 'assets' && <p className="financial-candidate-alert">예금에서 매월 {candidateMoney(view.financial.monthlyAssetDrawdown)}을 사용해요. 구매 후 예금으로 약 {view.financial.assetRunwayMonths}개월 유지할 수 있어요.</p>}
       <section className="financial-recommendation-reasons" aria-label={`${vehicle.model} 맞는 조건`}>
         <h3>맞는 조건</h3>
         <ul>{view.matches.slice(0, 2).map(item => <li key={item.key}><p>{item.text}</p></li>)}</ul>
@@ -37,8 +43,8 @@ export default function RecommendationCard({ candidate, rank, view, comparisonSe
         <ul>{[...view.mismatches, ...view.unknowns].sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0)).slice(0, 2).map(item => <li key={item.key}>{item.text}</li>)}</ul>
         {!view.mismatches.length && !view.unknowns.length && view.evidence && <p>지정한 연료·크기·정원에서 확인된 불일치가 없어요.</p>}
       </section>
-      </div></div>
       <VehiclePreferenceSummary vehicle={vehicle} specifications={candidate.lifestyleEvidence?.specifications} values={candidate.lifestyleEvidence?.values} evidence={candidate.lifestyleEvidence?.evidence} />
+      </SurveyDialog>}
     </div>
   </li>;
 }

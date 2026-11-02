@@ -43,9 +43,14 @@ class Vehicle:
     monthly_insurance: int | None = None
     monthly_tax: int | None = None
     monthly_maintenance: int | None = None
+    height_mm: int | None = None
+    height_source_url: str | None = None
+    height_status: str | None = None
 
     def __post_init__(self):
         import math
+        if self.height_mm is not None and (type(self.height_mm) is not int or not 800 <= self.height_mm <= 3500):
+            raise ValueError('Invalid vehicle height')
         for cost in (self.monthly_insurance, self.monthly_tax, self.monthly_maintenance):
             if cost is not None and (type(cost) is not int or not 0 <= cost <= 10000000):
                 raise ValueError('Invalid monthly vehicle cost')

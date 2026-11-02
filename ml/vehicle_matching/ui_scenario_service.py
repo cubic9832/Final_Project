@@ -8,7 +8,6 @@ from vehicle_matching.finance import assess
 from vehicle_matching.service import CandidateService
 from vehicle_matching.scenario_traits import taste_matches
 from vehicle_matching.ui_scenario_model import UiScenarioRanker
-from vehicle_matching.ui_scenario_features import FEATURE_NAMES, encode_ui_scenario
 
 POLICY = 'required-eligibility-then-ui-scenario-ml'
 
@@ -22,7 +21,7 @@ class BoundUiRanker:
         user={'profile':asdict(profile),'preferences':self.preferences}
         scores=self.ranker.score_candidates(user,vehicles)
         if not vehicles:return [],[]
-        rows=np.stack([encode_ui_scenario(user,vehicle,self.ranker.traits[vehicle.id],assess(profile,vehicle)) for vehicle in vehicles])
+        rows=np.stack([self.ranker.encode(user,vehicle,self.ranker.traits[vehicle.id],assess(profile,vehicle)) for vehicle in vehicles])
         outside=np.any((rows<self.ranker.minimum-1e-5)|(rows>self.ranker.maximum+1e-5),axis=1)
         return scores,outside.tolist()
 
@@ -44,15 +43,21 @@ class UiScenarioService:
     def load(cls,directory):
         path=Path(directory)
         meta=json.loads((path/'metadata.json').read_text(encoding='utf-8'))
-        if meta['training']['dataset_version']!='ui-scenario-population-v1':raise ValueError('UI dataset version mismatch')
-        return cls(UiScenarioRanker.load(path),read_catalog(path/'catalog.json'),path.name)
+        ranker_type = UiScenarioRanker
+        expected_version = 'ui-scenario-population-v1'
+        if meta['schema'] == 'ui-scenario-height-ranker-v2':
+            from vehicle_matching.height_scenario_model import HeightScenarioRanker
+            ranker_type = HeightScenarioRanker
+            expected_version = 'ui-scenario-height-population-v2'
+        if meta['training']['dataset_version'] != expected_version:raise ValueError('UI dataset version mismatch')
+        return cls(ranker_type.load(path),read_catalog(path/'catalog.json'),path.name)
 
     def recommend(self,profile,k=3,preferences=None):
         preferences=preferences or {}
         bound=BoundUiRanker(self.ranker,preferences)
         result=UiCandidateService(bound,self.vehicles,ml_only=True).recommend(profile,k)
         result.update(modelVersion='scenario-v1',modelBundle=self.model_bundle,scorePolicy=POLICY,rankingPolicy=POLICY,
-                      featureCount=len(FEATURE_NAMES),trainingCatalogCount=len(self.vehicles),appliedScenario=preferences,
+                      featureCount=len(self.ranker.feature_names),trainingCatalogCount=len(self.vehicles),appliedScenario=preferences,
                       traitCoverage={name:len(self.vehicles) for name in ('exterior_angularity','acceleration_performance')})
         for key in ('recommendations','conditionalRecommendations'):
             for item in result[key]:

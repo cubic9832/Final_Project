@@ -49,6 +49,7 @@ class ProfileRequest(BaseModel):
     purchase_price_ceiling: float = Field(default=0, ge=0, le=1e12)
     minimum_seats: int = Field(default=0, ge=0, le=9, strict=True)
     preferred_size: Literal['any', 'small', 'medium', 'large'] = 'any'
+    preferred_height: Literal['any', 'low', 'medium', 'high'] = 'any'
     preferred_body_type: Literal['any', 'SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'COUPE', 'CONVERTIBLE', 'ROADSTER', 'OTHER'] = 'any'
     body_importance: int = Field(default=3, ge=1, le=5, strict=True)
     financing_mode: Literal['fixed', 'automatic', 'recommendation'] = Field(default='recommendation', exclude=True, deprecated=True)
@@ -92,7 +93,7 @@ RecommendationRequest.model_rebuild()
 def load_service(directory, *, apply_specification_updates=True):
     path = Path(directory)
     meta = json.loads((path / 'metadata.json').read_text(encoding='utf-8'))
-    if meta['schema'] == 'ui-scenario-ranker-v1':
+    if meta['schema'] in ('ui-scenario-ranker-v1', 'ui-scenario-height-ranker-v2'):
         from vehicle_matching.ui_scenario_service import UiScenarioService
         return UiScenarioService.load(path)
     if meta['schema'] == 'scenario-ranker-v1':
@@ -130,7 +131,7 @@ def load_service(directory, *, apply_specification_updates=True):
 def create_app(service=None):
     @asynccontextmanager
     async def lifespan(application):
-        application.state.candidates = service or load_service(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261030-ui-v1-10k')))
+        application.state.candidates = service or load_service(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261102-height-high-value-3m')))
         from vehicle_matching.managed_catalog import ManagedCatalog
         url=os.environ.get('ML_MANAGED_CATALOG_URL','http://127.0.0.1:8080/api/v1/vehicles/recommendation-catalog')
         from vehicle_matching.lifestyle_service import LifestyleService
@@ -169,8 +170,8 @@ def create_app(service=None):
         return {'success': True, 'data': {'modelVersion': 'candidate-v2', 'catalogCount': len(current.vehicles),
                 'modelBundle': getattr(current, 'model_bundle', None),
                 'lifestyleSupported': getattr(current.ranker, 'schema', None) in ('lifestyle-pair-v1', 'controlled-cohort-ranker-v1'),
-                'scenarioSupported': getattr(current.ranker, 'schema', None) in ('scenario-ranker-v1', 'ui-scenario-ranker-v1'),
-                'brandOptions': [] if getattr(current.ranker,'schema',None) in ('scenario-ranker-v1','ui-scenario-ranker-v1') else getattr(current, 'brands', []),
+                'scenarioSupported': getattr(current.ranker, 'schema', None) in ('scenario-ranker-v1', 'ui-scenario-ranker-v1', 'ui-scenario-height-ranker-v2'),
+                'brandOptions': [] if getattr(current.ranker,'schema',None) in ('scenario-ranker-v1','ui-scenario-ranker-v1','ui-scenario-height-ranker-v2') else getattr(current, 'brands', []),
                 'trainingCatalogCount': len(current.catalog) if hasattr(current, 'catalog') else len(current.vehicles),
                 'scorePolicy': current.policy,
                 'catalogSource': 'managed-database' if request.app.state.managed_catalog is not None else 'model-snapshot',
@@ -190,7 +191,7 @@ def create_app(service=None):
         try:
             profile = Profile(**payload.profile.model_dump(), down_payment=0, months=0, annual_rate=0, financing_mode='recommendation')
             current = current_service(request)
-            if getattr(current.ranker, 'schema', None) in ('scenario-ranker-v1', 'ui-scenario-ranker-v1'):
+            if getattr(current.ranker, 'schema', None) in ('scenario-ranker-v1', 'ui-scenario-ranker-v1', 'ui-scenario-height-ranker-v2'):
                 if payload.lifestyle is not None:
                     return problem(request,409,'입력 항목 변경 필요','현재 화면에서 이용 환경·차체·연료·크기를 다시 선택해 주세요.')
                 return {'success':True,'data':current.recommend(profile,payload.k,payload.scenario.model_dump() if payload.scenario else None)}

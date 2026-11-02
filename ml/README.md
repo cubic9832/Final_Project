@@ -2,10 +2,12 @@
 
 ## 현재 모델과 데이터
 
-- 기본 모델: `ml/outputs/models/scenario-choices/20261030-ui-v1-10k/`
-- 학습 자료: `data/households/synthetic/ui-scenario-population-v1-20261030/`
-- 합성 사용자 10,000명·비교 선택 99,442쌍으로 학습한 38입력 MLP다.
-- 재무·필수 좌석 조건을 검사한 뒤 학습 모델 점수로 정렬한다.
+- 기본 모델: `ml/outputs/models/scenario-choices/20261102-height-high-value-3m/`
+- 학습 자료: `data/households/synthetic/ui-height-high-value-3m-20261102/`
+- 합성 사용자 396,633명·비교 선택 3,000,000쌍으로 학습한 전고 포함 39입력 MLP다.
+- 재무·필수 좌석 조건과 가성비별 구매 가격대를 검사한 뒤 학습 모델 점수로 정렬한다.
+- 구매 가능 자금(예금에서 비상자금을 제외하고 별도 가격 상한을 적용한 금액)을 기준으로 가성비 높음(4~5)은 60~100%, 보통(3)은 70~100%, 낮음(1~2)은 80~100% 가격대의 후보를 우선 추천한다. 서로 다른 적격 모델이 요청 수보다 부족하면 하한 아래 차량으로 보충한다. 가격대 내/보충 그룹별로 취향·중요도를 반영한 점수순으로 정렬하며 구매 상한·재무·필수 좌석 조건은 완화하지 않는다.
+- 고자산 예외: 가격 하한이 전체 카탈로그 최고가를 넘어 추천이 비면, 재무·필수 좌석을 충족하는 차량 중 서로 다른 최고가 9개 모델을 먼저 고르고 취향·중요도가 반영된 ML 점수순으로 정렬한다. 모델별 최고가 사양을 후보로 사용하며 9개 미만이면 적격 모델만 반환한다.
 - 모델 파일·카탈로그·차량 특징의 SHA-256을 검증하고 로딩하며 요청마다 재학습하지 않는다.
 - 기존 hhc의 `candidate-preferences/20261027-seating-verified-v1` 모델은 보존한다.
 - 소스: `origin/ml/test`의 `230488c6`. 프론트엔드 변경도 후속 병합했으며 hhc의 채팅·진단 저장 기능을 함께 유지한다.
@@ -47,3 +49,11 @@ $env:PYTHONPATH='ml;.'
 & ./ml/.venv/Scripts/python.exe -m unittest discover -s ml/tests -p test_ui_scenario.py
 & ./ml/.venv/Scripts/python.exe -m unittest discover -s ml/tests -p test_scenario_training.py
 ```
+
+## 고가 차량·전고 300만 쌍 별도 재학습 (2026-11-02)
+
+- 모델: `outputs/models/scenario-choices/20261102-height-high-value-3m/`
+- 데이터: `data/households/synthetic/ui-height-high-value-3m-20261102/`
+- 347사양·117모델, 전고를 포함한 39입력. 비교 선택 정확히 300만 쌍.
+- 30에포크 학습 및 전체 데이터·재로딩·API 검증 완료. 상세 지표와 한계는 해당 모델 README.md를 참고한다.
+- 기본 실행 스크립트와 API에 적용했다. 이전 UI 모델은 `-Run outputs/models/scenario-choices/20261030-ui-v1-10k`로 선택할 수 있다.
