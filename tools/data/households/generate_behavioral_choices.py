@@ -124,13 +124,16 @@ def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + '\n', encoding='utf-8')
 
 
-def generate(output, vehicles, *, groups=25000, seed=20261028, source='explicit catalog'):
+def generate(output, vehicles, *, groups=25000, seed=20261028, source='explicit catalog',
+             target_profiles=None, shard_index=0, split_seed=None):
     if groups <= 0:
         raise ValueError('groups must be positive')
     validate_catalog(vehicles)
     vehicles = sorted(vehicles, key=lambda vehicle: vehicle.id)
     rule_texts = [path.read_text(encoding='utf-8') for path in (OLD_RULES, NEW_RULES)]
     seeds = {name: derived_seed(seed, name) for name in ('split', 'financial', 'preferences', 'behavior', 'candidates', 'choice')}
+    if split_seed is not None:
+        seeds['split'] = split_seed
     rngs = {name: random.Random(value) for name, value in seeds.items()}
     output.mkdir(parents=True, exist_ok=False)
     save_catalog(output / 'catalog.json', vehicles)
@@ -151,6 +154,8 @@ def generate(output, vehicles, *, groups=25000, seed=20261028, source='explicit 
         audits = {role: stack.enter_context((output / f'{role}_audit.jsonl').open('w', encoding='utf-8')) for role in ROLES}
         exclusions = stack.enter_context((output / 'excluded_profiles.jsonl').open('w', encoding='utf-8'))
         for group in range(groups):
+            if target_profiles is not None and sum(counts.values()) >= target_profiles:
+                break
             financial = financial_group(rngs['financial'], group)
             key = financial_key(Profile(**financial))
             if key in group_keys:
@@ -158,7 +163,12 @@ def generate(output, vehicles, *, groups=25000, seed=20261028, source='explicit 
             group_keys.add(key)
             role = split_for(key, seeds['split'])
             group_id = hashlib.sha256(key.encode()).hexdigest()
+            base_profile = Profile(**financial)
+            financial_candidates = [(index, cost) for index, vehicle in enumerate(vehicles)
+                                    if (cost := eligible_cost(base_profile, vehicle, Assumptions())) is not None]
             for variant in range(4):
+                if target_profiles is not None and sum(counts.values()) >= target_profiles:
+                    break
                 rng = rngs['preferences']
                 profile = Profile(**financial, preferred_body_type=rng.choice(('any', *BODY_TYPES, 'OTHER')),
                     preferred_fuel=rng.choice((None, *FUELS)), preferred_size=rng.choice(('any', 'small', 'medium', 'large')),
@@ -169,15 +179,15 @@ def generate(output, vehicles, *, groups=25000, seed=20261028, source='explicit 
                     rejected['duplicate-profile'] += 1
                     continue
                 signatures.add(signature)
-                profile_id = group * 4 + variant
+                profile_id = shard_index * 10**12 + group * 4 + variant
                 behavior_rng = rngs['behavior']
                 kind = behavior_rng.choice(tuple(TYPE_COEFFICIENTS))
                 coefficients = [base * behavior_rng.uniform(.8, 1.2) for base in TYPE_COEFFICIENTS[kind]]
                 tau = behavior_rng.uniform(.05, .15)
                 pool = defaultdict(list)
-                for index, vehicle in enumerate(vehicles):
-                    cost = eligible_cost(profile, vehicle, Assumptions())
-                    if cost is not None:
+                for index, cost in financial_candidates:
+                    vehicle = vehicles[index]
+                    if seating_status(profile, vehicle) == 'match':
                         pool[vehicle.brand, vehicle.model].append((index, cost))
                 if len(pool) < 2:
                     reason = 'fewer-than-two-eligible-models'
@@ -219,6 +229,8 @@ def generate(output, vehicles, *, groups=25000, seed=20261028, source='explicit 
                 counts[role] += 1
                 types[kind] += 1
     partitions = {}
+    if target_profiles is not None and sum(counts.values()) != target_profiles:
+        raise ValueError('Requested accepted profile count was not reached')
     for role, bucket in buckets.items():
         arrays = {'features': np.asarray(bucket['features'], dtype=np.float32).reshape(-1, len(FEATURE_NAMES)),
                   'comparisons': np.asarray(bucket['comparisons'], dtype=np.int64).reshape(-1, 2),
@@ -237,7 +249,8 @@ def generate(output, vehicles, *, groups=25000, seed=20261028, source='explicit 
                                 'coefficient_multiplier_range': [.8, 1.2], 'tau_range': [.05, .15],
                                 'profiles_per_group': 4, 'candidate_models_max': 16, 'comparisons_max': 8,
                                 'importance_values': [1, 3, 5], 'split_probabilities': [.7, .15, .15]},
-              'groups_requested': groups, 'profiles_attempted': groups * 4, 'partitions': partitions,
+              'groups_requested': groups, 'groups_generated': len(group_keys), 'profiles_attempted': len(signatures),
+              'target_profiles': target_profiles, 'shard_index': shard_index, 'partitions': partitions,
               'rejected': dict(rejected), 'accepted_behavior_types': dict(types), 'vehicle_exposure': dict(exposure),
               'vehicle_wins': dict(wins), 'catalog_count': len(vehicles), 'assumptions': Assumptions().to_dict(),
               'feature_names': list(FEATURE_NAMES), 'git_revision': revision, 'git_dirty': dirty,
@@ -277,10 +290,13 @@ def audit_saved(directory):
             records[record['id']] = profile
         with np.load(directory / f'{role}_choices.npz', allow_pickle=False) as arrays:
             x, pairs, labels = arrays['features'], arrays['comparisons'], arrays['labels']
+            row_profile_ids = arrays['profile_ids']
+            row_vehicle_indices = arrays['vehicle_indices']
             if not np.isfinite(x).all() or x.shape[1:] != (len(FEATURE_NAMES),) or len(pairs) != len(labels):
                 raise ValueError('Invalid stored feature/choice arrays')
             used, seen_pairs, audit_count = set(), set(), 0
             behavior_by_profile = {}
+            audited_rows = {}
             with (directory / f'{role}_audit.jsonl').open(encoding='utf-8') as stream:
                 for offset, line in enumerate(stream):
                     if offset >= len(pairs):
@@ -291,7 +307,7 @@ def audit_saved(directory):
                         raise ValueError('Comparison index out of bounds')
                     profile_id = record['profile_id']
                     profile = records[profile_id]
-                    i, j = int(arrays['vehicle_indices'][first]), int(arrays['vehicle_indices'][second])
+                    i, j = int(row_vehicle_indices[first]), int(row_vehicle_indices[second])
                     a, b = vehicles[i], vehicles[j]
                     pair_key = (profile_id, *sorted((a.id, b.id)))
                     if pair_key in seen_pairs or (a.brand, a.model) == (b.brand, b.model):
@@ -305,11 +321,18 @@ def audit_saved(directory):
                         raise ValueError('Behavior coefficient outside configured range')
                     if behavior_by_profile.setdefault(profile_id, state) != state:
                         raise ValueError('User behavior changed across choices')
-                    costs = [eligible_cost(profile, car, Assumptions()) for car in (a, b)]
+                    costs = []
+                    for row, car in zip((first, second), (a, b)):
+                        if row not in audited_rows:
+                            cost = eligible_cost(profile, car, Assumptions())
+                            if cost is None or row_profile_ids[row] != profile_id or not np.array_equal(x[row], encode_preference(profile, car, cost=cost)):
+                                raise ValueError('Ineligible or mismatched feature row')
+                            audited_rows[row] = cost
+                        costs.append(audited_rows[row])
                     if any(cost is None for cost in costs) or [a.id, b.id] != [record['a'], record['b']]:
                         raise ValueError('Ineligible or mismatched saved comparison')
                     for row, car, cost in zip((first, second), (a, b), costs):
-                        if arrays['profile_ids'][row] != profile_id or not np.array_equal(x[row], encode_preference(profile, car, cost=cost)):
+                        if row_profile_ids[row] != profile_id:
                             raise ValueError('Feature mismatch or cross-person comparison')
                     ua, ub = [utility(profile, car, cost, record['coefficients']) for car, cost in zip((a, b), costs)]
                     p = choice_probability(ua, ub, record['tau'])

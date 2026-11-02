@@ -34,7 +34,7 @@ class LifestyleChoiceTests(unittest.TestCase):
         self.assertAlmostEqual(traits[research['id']]['values']['acceleration_performance'], .95)
         existing = next(c for c in cars if c['brand'] == '기아' and c['model'] == '레이')
         self.assertEqual(traits[existing['id']]['values']['exterior_angularity'], 1)
-        mask = comparison_mask({'purpose': 'weekend-drive', 'brand': None}, traits[research['id']], traits[existing['id']], False)
+        mask = comparison_mask({'purpose': 'weekend-drive', 'brand': None, 'targets': dict.fromkeys(DIMENSIONS, .5)}, traits[research['id']], traits[existing['id']], False)
         self.assertEqual(mask[DIMENSIONS.index('acceleration_performance')], 0)
         self.assertEqual(mask[len(DIMENSIONS)], 0)
         self.assertEqual(mask[-1], 0)

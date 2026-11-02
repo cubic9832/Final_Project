@@ -21,11 +21,10 @@ from tools.data.households.generate_behavioral_choices import (
     sha256, split_for, write_json,
 )
 
-VERSION = 'lifestyle-choice-v2-evidence'
-PURPOSES = ('commute', 'family', 'camping', 'weekend-drive', 'business')
-# Capacity is NOT sufficient evidence of camping suitability; cargo is unknown.
-PURPOSE_DIMENSIONS = ('compactness', 'seat_capacity', None, 'acceleration_performance', 'ride_comfort')
-FEATURE_NAMES = tuple(f'{name}_match' for name in DIMENSIONS) + ('purpose_match', 'body_match', 'brand_match', 'asset_retention')
+from vehicle_matching.lifestyle_features import (
+    DATASET_SCHEMA as VERSION, DIMENSIONS, PURPOSES, PURPOSE_DIMENSIONS, FEATURE_NAMES,
+    encode, comparison_mask, effective_weights, score, comparison_channels,
+)
 DEFAULT_BASE = ROOT / 'data/households/synthetic/sports-official-v1-20261028/catalog.json'
 DEFAULT_LUXURY = ROOT / 'data/vehicles/luxury-sports-review-20261028/reviewed.json'
 ROLES = ('train', 'validation', 'test')
@@ -70,38 +69,8 @@ def safe_cost(profile, car):
     return eligible_cost(profile, Vehicle(**{k: v for k, v in car.items() if k in names}), Assumptions())
 
 
-def encode(taste, attributes, car, retention):
-    values = attributes['values']
-    matches = [0 if values[name] is None else 1 - abs(taste['targets'][name] - values[name]) for name in DIMENSIONS]
-    purpose_dimension = PURPOSE_DIMENSIONS[PURPOSES.index(taste['purpose'])]
-    purpose = values.get(purpose_dimension) or 0
-    body = float(attributes['body_type'] == taste['body_type'])
-    brand = .5 if taste['brand'] is None else float(taste['brand'] == car['brand'])
-    return matches + [purpose, body, brand, retention]
-
-
-def comparison_mask(taste, a, b, eligible):
-    masks = pair_masks(a, b)
-    dimension = PURPOSE_DIMENSIONS[PURPOSES.index(taste['purpose'])]
-    purpose_known = dimension is not None and a['values'][dimension] is not None and b['values'][dimension] is not None
-    return masks + [int(purpose_known), int(a['body_type'] is not None and b['body_type'] is not None),
-                    int(taste['brand'] is not None), int(eligible)]
-
-
 def informative(a, b):
     return bool(comparison_channels(a, b))
-
-
-def comparison_channels(a, b):
-    channels = [name for name in DIMENSIONS if a['values'][name] is not None
-                and b['values'][name] is not None and a['values'][name] != b['values'][name]]
-    if a['body_type'] is not None and b['body_type'] is not None and a['body_type'] != b['body_type']:
-        channels.append('body_type')
-    return channels
-
-
-def score(features, weights):
-    return sum(a * b for a, b in zip(features, weights)) / sum(weights)
 
 
 def generate(output, cars, *, groups=20000, seed=20261028, sources=(), reviews=None):
@@ -130,6 +99,8 @@ def generate(output, cars, *, groups=20000, seed=20261028, sources=(), reviews=N
     with ExitStack() as stack:
         streams = {role: stack.enter_context((output / f'{role}.jsonl').open('w', encoding='utf-8')) for role in ROLES}
         for group in range(groups):
+            if groups >= 10000 and group % 10000 == 0:
+                print(canonical({'stage': 'generate', 'groups': group, 'target': groups}), flush=True)
             financial = financial_group(rng, group)
             financial['minimum_seats'] = rng.choice((0, 2, 4, 5, 7))
             profile = Profile(**financial)
@@ -152,13 +123,15 @@ def generate(output, cars, *, groups=20000, seed=20261028, sources=(), reviews=N
             purpose = rng.choice(PURPOSES)
             brand = rng.choice((None, *sorted({car['brand'] for car in cars})))
             body = rng.choice(sorted({entry['body_type'] for entry in attrs.values() if entry['body_type'] is not None}))
+            fuel = rng.choice((None, 'GASOLINE', 'HYBRID', 'DIESEL', 'LPG', 'ELECTRIC'))
+            size = rng.choice(('any', 'small', 'medium', 'large'))
             targets = {name: rng.random() for name in DIMENSIONS}
             for variant in range(2):
                 taste = {'targets': targets if variant == 0 else {name: 1 - value for name, value in targets.items()},
-                         'purpose': purpose, 'brand': brand, 'body_type': body}
-                masks = comparison_mask(taste, attrs[a['id']], attrs[b['id']], eligible)
-                weights = [weight * mask for weight, mask in zip(importance, masks)]
-                weights[-1] = min(weights[-1], .2 * sum(weights[:-1]))
+                         'purpose': purpose, 'brand': brand, 'body_type': body,
+                         'fuel': fuel, 'size': size}
+                masks = comparison_mask(taste, attrs[a['id']], attrs[b['id']], eligible, a, b)
+                weights = effective_weights(importance, masks)
                 fa, fb = [encode(taste, attrs[car['id']], car, r) for car, r in zip((a, b), retention)]
                 fa, fb = [[value * mask for value, mask in zip(features, masks)] for features in (fa, fb)]
                 ua, ub = score(fa, weights), score(fb, weights)
@@ -184,6 +157,9 @@ def generate(output, cars, *, groups=20000, seed=20261028, sources=(), reviews=N
         arrays = {name: np.asarray(value, dtype=np.float32).reshape(-1, len(FEATURE_NAMES)) if name in ('a', 'b', 'weights', 'masks')
                   else np.asarray(value, dtype=np.int8) for name, value in bucket.items()}
         np.savez_compressed(output / f'{role}_choices.npz', **arrays)
+        bucket.clear()
+    buckets.clear()
+    keys.clear()
     report = {'schema': VERSION, 'seed': seed, 'groups': groups, 'profiles': groups * 2,
               'catalog_count': len(cars), 'model_families': len({(c['brand'], c['model']) for c in cars}),
               'feature_names': FEATURE_NAMES, 'partitions': dict(counts), 'tasks': dict(tasks),
@@ -192,6 +168,7 @@ def generate(output, cars, *, groups=20000, seed=20261028, sources=(), reviews=N
               'sources': {str(path): sha256(path) for path in sources},
               'trait_coverage': {name: sum(entry['values'][name] is not None for entry in attrs.values()) for name in DIMENSIONS},
               'traits_sha256': sha256(output / 'vehicle_traits.json'),
+              'audit_progress': groups >= 10000,
               'policy': {'finance_weight_max_ratio_to_nonfinancial': .2,
                          'purpose_proxies': dict(zip(PURPOSES, PURPOSE_DIMENSIONS)),
                          'acceleration_normalization': 'clip((12 - seconds_0_100) / 10, 0, 1)',
@@ -241,9 +218,8 @@ def audit_saved(output):
                     eligible = all(cost is not None for cost in costs)
                     if row['financial_eligible'] != eligible or row['task'] != ('eligible-preference' if eligible else 'taste-only'):
                         raise ValueError('Financial eligibility mismatch')
-                    masks = comparison_mask(row['taste'], attrs[pair[0]['id']], attrs[pair[1]['id']], eligible)
-                    expected_weights = [w * m for w, m in zip(row['importance'], masks)]
-                    expected_weights[-1] = min(expected_weights[-1], .2 * sum(expected_weights[:-1]))
+                    masks = comparison_mask(row['taste'], attrs[pair[0]['id']], attrs[pair[1]['id']], eligible, *pair)
+                    expected_weights = effective_weights(row['importance'], masks)
                     if row['masks'] != masks or row['weights'] != expected_weights or not np.array_equal(masks, arrays['masks'][offset - 1]):
                         raise ValueError('Unknown-evidence mask mismatch')
                     for name, car, cost in zip(('a', 'b'), pair, costs):
@@ -263,6 +239,8 @@ def audit_saved(output):
                         raise ValueError('Stored label or weights mismatch')
                     exposure.update(car['id'] for car in pair)
                     checked += 1
+                    if report.get('audit_progress') and checked % 50000 == 0:
+                        print(canonical({'stage': 'audit', 'comparisons': checked}), flush=True)
             if offset != len(arrays['labels']):
                 raise ValueError('Array/record count mismatch')
     if checked != report['profiles'] or dict(exposure) != report['exposure']:
@@ -280,10 +258,15 @@ def main():
     parser.add_argument('--reviews', type=Path, default=DEFAULT_REVIEWS)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--groups', type=int, default=20000)
+    parser.add_argument('--profiles', type=int, help='Even number of comparison rows; overrides groups')
     parser.add_argument('--seed', type=int, default=20261028)
     args = parser.parse_args()
+    if args.profiles is not None:
+        if args.profiles < 2 or args.profiles % 2:
+            parser.error('--profiles must be a positive even number')
+        args.groups = args.profiles // 2
     report = generate(args.output, load_catalog(args.base, args.luxury), groups=args.groups,
-                      seed=args.seed, sources=(args.base, args.luxury, args.reviews, Path(__file__), ROOT / 'tools/data/vehicles/lifestyle_traits.py'),
+                      seed=args.seed, sources=(args.base, args.luxury, args.reviews, Path(__file__), ROOT / 'tools/data/vehicles/lifestyle_traits.py', ROOT / 'ml/vehicle_matching/lifestyle_features.py'),
                       reviews=read_reviews(args.reviews))
     print(canonical({key: report[key] for key in ('catalog_count', 'profiles', 'partitions', 'tasks', 'unexposed_ids')}))
 

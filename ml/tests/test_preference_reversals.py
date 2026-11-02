@@ -1,6 +1,6 @@
 import unittest
 
-from experiments.audit_preference_reversals import classify_reversal, decompose
+from vehicle_matching.audit_preference_reversals import classify_reversal, decompose
 
 
 class PreferenceReversalTests(unittest.TestCase):
