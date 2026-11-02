@@ -1,7 +1,17 @@
 // 7단계: 운영 로그 표시 도우미 (운영 로그 탭 · 운영 현황 "최근 운영 이력" 이 같이 쓴다)
 import { ROLE_LABELS } from '../../features/auth/roles';
 
-export const ACTION_LABELS = { ROLE_CHANGE: '권한 변경', LOGIN_UNLOCK: '잠금 해제', MAIL_SENT: '메일 발송', MAIL_FAILED: '메일 발송 실패' };
+// 작업 코드 → 화면 이름 (8단계 상담 기록 · 보완 13 메일 기록 포함, 없으면 코드 그대로 보인다)
+export const ACTION_LABELS = {
+  ROLE_CHANGE: '권한 변경',
+  LOGIN_UNLOCK: '잠금 해제',
+  CHAT_WARN: '상담 경고',
+  CHAT_RESTRICT: '상담 제한',
+  CHAT_UNRESTRICT: '상담 제한 풀기',
+  CHAT_TRANSFER: '상담 넘기기',
+  MAIL_SENT: '메일 발송',
+  MAIL_FAILED: '메일 발송 실패',
+};
 
 // "2026-10-26T17:30:12" → "2026.10.26 17:30"
 export const formatLogTime = (value) => `${value.slice(0, 10).replaceAll('-', '.')} ${value.slice(11, 16)}`;
