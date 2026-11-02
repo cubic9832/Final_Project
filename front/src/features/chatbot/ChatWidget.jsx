@@ -4,8 +4,6 @@ import theme from '../../styles/theme';
 import { sendChatMessage, sendChatGuide, getChatHistory, clearChatHistory } from './chatApi';
 import useChatStore from './useChatStore';
 import ConsultationLink from '../chat/components/ConsultationLink';
-import ConsultationSuggest from '../chat/components/ConsultationSuggest';
-import AnswerFeedback from '../chat/components/AnswerFeedback';
 import './ChatWidget.css';
 
 const categories = [
@@ -143,8 +141,7 @@ export default function ChatWidget() {
       if (!mounted.current) return;
       setRemaining(result.remaining);
       setMessages([...messages.slice(-8), { role: 'user', text: result.question },
-        // 보완 14(류상민): 이 화면에서 받은 답(live)에만 "도움이 됐나요?" 를 붙인다 (불러온 지난 기록에는 안 붙임)
-        { role: 'model', text: result.answer, live: true }]);
+        { role: 'model', text: result.answer }]);
     } catch (failure) {
       if (mounted.current) {
         setMessages(messages);
@@ -242,8 +239,6 @@ export default function ChatWidget() {
               <div className={`chat-bubble chat-${message.role}`} key={index}>
                 <span className="chat-speaker">{message.role === 'user' ? '나' : <><Compass size={theme.iconSize.sm} aria-hidden="true" /> 콤파</>}</span>
                 <p>{message.text}</p>
-                {message.live && <AnswerFeedback onNavigate={close}
-                  remind={index === messages.length - 1 && messages.filter((m) => m.role === 'user').length >= 3} />}
               </div>
             ))}
             {pending && <div className="chat-progress" role="status">
@@ -253,8 +248,6 @@ export default function ChatWidget() {
             <div ref={bottom} />
           </div>
           {error && <p className="chat-error" role="alert">{error}</p>}
-          {/* 보완 14(류상민): 답을 못 받았거나 오늘 AI 질문을 다 쓰면 상담원 안내 */}
-          {(error || remaining === 0) && <ConsultationSuggest reason="error" onNavigate={close} />}
           {!loaded && <div className="chat-progress"><button type="button" disabled={pending} onClick={reloadHistory}>대화 기록 다시 불러오기</button></div>}
           <form className="chat-form" onSubmit={(event) => { event.preventDefault(); send(); }} aria-busy={pending}>
             <label className="chat-input-label" htmlFor="chat-question">질문 입력</label>
