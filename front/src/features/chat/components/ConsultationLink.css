@@ -18,3 +18,58 @@
 .consultation-link:hover {
   border-color: var(--color-blue);
 }
+
+/* 보완 14: 콤파 답 아래 상담원 연결 안내 */
+.consultation-suggest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  padding: var(--space-8) var(--space-12);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.consultation-suggest p {
+  margin: 0;
+  font-size: var(--font-caption);
+  color: var(--color-text-sub);
+  text-align: center;
+}
+
+.consultation-suggest .consultation-link {
+  margin: 0;
+}
+
+/* 보완 14: 콤파 답 아래 "도움이 됐나요?" */
+.answer-feedback-ask {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+  font-size: var(--font-caption);
+  color: var(--color-text-sub);
+}
+
+.answer-feedback-ask button {
+  padding: 2px var(--space-8);
+  font-size: var(--font-caption);
+  color: var(--color-text-sub);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.answer-feedback-ask button:hover {
+  color: var(--color-blue-strong);
+  border-color: var(--color-blue);
+}
+
+.answer-feedback-thanks {
+  margin: var(--space-8) 0 0;
+  font-size: var(--font-caption);
+  color: var(--color-text-sub);
+}

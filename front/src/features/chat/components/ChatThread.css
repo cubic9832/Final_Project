@@ -1,21 +1,22 @@
-/* 8단계: 1:1 상담 대화 (회원 상담 화면 · 관리자 상담 탭 공용) */
+/* 8단계: 1:1 상담 대화 (회원 상담 화면 · 관리자 상담 탭 공용)
+   보완 14: 모든 규칙을 .chat-thread 안으로 — 콤파(ChatWidget.css)와 .chat-bubble · .chat-error 이름이 겹쳐 콤파 답변에도 테두리가 씌워졌다 */
 .chat-thread {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
 }
 
-.chat-connection {
+.chat-thread .chat-connection {
   margin: 0;
   font-size: var(--font-caption);
   color: var(--color-danger);
 }
 
-.chat-connection.is-on {
+.chat-thread .chat-connection.is-on {
   color: var(--color-mint-strong);
 }
 
-.chat-board {
+.chat-thread .chat-board {
   height: 52vh;
   min-height: 280px;
   margin: 0;
@@ -30,14 +31,14 @@
   border-radius: var(--radius-md);
 }
 
-.chat-empty,
-.chat-system {
+.chat-thread .chat-empty,
+.chat-thread .chat-system {
   align-self: center;
   font-size: var(--font-caption);
   color: var(--color-muted);
 }
 
-.chat-system {
+.chat-thread .chat-system {
   padding: var(--space-4) var(--space-12);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -45,7 +46,7 @@
 }
 
 /* 날짜 구분선: ──── 2026년 10월 30일 (금) ──── */
-.chat-date {
+.chat-thread .chat-date {
   align-self: stretch;
   display: flex;
   align-items: center;
@@ -56,8 +57,8 @@
   color: var(--color-muted);
 }
 
-.chat-date::before,
-.chat-date::after {
+.chat-thread .chat-date::before,
+.chat-thread .chat-date::after {
   content: '';
   flex: 1;
   height: 1px;
@@ -65,24 +66,24 @@
 }
 
 /* 상대 메시지는 왼쪽, 내 메시지는 오른쪽 */
-.chat-bubble {
+.chat-thread .chat-bubble {
   max-width: 72%;
   align-self: flex-start;
 }
 
-.chat-bubble.is-mine {
+.chat-thread .chat-bubble.is-mine {
   align-self: flex-end;
   text-align: right;
 }
 
-.chat-bubble small {
+.chat-thread .chat-bubble small {
   display: block;
   margin-bottom: var(--space-4);
   font-size: var(--font-caption);
   color: var(--color-muted);
 }
 
-.chat-bubble p {
+.chat-thread .chat-bubble p {
   display: inline-block;
   margin: 0;
   padding: var(--space-8) var(--space-12);
@@ -95,24 +96,24 @@
   border-radius: var(--radius-md);
 }
 
-.chat-bubble.is-mine p {
+.chat-thread .chat-bubble.is-mine p {
   color: #fff;
   background: var(--color-primary);
   border-color: var(--color-primary);
 }
 
-.chat-error {
+.chat-thread .chat-error {
   margin: 0;
   font-size: var(--font-body);
   color: var(--color-danger);
 }
 
-.chat-send {
+.chat-thread .chat-send {
   display: flex;
   gap: var(--space-8);
 }
 
-.chat-send > input {
+.chat-thread .chat-send > input {
   flex: 1;
   min-width: 0;
   height: var(--layout-control-height);
@@ -122,12 +123,12 @@
   border-radius: var(--radius-sm);
 }
 
-.chat-send > input:focus {
+.chat-thread .chat-send > input:focus {
   outline: none;
   border-color: var(--color-blue);
 }
 
-.chat-send > button[type="submit"] {
+.chat-thread .chat-send > button[type="submit"] {
   min-width: 88px;
   padding: 0 var(--space-16);
   font-weight: 600;
@@ -138,12 +139,12 @@
   cursor: pointer;
 }
 
-.chat-send > button[type="submit"]:disabled {
+.chat-thread .chat-send > button[type="submit"]:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.chat-disabled {
+.chat-thread .chat-disabled {
   margin: 0;
   padding: var(--space-12);
   font-size: var(--font-body);
