@@ -176,6 +176,9 @@ public class MemberServiceImpl implements MemberService {
             throw new ApiException(HttpStatus.FORBIDDEN, "SUPER_ADMIN_WITHDRAW",
                     "총관리자는 탈퇴할 수 없습니다. 다른 총관리자를 먼저 지정해 주세요.");
         }
+        // 9단계: 정지 중에는 탈퇴할 수 없다 — 탈퇴 → 같은 이메일로 다시 가입해 정지를 피하지 못하게
+        // (정지하면 로그인이 막히지만, 이미 받은 access token 이 최대 30분 남아 있을 수 있다)
+        AccountSuspension.requireActive(member);
 
         if (member.isSocialOnly()) {
             // 보완 8: 구글로만 가입한 회원은 비밀번호가 없다 → "탈퇴" 를 직접 입력했는지로 확인

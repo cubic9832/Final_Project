@@ -11,15 +11,18 @@ import java.time.Period;
  *
  * @param loginMethod EMAIL · GOOGLE · BOTH (이메일 가입 후 구글 연결)
  * @param lockedMinutes 로그인 5번 실패로 잠긴 남은 분 (0 이면 잠금 없음, 보완 6)
+ * @param suspendedUntil 9단계: 계정 정지가 끝나는 시각 (정지 중이 아니면 null, 9999년 = 영구)
  */
 public record AdminMemberResponse(Long id, String nickName, String emailMasked, String role,
                                   LocalDateTime joinedAt, String loginMethod, String ageBand, String gender,
-                                  int activeSessions, LocalDateTime lastUsedAt, long lockedMinutes) {
+                                  int activeSessions, LocalDateTime lastUsedAt, long lockedMinutes,
+                                  LocalDateTime suspendedUntil) {
 
     public static AdminMemberResponse from(AdminMemberRow row, long lockedMinutes) {
         return new AdminMemberResponse(row.getId(), row.getNickName(), maskEmail(row.getEmail()), row.getRole(),
                 row.getCreatedAt(), loginMethod(row), ageBand(row.getBirthDate()), row.getGender(),
-                row.getActiveSessions(), row.getLastUsedAt(), lockedMinutes);
+                row.getActiveSessions(), row.getLastUsedAt(), lockedMinutes,
+                row.isSuspended() ? row.getSuspendedUntil() : null);
     }
 
     private static String loginMethod(AdminMemberRow row) {

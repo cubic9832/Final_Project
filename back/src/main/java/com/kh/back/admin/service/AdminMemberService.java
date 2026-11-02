@@ -20,4 +20,10 @@ public interface AdminMemberService {
 
     // 관리자가 회원의 로그인 실패 기록 · 잠금(보완 6)을 지운다. 운영 로그에 남긴다
     void unlockLogin(Long actorId, Long targetId);
+
+    // 9단계: 총관리자가 일반 회원의 계정을 정지한다 (days 0 = 영구). 로그인된 기기는 모두 로그아웃, 운영 로그에 사유
+    void suspend(Long actorId, Long targetId, int days, String reason);
+
+    // 9단계: 총관리자가 정지를 푼다
+    void unsuspend(Long actorId, Long targetId);
 }

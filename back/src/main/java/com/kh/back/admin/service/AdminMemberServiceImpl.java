@@ -10,8 +10,11 @@ import com.kh.back.admin.mapper.AdminMemberMapper;
 import com.kh.back.auth.mapper.RefreshTokenMapper;
 import com.kh.back.auth.service.LoginAttemptLimiter;
 import com.kh.back.chat.service.ChatRoomService;
+import com.kh.back.common.security.CurrentRoleLookup;
+import com.kh.back.member.service.AccountSuspension;
 import com.kh.back.common.exception.ApiException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +38,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     private final RefreshTokenMapper refreshTokenMapper;
     private final AdminAuditLogMapper adminAuditLogMapper; // V13: 운영 로그
     private final ChatRoomService chatRoomService; // 8단계: 관리자에서 해제되면 맡던 상담을 대기로
+    private final CurrentRoleLookup currentRoleLookup; // 9단계: 계정 정지는 총관리자만 (DB 의 지금 권한)
 
     @Override
     @Transactional(readOnly = true)
@@ -118,6 +122,51 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         }
         loginAttemptLimiter.reset(email);
         adminAuditLogMapper.insert(actorId, "LOGIN_UNLOCK", "MEMBER", targetId, "로그인 잠금 해제");
+    }
+
+    // 9단계: 계정 정지 — 총관리자만, 일반 회원만 (관리자는 먼저 권한을 뺀다), 자기 자신은 안 됨
+    // 정지 = 정지가 끝나는 시각 저장 + 로그인된 기기 모두 로그아웃 → 로그인 · 로그인 유지 · 탈퇴가 막힌다 (AccountSuspension)
+    //   이미 받은 access token 은 최대 30분 남는다 (5단계와 같은 한계)
+    @Override
+    @Transactional
+    public void suspend(Long actorId, Long targetId, int days, String reason) {
+        requireSuperAdmin(actorId);
+        String role = targetRole(actorId, targetId);
+        if (!"USER".equals(role)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "ADMIN_SUSPEND", "관리자는 정지할 수 없습니다. 먼저 관리자 권한을 빼 주세요.");
+        }
+        adminMemberMapper.suspend(targetId, AccountSuspension.until(days, LocalDateTime.now()));
+        refreshTokenMapper.deleteByUserId(targetId);
+        String period = days == AccountSuspension.PERMANENT ? "영구" : days + "일";
+        adminAuditLogMapper.insert(actorId, "MEMBER_SUSPEND", "MEMBER", targetId, "계정 정지 " + period + " (" + reason.strip() + ")");
+    }
+
+    @Override
+    @Transactional
+    public void unsuspend(Long actorId, Long targetId) {
+        requireSuperAdmin(actorId);
+        targetRole(actorId, targetId);
+        adminMemberMapper.unsuspend(targetId);
+        adminAuditLogMapper.insert(actorId, "MEMBER_UNSUSPEND", "MEMBER", targetId, "계정 정지 풀기");
+    }
+
+    // 계정 정지 · 풀기는 총관리자만 (DB 의 지금 권한으로 확인)
+    private void requireSuperAdmin(Long actorId) {
+        if (!"SUPER_ADMIN".equals(currentRoleLookup.currentRole(actorId))) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "SUPER_ADMIN_ONLY", "계정 정지는 총관리자만 할 수 있습니다.");
+        }
+    }
+
+    // 대상 회원의 권한 (자기 자신이면 거절, 없으면 404)
+    private String targetRole(Long actorId, Long targetId) {
+        if (actorId.equals(targetId)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "SELF_SUSPEND", "자기 자신은 정지할 수 없습니다.");
+        }
+        String role = adminMemberMapper.findRole(targetId);
+        if (role == null) {
+            throw targetNotFound();
+        }
+        return role;
     }
 
     // 대상 회원이 없을 때 (관리자 화면을 열어 둔 사이 탈퇴 등)

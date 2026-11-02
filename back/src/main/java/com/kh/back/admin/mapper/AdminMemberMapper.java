@@ -28,6 +28,11 @@ public interface AdminMemberMapper {
 
     int revokeAdmin(Long id);
 
+    // 9단계: 계정 정지 (until = 정지가 끝나는 시각) · 풀기
+    int suspend(@Param("id") Long id, @Param("until") LocalDateTime until);
+
+    int unsuspend(Long id);
+
     int countJoinedSince(LocalDateTime since);
 
     int countGoogle();

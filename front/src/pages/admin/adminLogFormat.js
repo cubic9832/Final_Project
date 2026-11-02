@@ -9,12 +9,18 @@ export const ACTION_LABELS = {
   CHAT_RESTRICT: '상담 제한',
   CHAT_UNRESTRICT: '상담 제한 풀기',
   CHAT_TRANSFER: '상담 넘기기',
+  MEMBER_SUSPEND: '계정 정지',
+  MEMBER_UNSUSPEND: '계정 정지 풀기',
   MAIL_SENT: '메일 발송',
   MAIL_FAILED: '메일 발송 실패',
 };
 
 // "2026-10-26T17:30:12" → "2026.10.26 17:30"
 export const formatLogTime = (value) => `${value.slice(0, 10).replaceAll('-', '.')} ${value.slice(11, 16)}`;
+
+// 9단계: 계정 정지 표시 — "9999-12-31T23:59:59" → "영구 정지", 그 밖은 "11.09 14:00까지 정지"
+export const suspendedText = (until) =>
+  until.startsWith('9999') ? '영구 정지' : `${until.slice(5, 10).replace('-', '.')} ${until.slice(11, 16)}까지 정지`;
 
 // 이름이 없으면(탈퇴) 번호와 함께 "탈퇴한 회원"
 export const personName = (nickName, id) => nickName ?? (id ? `탈퇴한 회원 #${id}` : '탈퇴한 회원');

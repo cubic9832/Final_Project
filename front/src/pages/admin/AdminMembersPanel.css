@@ -163,3 +163,27 @@
 .admin-table .admin-member-role p strong {
   display: inline;
 }
+
+/* 9단계: 총관리자 계정 정지 — 기간 · 사유 (상담 제한과 같은 모양) */
+.admin-member-suspend {
+  display: grid;
+  gap: var(--space-12);
+}
+
+.admin-member-suspend label {
+  display: grid;
+  gap: var(--space-4);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.admin-member-suspend select,
+.admin-member-suspend input {
+  height: 40px;
+  padding: 0 var(--space-12);
+  font-size: var(--font-body);
+  font-weight: 400;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}

@@ -10,6 +10,8 @@ import { changeMemberRole, getAdminMembers, getMemberSummary, unlockMemberLogin 
 import { ROLE_LABELS } from '../../features/auth/roles';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
+import MemberSuspendActions from './MemberSuspendActions';
+import { suspendedText } from './adminLogFormat';
 import './AdminMembersPanel.css';
 
 const PAGE_SIZE = 10;
@@ -235,8 +237,10 @@ function MemberList({ version, onChanged }) {
                     <td>{LOGIN_METHODS[member.loginMethod]}</td>
                     <td>{ROLE_LABELS[member.role] ?? member.role}</td>
                     <td>
-                      <span className={`admin-status ${member.lockedMinutes > 0 ? 'is-check' : 'is-ok'}`}>
-                        {member.lockedMinutes > 0 ? `로그인 잠금 ${member.lockedMinutes}분` : '정상'}
+                      {/* 9단계: 계정 정지가 로그인 잠금보다 먼저 보인다 */}
+                      <span className={`admin-status ${member.suspendedUntil || member.lockedMinutes > 0 ? 'is-check' : 'is-ok'}`}>
+                        {member.suspendedUntil ? suspendedText(member.suspendedUntil)
+                          : member.lockedMinutes > 0 ? `로그인 잠금 ${member.lockedMinutes}분` : '정상'}
                       </span>
                     </td>
                     <td>
@@ -304,8 +308,10 @@ function MemberDetail({ member, onClose, onChanged }) {
             {member.lockedMinutes > 0 && <UnlockButton member={member} onChanged={onChanged} />}
           </dd>
         </div>
+        <div><dt>계정 정지</dt><dd>{member.suspendedUntil ? suspendedText(member.suspendedUntil) : '정지 없음'}</dd></div>
       </dl>
       <RoleActions member={member} onChanged={onChanged} />
+      <MemberSuspendActions member={member} onChanged={onChanged} />
     </div>
   );
 }

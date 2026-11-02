@@ -2,6 +2,7 @@ package com.kh.back.admin.controller;
 
 import com.kh.back.admin.dto.AdminMemberResponse;
 import com.kh.back.admin.dto.AdminMemberSummary;
+import com.kh.back.admin.dto.MemberSuspendRequest;
 import com.kh.back.admin.dto.RoleChangeRequest;
 import com.kh.back.admin.service.AdminMemberService;
 import com.kh.back.common.dto.ApiResponse;
@@ -66,6 +67,22 @@ public class AdminMemberApiController {
     @PostMapping("/{id}/unlock")
     public ApiResponse<Void> unlock(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
         adminMemberService.unlockLogin(userId, id);
+        return ApiResponse.ok(null);
+    }
+
+    // POST /api/v1/admin/members/{id}/suspend — 9단계 계정 정지 { days: 7 (0 = 영구), reason } (총관리자만, 서비스에서 확인)
+    // 호출: AdminMembersPanel.jsx 회원 상세 [계정 정지] → adminApi.suspendMember
+    @PostMapping("/{id}/suspend")
+    public ApiResponse<Void> suspend(@AuthenticationPrincipal Long userId, @PathVariable Long id,
+                                     @Valid @RequestBody MemberSuspendRequest request) {
+        adminMemberService.suspend(userId, id, request.getDays(), request.getReason());
+        return ApiResponse.ok(null);
+    }
+
+    // POST /api/v1/admin/members/{id}/unsuspend — 9단계 정지 풀기 (총관리자만)
+    @PostMapping("/{id}/unsuspend")
+    public ApiResponse<Void> unsuspend(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
+        adminMemberService.unsuspend(userId, id);
         return ApiResponse.ok(null);
     }
 }
