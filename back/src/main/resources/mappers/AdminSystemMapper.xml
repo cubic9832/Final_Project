@@ -14,4 +14,21 @@
         ORDER BY installed_rank DESC
         LIMIT 1
     </select>
+
+    <!-- 보완 13: 메일 발송 — 운영 로그 표의 MAIL_SENT · MAIL_FAILED (MailSendLogger 가 남김)
+         최근 24시간 성공 · 실패 수 (시각은 둘 다 DB 기준이라 서버 시간대와 상관없음) -->
+    <select id="countMailSince" resultType="int">
+        SELECT COUNT(*) FROM admin_audit_logs
+        WHERE created_at >= NOW() - INTERVAL 1 DAY
+          AND action = <choose><when test="success">'MAIL_SENT'</when><otherwise>'MAIL_FAILED'</otherwise></choose>
+    </select>
+
+    <!-- 마지막 실패 (24시간과 상관없이). 없으면 null. 사유 = 내용 칸 (가린 주소 · 예외 종류: 메시지) -->
+    <select id="findLastMailFailedAt" resultType="java.time.LocalDateTime">
+        SELECT created_at FROM admin_audit_logs WHERE action = 'MAIL_FAILED' ORDER BY id DESC LIMIT 1
+    </select>
+
+    <select id="findLastMailFailedReason" resultType="string">
+        SELECT detail FROM admin_audit_logs WHERE action = 'MAIL_FAILED' ORDER BY id DESC LIMIT 1
+    </select>
 </mapper>

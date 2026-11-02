@@ -40,6 +40,12 @@ export const getSystemStatus = async (signal) => {
   return res.data.data;
 };
 
+// 보완 13: 메일 발송 최근 24시간 → { mailEnabled, sent, failed, lastFailedAt, lastFailedReason }
+export const getMailStatus = async (signal) => {
+  const res = await client.get('/admin/system-status/mail', { signal });
+  return res.data.data;
+};
+
 // 추천 서버(FastAPI) 상태 · 정보: 화면이 추천을 받을 때와 같은 길(Vite proxy /api/v2)로 선택지 정보를 불러 본다
 // → { ms: 응답 시간, info: { modelVersion, catalogCount, modelNames, rankerSchema, ... } }. 3초 안에 응답이 없거나 실패하면 오류
 export const getModelServerInfo = async (signal) => {

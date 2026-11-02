@@ -1,5 +1,6 @@
 package com.kh.back.admin.controller;
 
+import com.kh.back.admin.dto.AdminMailStatus;
 import com.kh.back.admin.dto.AdminSystemStatus;
 import com.kh.back.admin.service.AdminSystemService;
 import com.kh.back.common.dto.ApiResponse;
@@ -23,5 +24,12 @@ public class AdminSystemApiController {
     @GetMapping
     public ApiResponse<AdminSystemStatus> status() {
         return ApiResponse.ok(adminSystemService.getStatus());
+    }
+
+    // GET /api/v1/admin/system-status/mail — 보완 13: 메일 발송 최근 24시간 성공 · 실패 · 마지막 실패 사유
+    // 호출: AdminOverviewPanel.jsx → adminApi.getMailStatus
+    @GetMapping("/mail")
+    public ApiResponse<AdminMailStatus> mail() {
+        return ApiResponse.ok(adminSystemService.getMailStatus());
     }
 }
