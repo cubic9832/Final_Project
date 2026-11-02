@@ -180,7 +180,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="login-field">
-              <label htmlFor="login-email">이메일<span className="form-required" aria-hidden="true"> *</span></label>
+              <label htmlFor="login-email">이메일</label>
               <div className="login-input-wrap">
                 <input
                   id="login-email"
@@ -193,7 +193,7 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="login-field">
-              <label htmlFor="login-password">비밀번호<span className="form-required" aria-hidden="true"> *</span></label>
+              <label htmlFor="login-password">비밀번호</label>
               <div className="login-input-wrap">
                 {/* 보완 2: "비밀번호 표시" 체크박스 대신 입력칸 안 눈 아이콘 (회원가입과 같은 PasswordInput) */}
                 <PasswordInput
