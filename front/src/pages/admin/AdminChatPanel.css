@@ -202,6 +202,12 @@
   border-radius: var(--radius-sm);
 }
 
+/* 보완 13: 목록 맨 끝 [더 보기] */
+.admin-chat-feedback-list li.admin-chat-more {
+  text-align: center;
+  background: transparent;
+}
+
 .admin-chat-feedback-meta {
   display: block;
   margin-top: 2px;

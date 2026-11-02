@@ -6,7 +6,7 @@ import ChatThread from '../../features/chat/components/ChatThread';
 import ChoiceWithOther from '../../features/chat/components/ChoiceWithOther';
 import { choiceText, OTHER } from '../../features/chat/choice';
 import {
-  assignRoom, chatErrorMessage, closeRoom, getAdminRooms, getAllFeedback, getChatAdmins, getFeedbackSummary, getRoomFeedback,
+  FEEDBACK_PAGE_SIZE, assignRoom, chatErrorMessage, closeRoom, getAdminRooms, getAllFeedback, getChatAdmins, getFeedbackSummary, getRoomFeedback,
   restrictionLabel, restrictRoom, transferRoom, unrestrictRoom, warnRoom,
 } from '../../features/chat/chatApi';
 import { createStompClient } from '../../features/chat/stompClient';
@@ -275,16 +275,31 @@ function FeedbackSummary({ version }) {
   const [sort, setSort] = useState('latest');
   const [reportedOnly, setReportedOnly] = useState(false);
   const [items, setItems] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     getFeedbackSummary().then(setRows).catch(() => setRows([]));
   }, [version]);
 
-  // 펼쳤을 때만 전체 평가를 읽는다 (정렬 · 신고만 을 바꾸면 다시)
+  // 펼쳤을 때만 전체 평가를 읽는다 (정렬 · 신고만 을 바꾸면 처음 50개부터 다시)
+  // 받은 개수가 한 번에 읽는 개수와 같으면 뒤에 더 있을 수 있다 → [더 보기]
   useEffect(() => {
     if (!open) return;
-    getAllFeedback(sort, reportedOnly).then(setItems).catch(() => setItems([]));
+    getAllFeedback(sort, reportedOnly)
+      .then((list) => { setItems(list); setHasMore(list.length === FEEDBACK_PAGE_SIZE); })
+      .catch(() => { setItems([]); setHasMore(false); });
   }, [open, sort, reportedOnly, version]);
+
+  // 보완 13: [더 보기] — 이미 받은 개수만큼 건너뛰고 다음 50개를 뒤에 붙인다
+  // items?.length: React Compiler 가 화면을 그릴 때 이 값을 미리 읽는다 → 아직 안 불러온(null) 때도 오류 없게
+  function loadMore() {
+    setLoadingMore(true);
+    getAllFeedback(sort, reportedOnly, items?.length ?? 0)
+      .then((list) => { setItems((prev) => [...prev, ...list]); setHasMore(list.length === FEEDBACK_PAGE_SIZE); })
+      .catch(() => setHasMore(false))
+      .finally(() => setLoadingMore(false));
+  }
 
   const total = rows?.reduce((sum, row) => sum + row.count, 0) ?? 0;
   const reports = rows?.reduce((sum, row) => sum + row.reportCount, 0) ?? 0;
@@ -332,6 +347,13 @@ function FeedbackSummary({ version }) {
               {items?.length > 0 && (
                 <ul className="admin-chat-feedback-list">
                   {items.map((item) => <FeedbackItem key={item.id} item={item} showMember />)}
+                  {hasMore && (
+                    <li className="admin-chat-more">
+                      <button type="button" className="admin-outline-button" onClick={loadMore} disabled={loadingMore}>
+                        {loadingMore ? '불러오는 중…' : '더 보기'}
+                      </button>
+                    </li>
+                  )}
                 </ul>
               )}
             </>

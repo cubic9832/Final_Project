@@ -57,9 +57,10 @@ export const warnRoom = async (roomId, reason) => {
 // 만족도 · 신고 (총관리자만): 상담원별 평균 → [{ adminId, nickName, count, averageRating, reportCount }]
 export const getFeedbackSummary = async () => (await client.get('/admin/chat/feedback/summary')).data.data;
 
-// 전체 평가 목록 (최근 200개). sort: low 평점 낮은순 · high 높은순 · latest 최신순, reportedOnly: 신고만
-export const getAllFeedback = async (sort, reportedOnly) =>
-  (await client.get('/admin/chat/feedback', { params: { sort, reportedOnly } })).data.data;
+// 전체 평가 목록 (FEEDBACK_PAGE_SIZE 개씩, offset 만큼 건너뛰고). sort: low 평점 낮은순 · high 높은순 · latest 최신순, reportedOnly: 신고만
+export const FEEDBACK_PAGE_SIZE = 50; // 서버 ChatFeedbackServiceImpl.PAGE_SIZE 와 같게
+export const getAllFeedback = async (sort, reportedOnly, offset = 0) =>
+  (await client.get('/admin/chat/feedback', { params: { sort, reportedOnly, offset } })).data.data;
 
 // 이 회원이 남긴 만족도 · 신고 → [{ rating, comment, reported, reportReason, adminNickName, createdAt }]
 export const getRoomFeedback = async (roomId) => (await client.get(`/admin/chat/rooms/${roomId}/feedback`)).data.data;

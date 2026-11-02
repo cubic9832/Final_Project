@@ -112,8 +112,16 @@ class ChatFeedbackServiceTests {
     void 만족도와_신고는_총관리자만_본다() {
         assertCode(() -> service.getSummary(ADMIN), "CHAT_FORBIDDEN");
         assertCode(() -> service.getRoomFeedback(ADMIN, ROOM), "CHAT_FORBIDDEN");
-        assertCode(() -> service.getFeedback(ADMIN, "low", false), "CHAT_FORBIDDEN");
+        assertCode(() -> service.getFeedback(ADMIN, "low", false, 0), "CHAT_FORBIDDEN");
         service.getSummary(SUPER);
         verify(chatMapper).findFeedbackSummary();
+    }
+
+    @Test
+    void 전체_평가는_50개씩_읽고_음수_offset_은_0으로() {
+        service.getFeedback(SUPER, "low", true, 50);
+        verify(chatMapper).findFeedback("low", true, 50, ChatFeedbackServiceImpl.PAGE_SIZE);
+        service.getFeedback(SUPER, "latest", false, -10);
+        verify(chatMapper).findFeedback("latest", false, 0, ChatFeedbackServiceImpl.PAGE_SIZE);
     }
 }

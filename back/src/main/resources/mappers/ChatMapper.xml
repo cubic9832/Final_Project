@@ -100,7 +100,9 @@
         ORDER BY f.id DESC
     </select>
 
-    <!-- 전체 평가 목록 — 총관리자 (정렬: low 평점 낮은순 · high 높은순 · 그 밖은 최신순, reportedOnly 면 신고만), 최근 200개까지 -->
+    <!-- 전체 평가 목록 — 총관리자 (정렬: low 평점 낮은순 · high 높은순 · 그 밖은 최신순, reportedOnly 면 신고만)
+         보완 13: 한 번에 size 개씩, offset 만큼 건너뛰고 ([더 보기]) -->
+
     <select id="findFeedback" resultType="com.kh.back.chat.dto.ChatFeedbackDto">
         SELECT f.id, f.room_id, f.admin_id, a.nick_name AS admin_nick_name, u.nick_name AS member_nick_name,
                f.rating, f.comment, f.reported, f.report_reason, f.created_at
@@ -116,7 +118,7 @@
             <when test="sort == 'high'">ORDER BY f.rating DESC, f.id DESC</when>
             <otherwise>ORDER BY f.id DESC</otherwise>
         </choose>
-        LIMIT 200
+        LIMIT #{size} OFFSET #{offset}
     </select>
 
     <!-- 상담원별 만족도 평균 · 신고 수 — 총관리자 상담 탭 위 표 -->
