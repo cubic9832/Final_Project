@@ -8,6 +8,9 @@ import com.kh.back.chat.dto.ChatRoomDto;
 import com.kh.back.chat.mapper.ChatMapper;
 import com.kh.back.common.exception.ApiException;
 import com.kh.back.common.security.CurrentRoleLookup;
+import com.kh.back.member.dto.MemberDto;
+import com.kh.back.member.mapper.MemberMapper;
+import com.kh.back.member.service.AccountSuspension;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -37,6 +40,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final CurrentRoleLookup currentRoleLookup;
     private final AdminAuditLogMapper adminAuditLogMapper;
     private final ChatContentFilter contentFilter;
+    private final MemberMapper memberMapper; // 9단계: 정지된 회원인지
 
     // ───────────── 회원 ─────────────
 
@@ -56,6 +60,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     @Override
     @Transactional
     public ChatRoomDto startConsultation(Long userId) {
+        requireNotSuspended(userId);
         ChatRoomDto room = chatMapper.findRoomByUserId(userId);
         if (room != null && ChatRoomDto.CLOSED.equals(room.getStatus()) && room.isRestricted()) {
             // 욕설 등으로 관리자가 제한한 회원: 기간이 끝날 때까지 새 상담 불가
@@ -126,6 +131,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             if (ChatRoomDto.CLOSED.equals(room.getStatus())) {
                 throw new ApiException(HttpStatus.CONFLICT, "CHAT_CLOSED", "종료된 상담입니다. [새로 상담하기]를 눌러 주세요.");
             }
+            requireNotSuspended(senderId);
             senderType = ChatMessageDto.USER; // 대기 중에도 남겨 둘 수 있다 → 상담원이 맡으면 읽는다
         } else if (isAdmin(senderId)) {
             if (!ChatRoomDto.ACTIVE.equals(room.getStatus()) || !senderId.equals(room.getAssignedAdminId())) {
@@ -289,7 +295,29 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         }
     }
 
+    // 9단계: 총관리자가 계정을 정지할 때 (AdminMemberServiceImpl.suspend) — 대기 · 진행 중 상담을 종료해
+    // 상담원이 정지된 회원을 계속 기다리지 않게 한다. 상담이 없거나 이미 종료됐으면 아무것도 안 함
+    @Override
+    @Transactional
+    public void closeForSuspension(Long userId) {
+        ChatRoomDto room = chatMapper.findRoomByUserId(userId);
+        if (room == null || chatMapper.close(room.getId()) == 0) {
+            return;
+        }
+        system(room.getId(), "회원 계정이 이용 정지되어 상담이 종료되었습니다.");
+        broadcaster.roomChanged(room.getId(), ChatRoomDto.CLOSED);
+    }
+
     // ───────────── 도우미 ─────────────
+
+    // 9단계: 정지된 회원은 상담을 시작하거나 메시지를 보낼 수 없다
+    // (정지 순간 이미 받은 access token 이 최대 30분 남아도 상담은 바로 막힌다)
+    private void requireNotSuspended(Long userId) {
+        MemberDto member = memberMapper.findById(userId);
+        if (member != null) {
+            AccountSuspension.requireActive(member);
+        }
+    }
 
     private void closeRoom(Long roomId, String notice) {
         if (chatMapper.close(roomId) == 0) {

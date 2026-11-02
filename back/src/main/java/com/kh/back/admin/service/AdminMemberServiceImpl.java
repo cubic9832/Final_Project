@@ -137,6 +137,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         }
         adminMemberMapper.suspend(targetId, AccountSuspension.until(days, LocalDateTime.now()));
         refreshTokenMapper.deleteByUserId(targetId);
+        chatRoomService.closeForSuspension(targetId); // 대기 · 진행 중 1:1 상담 종료
         String period = days == AccountSuspension.PERMANENT ? "영구" : days + "일";
         adminAuditLogMapper.insert(actorId, "MEMBER_SUSPEND", "MEMBER", targetId, "계정 정지 " + period + " (" + reason.strip() + ")");
     }

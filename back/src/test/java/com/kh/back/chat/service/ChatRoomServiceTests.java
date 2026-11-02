@@ -17,6 +17,9 @@ import com.kh.back.chat.dto.ChatRoomDto;
 import com.kh.back.chat.mapper.ChatMapper;
 import com.kh.back.common.exception.ApiException;
 import com.kh.back.common.security.CurrentRoleLookup;
+import com.kh.back.member.dto.MemberDto;
+import com.kh.back.member.mapper.MemberMapper;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +45,7 @@ class ChatRoomServiceTests {
     @Mock ChatBroadcaster broadcaster;
     @Mock CurrentRoleLookup currentRoleLookup;
     @Mock AdminAuditLogMapper adminAuditLogMapper;
+    @Mock MemberMapper memberMapper; // 9단계: 정지 여부 (기본은 null = 확인할 회원 없음 → 통과)
     @Spy ChatContentFilter contentFilter = new ChatContentFilter(); // 진짜 금칙어 목록으로 검사
     @InjectMocks ChatRoomServiceImpl service;
 
@@ -279,5 +283,43 @@ class ChatRoomServiceTests {
         verify(chatMapper).releaseByAdmin(ADMIN);
         verify(broadcaster).roomChanged(ROOM, ChatRoomDto.WAITING);
         verify(broadcaster).roomChanged(11L, ChatRoomDto.WAITING);
+    }
+
+    // ── 9단계: 계정 정지 ──
+
+    private void suspended() {
+        MemberDto member = new MemberDto();
+        member.setId(MEMBER);
+        member.setSuspended(true);
+        member.setSuspendedUntil(LocalDateTime.of(2026, 11, 9, 14, 0));
+        when(memberMapper.findById(MEMBER)).thenReturn(member);
+    }
+
+    @Test
+    void 정지된_회원은_상담을_시작하거나_메시지를_보낼_수_없다() {
+        room(ChatRoomDto.WAITING, null);
+        suspended();
+        assertCode(() -> service.startConsultation(MEMBER), "ACCOUNT_SUSPENDED");
+        assertCode(() -> service.sendMessage(MEMBER, ROOM, "안녕하세요"), "ACCOUNT_SUSPENDED");
+        verify(chatMapper, never()).insertMessage(any());
+    }
+
+    @Test
+    void 계정을_정지하면_대기_중이던_상담이_종료된다() {
+        room(ChatRoomDto.WAITING, null);
+        when(chatMapper.close(ROOM)).thenReturn(1);
+        service.closeForSuspension(MEMBER);
+        verify(broadcaster).roomChanged(ROOM, ChatRoomDto.CLOSED);
+        ArgumentCaptor<ChatMessageDto> saved = ArgumentCaptor.forClass(ChatMessageDto.class);
+        verify(chatMapper).insertMessage(saved.capture());
+        assertThat(saved.getValue().getSenderType()).isEqualTo(ChatMessageDto.SYSTEM);
+    }
+
+    @Test
+    void 이미_종료된_상담이면_정지해도_아무것도_안_한다() {
+        room(ChatRoomDto.CLOSED, null);
+        when(chatMapper.close(ROOM)).thenReturn(0);
+        service.closeForSuspension(MEMBER);
+        verify(chatMapper, never()).insertMessage(any());
     }
 }

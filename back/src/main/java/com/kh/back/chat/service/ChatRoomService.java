@@ -43,4 +43,6 @@ public interface ChatRoomService {
     void warn(Long actorId, Long roomId, String reason);
 
     void releaseRoomsOf(Long adminId);
+
+    void closeForSuspension(Long userId);
 }
