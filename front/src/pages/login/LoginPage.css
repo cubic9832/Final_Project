@@ -57,7 +57,7 @@
   grid-template-columns: 72px minmax(0, 1fr);
   align-items: start;
   gap: var(--space-12);
-  margin-top: var(--space-16);
+  margin-top: var(--space-24); /* 11-03: 아래 칸 경고가 들어갈 자리 (경고가 떠도 칸이 밀리지 않게) */
 }
 
 .login-field label {
@@ -91,6 +91,20 @@
   font-size: var(--font-caption);
 }
 
+/* 11-03: 입력칸 아래 경고는 칸 사이 빈 공간에 띄운다 → 경고가 떠도 아래 칸 · 버튼이 움직이지 않음 */
+.login-input-wrap {
+  position: relative;
+}
+
+.login-input-wrap > .login-error {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 3px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
 .login-checkbox {
   display: inline-flex;
   align-items: center;
@@ -112,7 +126,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-16);
-  margin: var(--space-16) 0 var(--space-24);
+  margin: var(--space-24) 0;
 }
 
 .login-options .login-checkbox {
@@ -162,9 +176,22 @@
   cursor: default;
 }
 
-/* 서버 로그인 실패 문구 (예: 이메일 또는 비밀번호가 올바르지 않습니다) — 버튼 바로 위 */
+/* 서버 로그인 실패 문구 (예: 이메일 또는 비밀번호가 올바르지 않습니다) — 버튼 오른쪽 같은 줄 */
+.login-submit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin-top: auto;
+}
+
+.login-submit-row .login-submit {
+  align-self: center;
+  margin-top: 0;
+}
+
 .login-failed {
-  margin: 0 0 var(--space-16);
+  margin: 0;
+  line-height: 1.5;
 }
 
 .login-card-footer {

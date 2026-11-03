@@ -227,14 +227,17 @@ export default function LoginPage() {
               </>
             )}
 
-            {loginError && (
-              <p className="login-error login-failed" role="alert">
-                {loginError}
-              </p>
-            )}
-            <button className="login-submit" type="submit" disabled={submitting}>
-              {submitting ? '로그인 중…' : '로그인'}
-            </button>
+            {/* 11-03: 로그인 실패 문구는 버튼 오른쪽 같은 줄 — 버튼 위에 끼면 버튼이 아래로 밀렸다 */}
+            <div className="login-submit-row">
+              <button className="login-submit" type="submit" disabled={submitting}>
+                {submitting ? '로그인 중…' : '로그인'}
+              </button>
+              {loginError && (
+                <p className="login-error login-failed" role="alert">
+                  {loginError}
+                </p>
+              )}
+            </div>
           </form>
 
           {/* 보완 8: 구글 로그인 */}
