@@ -68,7 +68,7 @@
         SELECT email FROM users WHERE id = #{id}
     </select>
 
-    <!-- 보완 11: 관리자 · 총관리자로 지정 (이미 있으면 권한 · 지정한 사람만 바꾼다) -->
+    <!-- 보완 11: 관리자 · 총관리자로 지정 (이미 있으면 권한만 바꾼다) -->
     <insert id="grantAdmin">
         INSERT INTO admin_accounts (user_id, role) VALUES (#{id}, #{role})
         ON DUPLICATE KEY UPDATE role = VALUES(role)

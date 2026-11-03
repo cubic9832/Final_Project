@@ -1,0 +1,38 @@
+.auth-pending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-16);
+  min-height: 50vh;
+  padding: var(--space-32) var(--layout-gutter);
+  opacity: 0;
+  animation: auth-pending-appear 0.2s ease-out 0.3s forwards;
+}
+
+.auth-pending-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: auth-pending-spin 0.8s linear infinite;
+}
+
+.auth-pending-label {
+  color: var(--color-muted);
+  font-size: var(--font-caption);
+}
+
+@keyframes auth-pending-appear {
+  to { opacity: 1; }
+}
+
+@keyframes auth-pending-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-pending { animation: none; opacity: 1; }
+  .auth-pending-spinner { animation-duration: 1.6s; }
+}
