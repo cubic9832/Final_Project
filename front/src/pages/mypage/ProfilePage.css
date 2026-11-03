@@ -252,8 +252,10 @@
 }
 
 .profile-save-error {
-  margin-right: auto;
+  align-self: center;
+  margin: 0 4px 0 0;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 /* 로그인된 기기 · 계정 관리 */

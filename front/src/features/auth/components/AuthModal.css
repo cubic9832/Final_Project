@@ -106,9 +106,11 @@
 }
 
 .auth-modal-error {
+  min-height: 18px; /* 11-03: 비어 있어도 한 줄 자리 — 경고가 떠도 팝업이 커지지 않게 */
   margin-top: var(--space-4);
   color: var(--color-danger);
   font-size: var(--font-caption);
+  line-height: 18px;
 }
 
 .auth-modal-hint {

@@ -75,7 +75,9 @@
 }
 
 .account-manage-section .account-manage-error { /* 섹션 안 p 기본색보다 우선 */
+  min-height: 18px; /* 11-03: 비어 있어도 한 줄 자리 */
   margin-top: var(--space-4);
   color: var(--color-danger);
   font-size: var(--font-caption);
+  line-height: 18px;
 }

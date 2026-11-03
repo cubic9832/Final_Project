@@ -204,3 +204,14 @@
     align-items: flex-start;
   }
 }
+
+/* 11-03: 평가 보내기 버튼 + 오른쪽 실패 문구 한 줄 */
+.consult-submit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.consult-submit-row .consult-error {
+  margin: 0;
+}

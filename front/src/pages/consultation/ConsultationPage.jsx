@@ -192,8 +192,11 @@ function FeedbackForm({ onDone }) {
         <ChoiceWithOther label="신고 사유" options={REPORT_REASONS} choice={reason.choice} other={reason.other}
           onChoice={(choice) => setReason((prev) => ({ ...prev, choice }))} onOther={(other) => setReason((prev) => ({ ...prev, other }))} />
       )}
-      {error && <p className="consult-error" role="alert">{error}</p>}
-      <button type="submit" className="consult-button" disabled={saving || !ready}>{reported ? '평가 · 신고 보내기' : '평가 보내기'}</button>
+      {/* 11-03: 저장 실패 문구는 버튼 오른쪽 — 버튼 위에 끼면 버튼이 밀렸다 */}
+      <div className="consult-submit-row">
+        <button type="submit" className="consult-button" disabled={saving || !ready}>{reported ? '평가 · 신고 보내기' : '평가 보내기'}</button>
+        {error && <p className="consult-error" role="alert">{error}</p>}
+      </div>
     </form>
   );
 }
