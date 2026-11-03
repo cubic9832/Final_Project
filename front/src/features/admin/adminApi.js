@@ -22,6 +22,15 @@ export const unlockMemberLogin = async (id) => {
   await client.post(`/admin/members/${id}/unlock`);
 };
 
+// 9단계 총관리자: 계정 정지 (days 0 = 영구, reason 은 운영 로그에만) · 정지 풀기
+export const suspendMember = async (id, days, reason) => {
+  await client.post(`/admin/members/${id}/suspend`, { days, reason });
+};
+
+export const unsuspendMember = async (id) => {
+  await client.post(`/admin/members/${id}/unsuspend`);
+};
+
 // 회원 현황 → { total, admins, newLast7Days, google, daily: [{ date, count }], ageBands, genders }
 export const getMemberSummary = async (signal) => {
   const res = await client.get('/admin/members/summary', { signal });
@@ -37,6 +46,12 @@ export const getAuditLogs = async ({ action, page = 1, size = 20 } = {}, signal)
 // 서비스 연결 상태 → { apiStartedAt, databaseUp, databaseMillis, databaseVersion }
 export const getSystemStatus = async (signal) => {
   const res = await client.get('/admin/system-status', { signal });
+  return res.data.data;
+};
+
+// 보완 13: 메일 발송 최근 24시간 → { mailEnabled, sent, failed, lastFailedAt, lastFailedReason }
+export const getMailStatus = async (signal) => {
+  const res = await client.get('/admin/system-status/mail', { signal });
   return res.data.data;
 };
 

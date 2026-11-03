@@ -24,4 +24,6 @@ public class AdminMemberRow {
     private String gender;
     private int activeSessions;    // 로그인된 기기 수 (기한이 남은 refresh token)
     private LocalDateTime lastUsedAt; // 로그인된 기기 중 가장 최근 사용 시각 (모두 로그아웃했으면 null)
+    private LocalDateTime suspendedUntil; // 9단계: 정지가 끝나는 시각 (9999년 = 영구)
+    private boolean suspended;            // 9단계: 지금 정지 중인지 (DB 시각으로 계산)
 }

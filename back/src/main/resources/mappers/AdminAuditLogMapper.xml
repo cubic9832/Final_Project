@@ -18,6 +18,8 @@
         LEFT JOIN users t ON l.target_type = 'MEMBER' AND t.id = l.target_id
         <where>
             <if test="action != null">l.action = #{action}</if>
+            <!-- 보완 13: 메일 발송 기록은 회원가입 인증마다 쌓여서 "전체" 에서는 빼고, 작업 고르기로만 본다 -->
+            <if test="action == null">l.target_type &lt;&gt; 'MAIL'</if>
         </where>
         ORDER BY l.id DESC
         LIMIT #{size} OFFSET #{offset}
@@ -27,6 +29,7 @@
         SELECT COUNT(*) FROM admin_audit_logs
         <where>
             <if test="action != null">action = #{action}</if>
+            <if test="action == null">target_type &lt;&gt; 'MAIL'</if>
         </where>
     </select>
 

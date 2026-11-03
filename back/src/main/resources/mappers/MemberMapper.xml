@@ -5,16 +5,19 @@
 <mapper namespace="com.kh.back.member.mapper.MemberMapper">
 
     <!-- 보완 11: 권한은 admin_accounts(V21)에 있는 회원만 ADMIN · SUPER_ADMIN, 없으면 USER -->
+    <!-- 9단계: 정지 중인지(suspended)는 DB 시각(NOW())으로 계산한다 — 서버 · DB 시간대가 달라도 어긋나지 않게 -->
     <!-- 컬럼은 snake_case, 필드는 camelCase. map-underscore-to-camel-case 설정이 자동으로 맞춰 준다 -->
     <select id="findById" resultType="com.kh.back.member.dto.MemberDto">
-        SELECT u.id, u.email, u.password_hash, u.nick_name, COALESCE(a.role, 'USER') AS role, u.created_at
+        SELECT u.id, u.email, u.password_hash, u.nick_name, COALESCE(a.role, 'USER') AS role, u.created_at,
+               u.suspended_until, (u.suspended_until IS NOT NULL AND u.suspended_until &gt; NOW()) AS suspended
         FROM users u
         LEFT JOIN admin_accounts a ON a.user_id = u.id
         WHERE u.id = #{id}
     </select>
 
     <select id="findByEmail" resultType="com.kh.back.member.dto.MemberDto">
-        SELECT u.id, u.email, u.password_hash, u.nick_name, COALESCE(a.role, 'USER') AS role, u.created_at
+        SELECT u.id, u.email, u.password_hash, u.nick_name, COALESCE(a.role, 'USER') AS role, u.created_at,
+               u.suspended_until, (u.suspended_until IS NOT NULL AND u.suspended_until &gt; NOW()) AS suspended
         FROM users u
         LEFT JOIN admin_accounts a ON a.user_id = u.id
         WHERE u.email = #{email}

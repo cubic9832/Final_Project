@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { refreshAccessToken } from './shared/api/tokenRefresh';
 import GuestOnly from './components/GuestOnly';
@@ -8,17 +8,19 @@ import RequireAuth from './components/RequireAuth';
 import RequireAdmin from './components/RequireAdmin';
 import CompanyDetailPage from './features/company/pages/detail/CompanyDetailPage';
 import CompanyListPage from './features/company/pages/list/CompanyListPage';
-import AboutPage from './pages/about/AboutPage';
+import AboutPreviewPage from './pages/about-preview/AboutPreviewPage';
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/login/LoginPage';
 import FinancialPage from './features/financial/pages/overview/FinancialPage';
 import FinancialAssetsPage from './features/financial/pages/assets/FinancialAssetsPage';
 import FinancialCreditPage from './features/financial/pages/credit/FinancialCreditPage';
+import FinancialEnvironmentPage from './features/financial/pages/environment/FinancialEnvironmentPage';
 import FinancialVehiclePage from './features/financial/pages/vehicle/FinancialVehiclePage';
 import FinancialReviewPage from './features/financial/pages/review/FinancialReviewPage';
 import FinancialResultPage from './features/financial/pages/result/FinancialResultPage';
 import FinancialRecommendationsPage from './features/financial/pages/recommendations/FinancialRecommendationsPage';
 import AdminPage from './pages/admin/AdminPage';
+import ConsultationPage from './pages/consultation/ConsultationPage';
 import MyPage from './pages/mypage/MyPage';
 import ProfilePage from './pages/mypage/ProfilePage';
 import NotFound from './pages/not-found/NotFound';
@@ -51,7 +53,8 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
+        <Route path="/about" element={<AboutPreviewPage />} />
+        <Route path="/about-preview" element={<Navigate to="/about" replace />} />
         <Route path="/dream-car" element={<DreamCarPlannerPage />} />
         <Route path="/dream-car/calculation-guide" element={<DreamCarCalculationGuidePage />} />
         <Route path="/dream-car/progress" element={<SavingsProgressPage />} />
@@ -68,10 +71,13 @@ function App() {
           <Route path="/mypage" element={<MyPage />} />
           {/* 6단계: 개인정보 · 계정 관리 */}
           <Route path="/mypage/profile" element={<ProfilePage />} />
+          {/* 8단계: 1:1 상담 (마이페이지 · 콤파의 [1:1 상담] 버튼) — 마이페이지 아래 화면이라 /mypage/... */}
+          <Route path="/mypage/consultation" element={<ConsultationPage />} />
         </Route>
         <Route path="/financial" element={<FinancialPage />} />
         <Route path="/financial/assets" element={<FinancialAssetsPage />} />
         <Route path="/financial/credit" element={<FinancialCreditPage />} />
+        <Route path="/financial/environment" element={<FinancialEnvironmentPage />} />
         <Route path="/financial/vehicle" element={<FinancialVehiclePage />} />
         <Route path="/financial/review" element={<FinancialReviewPage />} />
         <Route path="/financial/result" element={<FinancialResultPage />} />

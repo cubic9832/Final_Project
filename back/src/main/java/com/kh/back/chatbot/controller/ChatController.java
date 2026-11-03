@@ -25,8 +25,9 @@ public class ChatController {
     }
 
     @GetMapping
-    public ApiResponse<ChatHistoryResponse> history(@AuthenticationPrincipal Long memberId) {
-        return ApiResponse.ok(service.history(memberId));
+    public ApiResponse<ChatHistoryResponse> history(@AuthenticationPrincipal Long memberId,
+                                                   @RequestParam(required=false) Long beforeId) {
+        return ApiResponse.ok(service.history(memberId, beforeId));
     }
 
     @DeleteMapping

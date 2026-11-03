@@ -24,13 +24,15 @@ public class VerificationMailSender {
     private static final String SENDER_NAME = "CreditCompass";
 
     private final JavaMailSender mailSender;
+    private final MailSendLogger sendLogger;
     private final String username;
     private final String password;
 
-    public VerificationMailSender(JavaMailSender mailSender,
+    public VerificationMailSender(JavaMailSender mailSender, MailSendLogger sendLogger,
                                   @Value("${spring.mail.username:}") String username,
                                   @Value("${spring.mail.password:}") String password) {
         this.mailSender = mailSender;
+        this.sendLogger = sendLogger;
         this.username = username;
         this.password = password;
     }
@@ -45,6 +47,7 @@ public class VerificationMailSender {
         if (!isMailEnabled()) {
             // 콘솔 인코딩에 따라 한글이 깨질 수 있어 로그는 영문 · 숫자로만 찍는다
             log.info("[DEV-MAIL] email verification code={} to={} (MAIL_USERNAME/MAIL_PASSWORD not set)", code, email);
+            sendLogger.record(email, true, true, null); // 보완 13: 개발 모드도 기록
             return;
         }
         // 보낸 사람 이름을 따로(UTF-8) 넣는다 — "이름 <주소>" 문자열로만 넣으면 메일 앱이 계정 이름(아이디)을 보여 줄 수 있다
@@ -63,15 +66,21 @@ public class VerificationMailSender {
                     본인이 요청하지 않았다면 이 메일은 무시해 주세요.
                     """.formatted(SENDER_NAME, code));
         } catch (MessagingException | UnsupportedEncodingException e) {
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_SEND_FAILED",
-                    "인증 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.");
+            throw failed(email, e);
         }
         try {
             mailSender.send(message);
         } catch (MailException e) {
             log.warn("인증 메일 발송 실패: {}", e.getMessage());
-            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_SEND_FAILED",
-                    "인증 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.");
+            throw failed(email, e);
         }
+        sendLogger.record(email, true, false, null); // 보완 13: 보냄
+    }
+
+    // 보완 13: 실패를 기록하고 503 으로 바꾼다 (사유는 예외 종류 + 메시지 — 관리자 운영 현황에 보임)
+    private ApiException failed(String email, Exception e) {
+        sendLogger.record(email, false, false, e.getClass().getSimpleName() + ": " + e.getMessage());
+        return new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_SEND_FAILED",
+                "인증 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.");
     }
 }

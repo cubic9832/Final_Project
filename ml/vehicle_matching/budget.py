@@ -28,5 +28,24 @@ def apply_budget_preference(score, vehicle, band):
     return {**score, 'policy': 'cash-importance-band-v1'}
 
 
+def top_catalog_fallback(profile, catalog, eligible, band):
+    """Only relax a band above the entire catalog; retain hard eligibility."""
+    catalog_upper = max((vehicle.price for vehicle in catalog), default=0)
+    if not catalog_upper or band['lower'] <= catalog_upper:
+        return None
+    from vehicle_matching.recommendation_policy import seating_status
+    models = set()
+    selected = []
+    for vehicle in sorted(eligible, key=lambda car: (-car.price, car.id)):
+        model = (vehicle.brand, vehicle.model)
+        if seating_status(profile, vehicle) != 'match' or model in models:
+            continue
+        models.add(model)
+        selected.append(vehicle)
+        if len(selected) == 9:
+            break
+    return selected
+
+
 def budget_order(vehicle, score, band):
     return (-score, vehicle.id)

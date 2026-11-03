@@ -3,12 +3,15 @@
 // 아래: 회원 목록 (검색 · 권한 · 페이지) + 상세. 이메일은 서버가 가려서 보낸다.
 // 총관리자(SUPER_ADMIN)만 상세에서 관리자 권한을 주고 뺄 수 있다. 잠금 해제는 아직 없음
 import { Fragment, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search, ShieldCheck, X } from 'lucide-react';
 import theme from '../../styles/theme';
 import { changeMemberRole, getAdminMembers, getMemberSummary, unlockMemberLogin } from '../../features/admin/adminApi';
 import { ROLE_LABELS } from '../../features/auth/roles';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
+import MemberSuspendActions from './MemberSuspendActions';
+import { suspendedText } from './adminLogFormat';
 import './AdminMembersPanel.css';
 
 const PAGE_SIZE = 10;
@@ -131,8 +134,10 @@ function GroupBars({ title, groups, total }) {
 
 // ② 회원 목록 — 검색어는 [검색] 을 눌렀을 때, 권한 · 페이지는 바꾸는 즉시 다시 불러온다
 function MemberList({ version, onChanged }) {
-  const [draft, setDraft] = useState(''); // 입력 중인 검색어
-  const [query, setQuery] = useState({ keyword: '', role: '', page: 1 }); // 실제로 요청한 조건
+  // 8단계: 1:1 상담 탭의 [회원 정보] 로 오면 그 회원 닉네임으로 검색한 채 연다 (주소가 아니라 화면 이동 상태로 받는다)
+  const initialKeyword = useLocation().state?.memberKeyword ?? '';
+  const [draft, setDraft] = useState(initialKeyword); // 입력 중인 검색어
+  const [query, setQuery] = useState({ keyword: initialKeyword, role: '', page: 1 }); // 실제로 요청한 조건
   const [state, setState] = useState({ status: 'loading', members: [], meta: null, error: '' });
   const [selectedId, setSelectedId] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -178,7 +183,7 @@ function MemberList({ version, onChanged }) {
         </div>
 
         <form className="admin-filters" onSubmit={handleSearch}>
-          <label className="admin-search-field">
+          <label className="admin-search-field form-focus-group">
             <Search size={theme.iconSize.sm} aria-hidden="true" />
             <input
               type="search"
@@ -232,8 +237,10 @@ function MemberList({ version, onChanged }) {
                     <td>{LOGIN_METHODS[member.loginMethod]}</td>
                     <td>{ROLE_LABELS[member.role] ?? member.role}</td>
                     <td>
-                      <span className={`admin-status ${member.lockedMinutes > 0 ? 'is-check' : 'is-ok'}`}>
-                        {member.lockedMinutes > 0 ? `로그인 잠금 ${member.lockedMinutes}분` : '정상'}
+                      {/* 9단계: 계정 정지가 로그인 잠금보다 먼저 보인다 */}
+                      <span className={`admin-status ${member.suspendedUntil || member.lockedMinutes > 0 ? 'is-check' : 'is-ok'}`}>
+                        {member.suspendedUntil ? suspendedText(member.suspendedUntil)
+                          : member.lockedMinutes > 0 ? `로그인 잠금 ${member.lockedMinutes}분` : '정상'}
                       </span>
                     </td>
                     <td>
@@ -301,8 +308,10 @@ function MemberDetail({ member, onClose, onChanged }) {
             {member.lockedMinutes > 0 && <UnlockButton member={member} onChanged={onChanged} />}
           </dd>
         </div>
+        <div><dt>계정 정지</dt><dd>{member.suspendedUntil ? suspendedText(member.suspendedUntil) : '정지 없음'}</dd></div>
       </dl>
       <RoleActions member={member} onChanged={onChanged} />
+      <MemberSuspendActions member={member} onChanged={onChanged} />
     </div>
   );
 }

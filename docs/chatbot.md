@@ -21,6 +21,8 @@ $env:OPENAI_API_KEY = [System.Net.NetworkCredential]::new('', $chatbotSecret).Pa
 .\dev.ps1
 ```
 
+환경변수 대신 프로젝트 루트 `.env.local`(`.env.example` 복사)에 같은 이름으로 적어도 된다. 이 파일이 환경변수보다 우선하며 값이 빈 줄은 무시된다. 파일 내용 바꾼 뒤에도 Spring 서버를 다시 켜야 적용된다.
+
 Windows 사용자 환경변수로 설정했다면 IDE·터미널을 완전히 닫았다가 다시 연다. dev.ps1은 켜진 서버를 재사용하므로 기존 서버를 종료한 후 실행해야 새 의존성과 키가 적용된다.
 
 Gemini: CHATBOT_PROVIDER=gemini, GEMINI_API_KEY, GEMINI_MODEL(기본 gemini-3.5-flash-lite).
@@ -32,7 +34,12 @@ OpenAI는 Spring AI 2.0.2 ChatClient를 사용한다. ChatMemory는 두 제공�
 
 - 회원 번호는 JWT 인증 주체에서만 가져온다. 클라이언트가 보낸 회원 번호·대화 이력은 사용하지 않는다.
 - 질문 1~500자, 회원별 한국 시간 자정 기준 하루 30회, 서버 동시 외부 호출 4개까지다. 외부 호출 단계에 진입한 실패도 차감한다. 입력 오류·키 없음·동시 요청 거절은 차감하지 않는다.
-- 최근 10개 메시지를 서버 메모리에 보관해 새로고침 뒤 복원한다. 대화 삭제는 사용량을 초기화하지 않는다. 서버 재시작 시 대화·사용량은 사라진다. 다중 서버 배포 시 공유 저장소가 필요하다.
+- 정상 완료된 질문·답변은 고정 안내를 포함해 MySQL에 저장한다. 직접 입력 / 추천 질문 / 용어 클릭을 구분하고, 당시 답변 본문과 고정 안내 항목 또는 AI 제공자·모델을 함께 기록한다. 서버 재시작 후에도 대화와 평가는 남는다. DB 저장 이전의 메모리 대화는 소급 복원하지 않는다.
+- 사용자 화면은 현재 대화의 최근 메시지 20개부터 보여주고 ‘이전 대화 보기’로 더 불러온다. AI 맥락은 DB에서 최근 메시지 10개만 가져오며, 화면에 과거 기록을 펼쳐도 모델에 전체 대화를 보내지 않는다.
+- ‘새 대화 시작’은 기존 대화를 종료 표시하고 새 대화로 전환한다. 기존 질문·답변·평가는 DB에 남아 관리자가 조회할 수 있다. 새 대화에는 이전 대화 맥락을 전달하지 않는다. 일일 질문 횟수는 초기화하지 않는다. 사용 횟수는 기존처럼 메모리 기준이므로 서버 재시작 시 초기화된다.
+- 좋아요·싫어요는 본인이 받은 콤파 답변에만 남길 수 있다. 답변당 평가 하나를 유지하며 반대 평가로 변경하거나 같은 버튼을 다시 눌러 취소한다. 사유·의견 입력은 없다. 평가는 AI를 호출하거나 질문 횟수를 차감하지 않는다.
+- 관리자 `/console?tab=chatbot`에서 질문·답변을 게시글 목록 형태로 조회한다. 회원 번호 정확히 일치 / 닉네임 부분 일치 검색과 전체 / 좋아요 / 싫어요 / 평가 없음 필터를 함께 적용한다. 페이지당 20건, 전체 건수와 페이지 번호 이동을 제공하며 질문 또는 보기를 누르면 답변 상세와 대화 맥락을 확인한다. 상담원 1:1 상담과 별도다. 새 테이블은 V25의 `chatbot_conversations`, `chatbot_messages`, `chatbot_feedback`이다. 기존 Elasticsearch·상담 연동은 변경하지 않는다.
+- 자동 보관 기한·일괄 삭제·관리자 검토 상태·답변 편집 기능은 추가하지 않는다. 회원 탈퇴 시 새 테이블의 기록은 외래키 CASCADE로 함께 삭제된다. 대화 저장과 관리자 열람 가능성은 콤파 정보 아이콘에서 안내한다.
 - 주민번호·카드번호·전화번호·계좌번호·이메일은 검색·전송·기록 전에 가리고 답변도 가린다. 원문 질문을 대화 기록에 넣지 않는다. 이름·주소·변형 입력을 정규식으로 모두 검출할 수 없어 화면에도 입력 금지를 안내한다.
 - 시스템 지침은 back/src/main/resources/prompts/chatbot-system.st를 UTF-8로 읽는다. 답변 범위·거절·3~5문장·일반 텍스트를 지시하지만 모델 준수를 보장하는 필터는 아니다.
 - OpenAI에는 현재 회원의 최근 진단 중 월 여유금·구매 가격 상한과 저장된 취향 이름만 요약한다. 이름·연락처·계좌·원본 응답은 포함하지 않는다. 무료 Gemini에는 이 개인 요약을 자동 첨부하지 않는다.
@@ -41,10 +48,14 @@ OpenAI는 Spring AI 2.0.2 ChatClient를 사용한다. ChatMemory는 두 제공�
 
 모든 요청은 로그인 필요. 기존 /api/v1/chat-messages와 ApiResponse 봉투를 유지한다.
 
-- POST: { "message": "MPV란?" } → data: { answer, question, remaining, sources }. question은 가린 질문이며 화면은 이것을 표시한다.
-- POST /api/v1/chat-messages/guides: { "guideId": "MPV" } → 같은 응답 구조로 등록된 고정 질문·답변을 반환하고 회원별 대화에 추가한다. 등록되지 않은 ID는 400이며 외부 AI 호출로 대체하지 않는다. remaining은 차감하지 않는다.
-- GET: data: { messages: [{ role: "user" 또는 "model", text }], remaining }.
-- DELETE: 본인 대화만 삭제하며 사용량은 유지한다.
+- POST: { "message": "MPV란?" } → data: { answer, question, remaining, sources, questionId, answerId }. question은 가린 질문이며 화면은 이것을 표시한다.
+- POST /api/v1/chat-messages/guides: { "guideId": "MPV", "source": "QUICK_QUESTION" 또는 "TERM_CLICK" } → 같은 응답 구조로 고정 질문·답변을 기록한다. source 생략은 QUICK_QUESTION. 등록되지 않은 ID는 400이며 외부 AI 호출로 대체하지 않는다. remaining은 차감하지 않는다.
+- GET ?beforeId=메시지번호: data: { messages: [{ id, role: "user" 또는 "model", text, rating }], remaining, hasMore }. 현재 대화의 메시지 20개를 시간순으로 반환한다. beforeId 생략 시 최근 페이지.
+- DELETE: 기존 대화를 종료하고 새 대화로 전환한다. DB 기록·평가·사용량을 삭제하지 않는다.
+- PUT /api/v1/chat-messages/{answerId}/feedback: { "rating": "LIKE" 또는 "DISLIKE" }. 평가 저장·변경, 204.
+- DELETE /api/v1/chat-messages/{answerId}/feedback: 평가 취소, 204. 다른 회원의 답변이나 사용자 질문이면 404.
+- GET /api/v1/admin/chatbot-exchanges?rating=ALL|LIKE|DISLIKE|UNRATED&page=0&keyword=회원번호또는닉네임: 질문·답변 묶음 20개와 hasMore, page, total, totalPages. keyword는 최대 50자, 평가와 회원 검색 조건을 함께 적용한다. 목록에 userName(회원 닉네임)과 number(검색 결과 내 번호)를 포함한다. sort는 number/question/member/source/answer/rating/createdAt, direction은 ASC/DESC이며 정렬은 전체 검색 결과에 적용한 뒤 페이징한다. sort가 없으면 최신순이다. ADMIN·SUPER_ADMIN만 가능.
+- GET /api/v1/admin/chatbot-conversations/{id}/messages?beforeId=메시지번호: 관리자용 대화 맥락 20개. 콤파의 새 관리자·평가 컨트롤러 업무 오류는 application/problem+json으로 반환한다.
 
 400 입력 오류, 401 로그인 필요, 429 동시 요청 또는 일일/제공자 한도, 503 키 없음 또는 OpenAI 연결 실패. Gemini 키·모델·응답 오류는 502, 전송 지연은 504. 내부 예외 내용·질문 원문·키를 오류 응답이나 챗봇 로그에 기록하지 않는다.
 

@@ -1,8 +1,10 @@
-import { useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from 'react';
 import { Compass, Car, ClipboardList, BookOpen, ChevronRight, Info, X, Send, RotateCcw } from 'lucide-react';
 import theme from '../../styles/theme';
 import { sendChatMessage, sendChatGuide, getChatHistory, clearChatHistory } from './chatApi';
 import useChatStore from './useChatStore';
+import ChatFeedback from './ChatFeedback';
+import ConsultationLink from '../chat/components/ConsultationLink';
 import './ChatWidget.css';
 
 const categories = [
@@ -36,6 +38,8 @@ export default function ChatWidget() {
   const [remaining, setRemaining] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [showUsageInfo, setShowUsageInfo] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const category = categories.find((item) => item.id === categoryId);
   const panel = useRef(null);
   const trigger = useRef(null);
@@ -46,6 +50,10 @@ export default function ChatWidget() {
   const returnFocus = useRef(null);
   const usageInfo = useRef(null);
   const usageTrigger = useRef(null);
+  const messageArea = useRef(null);
+  const olderRequest = useRef(null);
+  const prependScroll = useRef(null);
+  const lastMessageId = messages.at(-1)?.id;
 
   useEffect(() => {
     if (!showUsageInfo || !open) return;
@@ -71,11 +79,11 @@ export default function ChatWidget() {
     const controller = new AbortController();
     getChatHistory(controller.signal).then((result) => {
       if (!mounted.current) return;
-      setMessages(result.messages); setRemaining(result.remaining); setLoaded(true);
+      setMessages(result.messages); setRemaining(result.remaining); setHasMore(result.hasMore); setLoaded(true);
     }).catch((failure) => {
       if (!controller.signal.aborted) setError(failure.response?.data?.error?.message || '대화 기록을 불러오지 못했습니다.');
     });
-    return () => { mounted.current = false; controller.abort(); activeRequest.current?.abort(); };
+    return () => { mounted.current = false; controller.abort(); activeRequest.current?.abort(); olderRequest.current?.abort(); };
   }, []);
 
   async function reloadHistory() {
@@ -83,20 +91,39 @@ export default function ChatWidget() {
     setPending(true); setError('');
     try {
       const result = await getChatHistory();
-      if (mounted.current) { setMessages(result.messages); setRemaining(result.remaining); setLoaded(true); }
+      if (mounted.current) { setMessages(result.messages); setRemaining(result.remaining); setHasMore(result.hasMore); setLoaded(true); }
     } catch (failure) {
       if (mounted.current) setError(failure.response?.data?.error?.message || '대화 기록을 불러오지 못했습니다.');
     } finally { if (mounted.current) setPending(false); }
   }
 
+  async function loadOlder() {
+    if (olderRequest.current || pending || !hasMore || messages.length === 0) return;
+    const controller = new AbortController();
+    olderRequest.current = controller;
+    setLoadingOlder(true); setError('');
+    try {
+      const result = await getChatHistory(controller.signal, messages[0].id);
+      if (!mounted.current) return;
+      if (messageArea.current) prependScroll.current = { height: messageArea.current.scrollHeight, top: messageArea.current.scrollTop };
+      setMessages((current) => [...result.messages, ...current]);
+      setHasMore(result.hasMore);
+    } catch {
+      if (mounted.current && !controller.signal.aborted) setError('이전 대화를 불러오지 못했어요. 다시 시도해 주세요.');
+    } finally {
+      olderRequest.current = null;
+      if (mounted.current) setLoadingOlder(false);
+    }
+  }
+
   async function resetConversation() {
-    if (pending || activeRequest.current) return;
+    if (pending || activeRequest.current || olderRequest.current) return;
     setPending(true); setError('');
     try {
       await clearChatHistory();
-      if (mounted.current) { setMessages([]); setDraft(''); input.current?.focus(); }
+      if (mounted.current) { setMessages([]); setHasMore(false); setDraft(''); input.current?.focus(); }
     } catch (failure) {
-      if (mounted.current) setError(failure.response?.data?.error?.message || '대화를 지우지 못했습니다.');
+      if (mounted.current) setError(failure.response?.data?.error?.message || '새 대화를 시작하지 못했습니다.');
     } finally { if (mounted.current) setPending(false); }
   }
 
@@ -122,28 +149,34 @@ export default function ChatWidget() {
     };
   }, [open, setOpen]);
 
-  useEffect(() => {
-    if (open && (messages.length > 0 || pending || error)) bottom.current?.scrollIntoView({ block: 'nearest' });
-  }, [messages, pending, error, open]);
+  useLayoutEffect(() => {
+    if (prependScroll.current && messageArea.current) {
+      messageArea.current.scrollTop = prependScroll.current.top + messageArea.current.scrollHeight - prependScroll.current.height;
+      prependScroll.current = null;
+    }
+  }, [messages]);
 
-  async function send(text = draft, guideId = null) {
+  useEffect(() => {
+    if (open && (lastMessageId || pending || error)) bottom.current?.scrollIntoView({ block: 'nearest' });
+  }, [lastMessageId, pending, error, open]);
+
+  async function send(text = draft, guideId = null, source = 'QUICK_QUESTION') {
     const question = text.trim();
-    if (!question || question.length > 500 || activeRequest.current || pending || !loaded || (!guideId && remaining === 0)) return;
+    if (!question || question.length > 500 || activeRequest.current || pending || olderRequest.current || !loaded || (!guideId && remaining === 0)) return;
     const controller = new AbortController();
     activeRequest.current = controller;
     setPending(true);
     setError('');
     if (!guideId) setDraft('');
     try {
-      const result = guideId ? await sendChatGuide(guideId, controller.signal)
+      const result = guideId ? await sendChatGuide(guideId, controller.signal, source)
         : await sendChatMessage(question, controller.signal);
       if (!mounted.current) return;
       setRemaining(result.remaining);
-      setMessages([...messages.slice(-8), { role: 'user', text: result.question },
-        { role: 'model', text: result.answer }]);
+      setMessages((current) => [...current, { id: result.questionId, role: 'user', text: result.question },
+        { id: result.answerId, role: 'model', text: result.answer, rating: null }]);
     } catch (failure) {
       if (mounted.current) {
-        setMessages(messages);
         if (!guideId) setDraft(question);
         setError(controller.signal.aborted ? '답변 요청을 취소했습니다. 질문을 다시 보낼 수 있습니다.'
           : failure.response?.data?.error?.message || '답변을 불러오지 못했습니다. 다시 보내 주세요.');
@@ -156,9 +189,9 @@ export default function ChatWidget() {
     }
   }
 
-  const sendExplanation = useEffectEvent((request) => { void send(request.label, request.guideId); });
+  const sendExplanation = useEffectEvent((request) => { void send(request.label, request.guideId, 'TERM_CLICK'); });
   useEffect(() => {
-    if (!questionRequest || pending || !loaded) return;
+    if (!questionRequest || pending || loadingOlder || !loaded) return;
     let cancelled = false;
     // A term click is an external request; defer until this committed view is ready.
     queueMicrotask(() => {
@@ -168,7 +201,7 @@ export default function ChatWidget() {
       sendExplanation(questionRequest);
     });
     return () => { cancelled = true; };
-  }, [questionRequest, pending, loaded, consumeQuestion]);
+  }, [questionRequest, pending, loadingOlder, loaded, consumeQuestion]);
 
   function close() {
     setShowUsageInfo(false);
@@ -197,19 +230,22 @@ export default function ChatWidget() {
                     <p>직접 입력하는 AI 질문은 하루 30회까지이며, 한국 시간 자정에 초기화돼요. 질문은 최대 500자까지 입력할 수 있어요.</p>
                     <p>추천 질문과 파란색 용어 설명은 횟수 차감 없이 확인할 수 있어요.</p>
                     <p>이름·연락처 등 개인정보는 입력하지 마세요.</p>
+                    <p>대화와 평가는 저장되며, 서비스 개선을 위해 관리자가 확인할 수 있어요.</p>
                   </div>}
                 </div>
               </div>
               <p>CreditComPass · 서비스와 차량 용어 안내</p>
             </div>
-            <button type="button" aria-label="대화 초기화" disabled={pending || !loaded || messages.length === 0}
+            <button type="button" aria-label="새 대화 시작" title="기존 기록은 보관하고 새 대화를 시작해요" disabled={pending || loadingOlder || !loaded || messages.length === 0}
               onClick={resetConversation}>
               <RotateCcw size={theme.iconSize.sm} aria-hidden="true" />
             </button>
             <button type="button" onClick={close} aria-label="콤파 닫기"><X size={theme.iconSize.md} aria-hidden="true" /></button>
           </header>
-          <div className="chat-messages" role="log" aria-label="콤파와의 대화" aria-live="polite" aria-relevant="additions text">
+          <div className="chat-messages" ref={messageArea} role="log" aria-label="콤파와의 대화" aria-live="polite" aria-relevant="additions text">
             <p className="chat-conversation-note">AI가 안내한 내용은 참고하시고,<br />중요한 정보는 한 번 더 확인해 주세요.</p>
+            {/* 8단계(류상민): 상담원 1:1 상담으로 이동하는 버튼만 추가 — 콤파 기능은 그대로 */}
+            <ConsultationLink onNavigate={close} />
             {messages.length === 0 && !pending ? (
               <div className="chat-welcome">
                 <span className="chat-welcome-label">서비스 이용부터 자동차 용어까지</span>
@@ -232,10 +268,15 @@ export default function ChatWidget() {
                 </div>
               </div>
             ) : null}
-            {messages.map((message, index) => (
-              <div className={`chat-bubble chat-${message.role}`} key={index}>
+            {hasMore && <button className="compa-load-older" type="button" disabled={loadingOlder || pending} onClick={loadOlder}>
+              {loadingOlder ? '불러오는 중…' : '이전 대화 보기'}
+            </button>}
+            {messages.map((message) => (
+              <div className={`compa-bubble chat-${message.role}`} key={message.id}>
                 <span className="chat-speaker">{message.role === 'user' ? '나' : <><Compass size={theme.iconSize.sm} aria-hidden="true" /> 콤파</>}</span>
                 <p>{message.text}</p>
+                {message.role === 'model' && <ChatFeedback message={message} onRated={(id, rating) =>
+                  setMessages((current) => current.map((item) => item.id === id ? { ...item, rating } : item))} />}
               </div>
             ))}
             {pending && <div className="chat-progress" role="status">
@@ -244,19 +285,19 @@ export default function ChatWidget() {
             {questionRequest && pending && <p className="chat-progress" role="status">현재 답변이 끝나면 ‘{questionRequest.label}’도 설명해 드릴게요.</p>}
             <div ref={bottom} />
           </div>
-          {error && <p className="chat-error" role="alert">{error}</p>}
+          {error && <p className="compa-error" role="alert">{error}</p>}
           {!loaded && <div className="chat-progress"><button type="button" disabled={pending} onClick={reloadHistory}>대화 기록 다시 불러오기</button></div>}
           <form className="chat-form" onSubmit={(event) => { event.preventDefault(); send(); }} aria-busy={pending}>
             <label className="chat-input-label" htmlFor="chat-question">질문 입력</label>
             <textarea id="chat-question" ref={input} value={draft} maxLength={500} rows={1}
-              placeholder="이용 방법이나 궁금한 용어를 물어보세요" disabled={pending || !loaded || remaining === 0}
+              placeholder="이용 방법이나 궁금한 용어를 물어보세요" disabled={pending || loadingOlder || !loaded || remaining === 0}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
                   event.preventDefault(); send();
                 }
               }} />
-            <button type="submit" disabled={pending || !loaded || remaining === 0 || !draft.trim()} aria-label="질문 보내기">
+            <button type="submit" disabled={pending || loadingOlder || !loaded || remaining === 0 || !draft.trim()} aria-label="질문 보내기">
               <Send size={theme.iconSize.md} aria-hidden="true" />
             </button>
           </form>

@@ -1,0 +1,18 @@
+.about-preview [data-reveal].is-reveal-ready > * {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 650ms ease, transform 650ms ease-out;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.about-preview [data-reveal].is-visible > *,
+.about-preview [data-reveal]:focus-within > * {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-preview [data-reveal].is-reveal-ready > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

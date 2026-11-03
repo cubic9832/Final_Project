@@ -70,4 +70,21 @@ class AuthServiceRefreshTests {
         assertThatThrownBy(() -> authService.refresh("old-token"))
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCode()).isEqualTo("REFRESH_INVALID"));
     }
+
+    @Test
+    void 정지된_계정은_로그인_유지도_끊긴다() {
+        MemberDto suspended = new MemberDto();
+        suspended.setId(7L);
+        suspended.setRole("USER");
+        suspended.setSuspended(true); // 9단계: SQL 이 DB 시각으로 계산한 값
+        suspended.setSuspendedUntil(LocalDateTime.of(2026, 11, 9, 14, 0));
+        when(memberMapper.findById(7L)).thenReturn(suspended);
+
+        assertThatThrownBy(() -> authService.refresh("old-token"))
+                .isInstanceOfSatisfying(ApiException.class, e -> {
+                    assertThat(e.getCode()).isEqualTo("ACCOUNT_SUSPENDED");
+                    assertThat(e.getMessage()).contains("11월 9일 14:00까지");
+                });
+        verify(refreshTokenMapper, never()).rotate(any(), any(), any(), any());
+    }
 }
