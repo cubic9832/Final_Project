@@ -80,10 +80,17 @@ cd front && npm install && npm run dev
 
 ## 회원 인증 키 (환경변수)
 
-로그인 · 회원가입의 외부 서비스 키는 **코드 · DB · git 에 넣지 않고 환경변수로만** 줍니다. 키가 없어도 아래처럼 개발 모드로 동작하므로, 조원은 키 없이 그대로 실행하면 됩니다.
+외부 서비스 키는 **코드 · DB · git 에 넣지 않습니다.** 키가 없어도 아래처럼 개발 모드로 동작하므로, 조원은 키 없이 그대로 실행하면 됩니다.
+
+**키 파일 하나로 넣기 (권장)**: 프로젝트 루트에서 `cp .env.example .env.local` 후 값을 채우고 서버 · 프론트를 다시 켭니다. 백엔드와 프론트가 모두 이 파일을 읽습니다.
+
+- 우선순위: 루트 `.env.local` > 환경변수 > `front/.env.local` > 기본값. 값이 빈 줄은 무시됩니다.
+- 관리자 계정은 이 파일이 아니라 기존대로 `back/admin-seed.local.properties` 에 둡니다.
+- 아래의 환경변수 · `front/.env.local` 방식도 그대로 쓸 수 있습니다.
 
 | 환경변수 | 쓰는 곳 | 없을 때 (개발 모드) |
 |---|---|---|
+| `CHATBOT_PROVIDER` · `GEMINI_API_KEY` 또는 `OPENAI_API_KEY` | 콤파 챗봇 AI 질문 (기본 gemini, 쓰는 쪽 키 하나) | 고정 답변만 되고 AI 질문은 "키 없음" 응답 |
 | `MAIL_USERNAME` · `MAIL_PASSWORD` | 이메일 인증 메일 발송 (Gmail 계정 · 앱 비밀번호) | 메일을 보내지 않고 **서버 로그에 인증 코드** 출력: `[DEV-MAIL] email verification code=123456 to=…` |
 | `RECAPTCHA_SECRET_KEY` (백) · `VITE_RECAPTCHA_SITE_KEY` (프론트) | 로그인 3번 실패 후 reCAPTCHA | 구글 공식 테스트 키 (체크만 하면 통과) |
 | `GOOGLE_CLIENT_ID` (백) · `VITE_GOOGLE_CLIENT_ID` (프론트) | 구글 로그인 | 구글 버튼이 "설정 필요" 로 비활성 |
