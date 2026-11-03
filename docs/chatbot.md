@@ -21,6 +21,8 @@ $env:OPENAI_API_KEY = [System.Net.NetworkCredential]::new('', $chatbotSecret).Pa
 .\dev.ps1
 ```
 
+환경변수 대신 프로젝트 루트 `.env.local`(`.env.example` 복사)에 같은 이름으로 적어도 된다. 이 파일이 환경변수보다 우선하며 값이 빈 줄은 무시된다. 파일 내용 바꾼 뒤에도 Spring 서버를 다시 켜야 적용된다.
+
 Windows 사용자 환경변수로 설정했다면 IDE·터미널을 완전히 닫았다가 다시 연다. dev.ps1은 켜진 서버를 재사용하므로 기존 서버를 종료한 후 실행해야 새 의존성과 키가 적용된다.
 
 Gemini: CHATBOT_PROVIDER=gemini, GEMINI_API_KEY, GEMINI_MODEL(기본 gemini-3.5-flash-lite).

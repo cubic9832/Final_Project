@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "feature_count": 39,
+  "catalog_count": 347,
+  "high_value_recommendations": [
+    {
+      "brand": "Lamborghini",
+      "model": "Revuelto",
+      "price": 784000000,
+      "height_mm": 1160
+    },
+    {
+      "brand": "Ferrari",
+      "model": "12Cilindri",
+      "price": 580000000,
+      "height_mm": 1292
+    }
+  ],
+  "budget_policy": {
+    "policy": "cash-importance-band-v1",
+    "lower": 540000000,
+    "upper": 900000000,
+    "financialUpper": 900000000,
+    "availablePurchaseFunds": 900000000,
+    "monthlyVehicleBudget": 25000000,
+    "referenceMonthlyRunningCost": null,
+    "lowerRatio": 0.6,
+    "costImportance": 5,
+    "catalogCapped": false
+  },
+  "old_model_on_same_holdout": {
+    "comparisons": 445813,
+    "log_loss": 0.5590179526393791,
+    "brier_score": 0.19197741267220733,
+    "accuracy": 0.6896568740705183
+  },
+  "old_model_comparison_note": "Shared 38 features only; old model did not train on the new high-value catalog."
+}

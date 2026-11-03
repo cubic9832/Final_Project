@@ -1,0 +1,25 @@
+.financial-survey-input .financial-field { margin-bottom: var(--space-24); }
+.financial-survey-input > .financial-field { max-width: 480px; }
+.financial-survey-input .survey-review { width: 100%; max-width: 480px; padding: var(--space-8) var(--space-16); border: 1px solid var(--color-border-input); border-radius: var(--radius-lg); background: var(--color-surface); }
+.financial-survey-input .survey-review li:last-child { border-bottom: 0; }
+.financial-survey-input .survey-review li { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: var(--space-16); }
+.financial-survey-input .survey-review button { width: 64px; border: 1px solid var(--color-border-input); }
+.financial-survey-input > .financial-field > label { font-size: var(--font-caption); color: var(--color-muted); }
+.financial-survey-input .financial-input-wrap { display: flex; align-items: center; gap: var(--space-12); padding: 0 var(--space-16); background: var(--color-surface); border: 1px solid var(--color-border-input); border-radius: var(--radius-lg); }
+.financial-survey-input .financial-input-wrap input { flex: 1; min-width: 0; width: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.financial-survey-input .financial-input-wrap > span { position: static; transform: none; flex-shrink: 0; white-space: nowrap; }
+.financial-survey-input .financial-input-wrap:focus-within { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+.financial-survey-input .financial-input-wrap input:focus-visible { outline: none; }
+.financial-survey-input .financial-input-wrap:has(input[aria-invalid="true"]) { border-color: var(--color-danger); }
+.financial-survey-input .financial-input-wrap:has(input[readonly]) { background: var(--color-background); }
+.financial-survey-input .financial-input-wrap input[readonly] { background: transparent; }
+.financial-survey-input > .financial-field input { min-width: 0; font-size: var(--font-figure-md); font-weight: 700; height: 48px; color: var(--color-primary); }
+.financial-survey-input .financial-expense-mode { display: block; width: 100%; max-width: 480px; min-width: 0; margin-top: var(--space-24); padding: 0; border: 0; }
+.financial-survey-input .financial-expense-mode legend { padding: 0; margin-bottom: var(--space-8); font-size: var(--font-caption); color: var(--color-muted); }
+.financial-survey-input .financial-mode-options { display: flex; flex-wrap: wrap; gap: var(--space-16); align-items: center; min-height: 50px; padding: var(--space-4) var(--space-16); border: 1px solid var(--color-border-input); border-radius: var(--radius-lg); background: var(--color-surface); }
+.financial-survey-input .financial-fields { grid-template-columns: 1fr; }
+.financial-survey-input .loan-calculator { margin-top: var(--space-24); }
+.financial-survey-input .loan-calculator-heading { flex-wrap: wrap; gap: var(--space-12); }
+.financial-survey-input .loan-calculator-card { background: var(--color-surface); }
+.financial-survey-input .financial-expense-breakdown { padding: var(--space-16); margin-top: var(--space-16); background: var(--color-surface); border-radius: var(--radius-lg); }
+@media (max-width: 480px) { .financial-survey-input > .financial-field input { font-size: var(--font-figure-md); height: 48px; } }

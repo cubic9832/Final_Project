@@ -44,6 +44,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   html {
+    scrollbar-gutter: stable;
     scroll-behavior: smooth;
     scroll-padding-top: 96px;
   }

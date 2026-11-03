@@ -9,7 +9,7 @@ from vehicle_matching.preference_model import encode_body
 class GroupedBodyPreferenceTests(unittest.TestCase):
     def test_other_group_matches_each_subtype_in_ranking_and_evidence(self):
         profile = person(preferred_body_type='OTHER')
-        for body in ('HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP'):
+        for body in ('HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'COUPE', 'CONVERTIBLE', 'ROADSTER'):
             with self.subTest(body=body):
                 car = vehicle(body_type=body)
                 penalties = preference_penalties(profile, car)
