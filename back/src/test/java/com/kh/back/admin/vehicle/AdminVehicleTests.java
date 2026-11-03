@@ -32,8 +32,12 @@ class AdminVehicleTests {
     @Autowired ObjectMapper mapper;
     @Autowired JwtProvider jwt;
     @Autowired JdbcTemplate jdbc;
+    private void member(long id,String email,String nickName){
+        jdbc.update("INSERT INTO users(id,email,password_hash,nick_name,role) VALUES(?,?,?,?,'USER') ON DUPLICATE KEY UPDATE email=VALUES(email)",id,email,"test-only",nickName);
+    }
     private String admin(){
-        jdbc.update("INSERT INTO users(id,email,password_hash,nick_name,role) VALUES(999999,?,?,?,?) ON DUPLICATE KEY UPDATE role=VALUES(role)","vehicle-api-test@example.com","test-only","차량 API 테스트","ADMIN");
+        member(999999L,"vehicle-api-test@example.com","차량 API 테스트");
+        jdbc.update("INSERT INTO admin_accounts(user_id,role) VALUES(999999,'ADMIN') ON DUPLICATE KEY UPDATE role=VALUES(role)");
         return "Bearer "+jwt.createAccessToken(999999L,"ADMIN");
     }
     private Map<String,Object> request(){
@@ -56,12 +60,13 @@ class AdminVehicleTests {
     }
     @Test void onlyAdministratorsCanManageVehicles() throws Exception {
         mvc.perform(get("/api/v1/admin/vehicles")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/api/v1/admin/vehicles").header("Authorization","Bearer "+jwt.createAccessToken(1L,"USER"))).andExpect(status().isForbidden());
+        member(999998L,"vehicle-api-user-test@example.com","차량 API 일반 회원");
+        mvc.perform(get("/api/v1/admin/vehicles").header("Authorization","Bearer "+jwt.createAccessToken(999998L,"USER"))).andExpect(status().isNotFound()).andExpect(jsonPath("$.error.code").value("NOT_FOUND"));
         mvc.perform(get("/api/v1/admin/vehicles").header("Authorization",admin())).andExpect(status().isOk());
     }
     @Test void superAdministratorCanManageVehicles() throws Exception {
         admin();
-        jdbc.update("UPDATE users SET role='SUPER_ADMIN' WHERE id=999999");
+        jdbc.update("UPDATE admin_accounts SET role='SUPER_ADMIN' WHERE user_id=999999");
         mvc.perform(get("/api/v1/admin/vehicles").header("Authorization","Bearer "+jwt.createAccessToken(999999L,"SUPER_ADMIN"))).andExpect(status().isOk());
     }
     @Test void savePublishWithdrawAndStaleEditHavePersistentEffects() throws Exception {
