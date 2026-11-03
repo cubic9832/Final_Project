@@ -5,6 +5,7 @@
 #   ./dev.sh reset   Docker 컨테이너와 데이터 삭제 (다음 실행 때 Flyway 가 처음부터 적용)
 #   DB_PORT=3308 ./dev.sh   기본 3307 대신 다른 포트를 쓸 때
 #   ES_PORT=9201 ./dev.sh   Elasticsearch 기본 9200 대신 다른 포트를 쓸 때
+#   DB_HOST: 다른 PC 의 DB 를 쓸 때 루트 .env.local 또는 환경변수에 적는다. 기본 localhost 이면 Docker DB 를 띄운다
 # Windows 는 Git Bash 없이 dev.cmd 를 사용한다.
 set -euo pipefail
 
@@ -13,7 +14,15 @@ cd "$ROOT_DIR"
 
 DEFAULT_DB_PORT=3307
 export DB_PORT="${DB_PORT:-$DEFAULT_DB_PORT}"
-export DB_HOST="${DB_HOST:-192.168.10.18}"
+# 루트 .env.local 의 값. 서버(LocalKeyFileEnvironmentPostProcessor)와 같이 환경변수보다 우선하고 빈 값은 건너뛴다
+local_key() {
+  [ -f "$ROOT_DIR/.env.local" ] || return 0
+  tr -d '\r' < "$ROOT_DIR/.env.local" \
+    | sed -nE "s/^[[:space:]]*$1[[:space:]]*[=:][[:space:]]*(.*[^[:space:]])[[:space:]]*\$/\\1/p" \
+    | tail -n 1
+}
+DB_HOST_FROM_KEY_FILE="$(local_key DB_HOST)"
+export DB_HOST="${DB_HOST_FROM_KEY_FILE:-${DB_HOST:-localhost}}"
 export ES_PORT="${ES_PORT:-9200}"
 
 require_docker() {

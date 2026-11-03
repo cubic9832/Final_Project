@@ -3,13 +3,23 @@
 param(
     [Parameter(Position = 0)][ValidateSet('up', 'down', 'reset')][string]$Command = 'up',
     [ValidateRange(1, 65535)][int]$DatabasePort = 3307,
-    [string]$DatabaseHost = '192.168.10.18',
+    [string]$DatabaseHost = 'localhost',
     [switch]$Check
 )
 
 $ErrorActionPreference = 'Stop'
-if (-not $PSBoundParameters.ContainsKey('DatabaseHost') -and -not [string]::IsNullOrWhiteSpace($env:DB_HOST)) {
-    $DatabaseHost = $env:DB_HOST
+# DB host: -DatabaseHost > DB_HOST in root .env.local > $env:DB_HOST > localhost.
+# Same precedence as the server (LocalKeyFileEnvironmentPostProcessor); empty values are skipped.
+if (-not $PSBoundParameters.ContainsKey('DatabaseHost')) {
+    $keyFileHost = $null
+    $keyFile = Join-Path $PSScriptRoot '.env.local'
+    if (Test-Path -LiteralPath $keyFile) {
+        foreach ($line in Get-Content -LiteralPath $keyFile -Encoding UTF8) {
+            if ($line -match '^\s*DB_HOST\s*[=:]\s*(.*?)\s*$' -and $Matches[1]) { $keyFileHost = $Matches[1] }
+        }
+    }
+    if ($keyFileHost) { $DatabaseHost = $keyFileHost }
+    elseif (-not [string]::IsNullOrWhiteSpace($env:DB_HOST)) { $DatabaseHost = $env:DB_HOST }
 }
 $isLocalDatabase = $DatabaseHost -in @('localhost', '127.0.0.1')
 if (Test-Path variable:PSNativeCommandUseErrorActionPreference) {
