@@ -53,7 +53,7 @@ export default function VehicleEditor({ vehicle, onCancel, onSave, saving = fals
     if (!(Number(draft.price) > 0) || Number(draft.price) * 10000 > 10000000000) invalid.price = '0원 초과, 100억 원 이하의 가격을 입력해 주세요.';
     if (draft.seats && (!Number.isInteger(Number(draft.seats)) || Number(draft.seats) < 1 || Number(draft.seats) > 15)) invalid.seats = '1~15명으로 입력해 주세요.';
     if (draft.length && (Number(draft.length) < 2500 || Number(draft.length) > 6000)) invalid.length = '전장은 2500~6000mm로 입력해 주세요.';
-    if (draft.efficiency && (Number(draft.efficiency) <= 0 || Number(draft.efficiency) > 100)) invalid.efficiency = '0 초과, 100 이하로 입력해 주세요.';
+    if (draft.efficiency && (Number(draft.efficiency) <= 0 || Number(draft.efficiency) > 200)) invalid.efficiency = '0 초과, 200 이하로 입력해 주세요.';
     for (const name of ['monthlyInsurance', 'monthlyTax', 'monthlyMaintenance']) if (draft[name] !== '' && (!Number.isInteger(Number(draft[name])) || Number(draft[name]) < 0 || Number(draft[name]) > 10000000)) invalid[name] = '0~10,000,000원 사이의 정수를 입력해 주세요.';
     if (draft.status === '공개') {
       for (const name of ['seats', 'length', 'efficiency', 'sourceUrl', 'checkedOn']) if (!draft[name]) invalid[name] = '차량을 공개하려면 입력해 주세요.';
@@ -73,7 +73,7 @@ export default function VehicleEditor({ vehicle, onCancel, onSave, saving = fals
         {field('year', '연식', { placeholder: '예: 2026', inputMode: 'numeric', pattern: '[0-9]{4}', maxLength: 4, suffix: '년형' })}
         {field('trim', '트림명', { required: true, placeholder: '예: 프레스티지', maxLength: 300 })}
         {field('origin', '구분', { options: ['국산', '수입'] })}
-        {field('body', '차체 종류', { options: ['형태 미확인', '세단', 'SUV', '해치백', '왜건', '미니밴·승합', '박스카', '픽업트럭'] })}
+        {field('body', '차체 종류', { options: ['형태 미확인', '세단', 'SUV', '해치백', '왜건', '미니밴·승합', '박스카', '픽업트럭', '쿠페', '컨버터블', '로드스터'] })}
       </div></section>
       <section className="admin-card"><div className="admin-card-heading"><div><h3>가격과 차량 사양</h3><p>선택 옵션을 제외한 해당 구성의 가격과 기본 사양입니다.</p></div></div><div className="vehicle-editor-fields">
         {field('price', '판매 가격', { required: true, placeholder: '예: 2892', inputMode: 'decimal', pattern: '[0-9]+([.][0-9]{1,2})?', suffix: '만 원' })}

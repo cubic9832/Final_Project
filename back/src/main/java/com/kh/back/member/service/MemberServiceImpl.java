@@ -202,8 +202,7 @@ public class MemberServiceImpl implements MemberService {
 
         // 보완 15 (11-03 회의): 회원 줄은 남기고 "탈퇴 회원" 으로 바꾼다 — 1:1 상담 · 만족도 · 신고 · 콤파 대화는 그대로 남는다
         // 개인 데이터는 지우고, 이메일 · 닉네임은 알아볼 수 없는 값으로 → 같은 이메일로 다시 가입하면 새 회원 (예전 기록과 연결 안 됨)
-        memberMapper.deleteFavoriteVehicles(userId);
-        memberMapper.deletePurchasePlans(userId);
+
         memberMapper.detachInputSnapshots(userId);
         memberMapper.deleteProfile(userId);
         memberMapper.deleteSocialAccounts(userId);

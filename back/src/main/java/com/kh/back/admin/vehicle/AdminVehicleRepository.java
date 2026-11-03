@@ -35,7 +35,7 @@ public class AdminVehicleRepository {
     }
     public List<tools.jackson.databind.JsonNode> published() {
         return jdbc.query("SELECT payload FROM managed_vehicles WHERE status='PUBLISHED' ORDER BY id",(rs,n)->{
-            var value=(tools.jackson.databind.node.ObjectNode)mapper.readTree(rs.getString(1));value.remove("memo");return value;
+            var value=(tools.jackson.databind.node.ObjectNode)mapper.readTree(rs.getString(1));value.remove("memo");value.put("recommendation_enabled",true);return value;
         });
     }
 }

@@ -2,13 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.back.vehicle.mapper.VehicleMapper">
     <select id="findAll" resultType="com.kh.back.vehicle.dto.VehicleDto">
-        SELECT v.id, b.name AS brand, v.name, v.trim_name, v.powertrain, v.model_year,
-               v.condition_code, v.class_code, v.fuel_code, v.seating_capacity, v.displacement_cc,
-               v.price, v.price_before_incentive, v.efficiency_value, v.city_efficiency,
-               v.highway_efficiency, v.efficiency_unit, v.wheel_size_inch, v.image_url,
-               v.source_name, v.source_url, v.is_example
-        FROM vehicles v
-        JOIN brands b ON b.id = v.brand_id
-        ORDER BY v.price, v.id
+        SELECT v.id, j.brand, j.name, j.trim_name, j.powertrain, j.model_year,
+               COALESCE(j.condition_code,'NEW') condition_code,
+               COALESCE(j.class_code,j.body_type) class_code, j.fuel_code,
+               j.seating_capacity, j.displacement_cc, j.price, j.price_before_incentive,
+               j.efficiency_value, j.city_efficiency, j.highway_efficiency,
+               COALESCE(j.efficiency_unit,CASE j.fuel_code WHEN 'ELECTRIC' THEN 'km/kWh' WHEN 'HYDROGEN' THEN 'km/kg' ELSE 'km/L' END) efficiency_unit,
+               j.wheel_size_inch, j.image_url, j.source_name, j.source_url, FALSE is_example
+        FROM managed_vehicles v
+        JOIN JSON_TABLE(v.payload, '$' COLUMNS(
+            brand VARCHAR(100) PATH '$.brand', name VARCHAR(100) PATH '$.model',
+            trim_name VARCHAR(255) PATH '$.trim', powertrain VARCHAR(255) PATH '$.powertrain',
+            model_year INT PATH '$.year' NULL ON ERROR,
+            condition_code VARCHAR(20) PATH '$.condition_code', class_code VARCHAR(30) PATH '$.class_code',
+            body_type VARCHAR(30) PATH '$.body_type', fuel_code VARCHAR(30) PATH '$.fuel',
+            seating_capacity INT PATH '$.seats', displacement_cc INT PATH '$.displacement_cc',
+            price DECIMAL(15,2) PATH '$.price', price_before_incentive DECIMAL(15,2) PATH '$.price_before_incentive',
+            efficiency_value DECIMAL(10,3) PATH '$.efficiency', city_efficiency DECIMAL(10,3) PATH '$.city_efficiency',
+            highway_efficiency DECIMAL(10,3) PATH '$.highway_efficiency', efficiency_unit VARCHAR(20) PATH '$.efficiency_unit',
+            wheel_size_inch INT PATH '$.wheel_size_inch', image_url VARCHAR(500) PATH '$.image_url',
+            source_name VARCHAR(100) PATH '$.source_name', source_url VARCHAR(1000) PATH '$.source_url'
+        )) j ON TRUE
+        WHERE v.status='PUBLISHED'
+        ORDER BY j.price, v.id
     </select>
 </mapper>

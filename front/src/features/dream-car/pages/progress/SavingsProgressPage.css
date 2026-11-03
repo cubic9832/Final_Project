@@ -1,4 +1,4 @@
-.savings-page { padding:var(--space-24) 0 var(--space-48); }
+.savings-page { padding:var(--space-8) 0 var(--space-48); }
 .savings-header { display:flex; align-items:center; justify-content:space-between; gap:var(--space-24); margin-bottom:var(--space-24); }
 .savings-back { display:inline-flex; align-items:center; gap:var(--space-8); color:var(--color-text-sub); font-size:var(--font-caption); margin-bottom:var(--space-24); }
 .savings-eyebrow { display:flex; align-items:center; gap:var(--space-8); color:var(--color-mint-strong); font-size:var(--font-caption); letter-spacing:1px; font-weight:700; }
@@ -7,8 +7,9 @@
 .savings-local-label { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-pill); padding:var(--space-8) var(--space-16); font-size:var(--font-caption); color:var(--color-text-sub); white-space:nowrap; }
 .savings-card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-24); min-width:0; }
 .savings-card h2 { font-size:var(--font-card-title); }
-.savings-purchase-layout { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:var(--space-24); align-items:start; }
-.savings-purchase-results { display:grid; gap:var(--space-24); min-width:0; }
+.savings-purchase-layout { display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); gap:var(--space-24); align-items:stretch; }
+.savings-purchase-layout > * { min-width:0; }
+.savings-purchase-insight { grid-column:2; }
 .savings-purchase-heading { display:flex; align-items:center; gap:var(--space-12); margin-bottom:var(--space-24); color:var(--color-primary); }
 .savings-purchase-heading>span { padding:var(--space-8); background:var(--color-blue-tint); border-radius:var(--radius-sm); font-size:var(--font-caption); font-weight:700; }
 .savings-purchase-heading>svg { margin-left:auto; }
@@ -20,8 +21,7 @@
 .savings-purchase-settings .savings-settings-columns input { height:48px; }
 .savings-purchase-settings h3 { font-size:var(--font-subtitle); margin-bottom:var(--space-16); }
 .savings-purchase-layout .savings-caption a { color:var(--color-blue-strong); text-decoration:underline; }
-@media(max-width:1024px) { .savings-purchase-layout { grid-template-columns:1fr 1fr; } }
-@media(max-width:768px) { .savings-purchase-layout { grid-template-columns:1fr; } }
+@media(max-width:768px) { .savings-purchase-layout { grid-template-columns:1fr; } .savings-purchase-insight { grid-column:auto; } }
 .savings-plan-picker { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:center; gap:var(--space-32); }
 .savings-plan-picker h2 { font-size:var(--font-subtitle); }
 .savings-saved-vehicle { min-width:0; width:100%; text-align:left; align-self:start; }

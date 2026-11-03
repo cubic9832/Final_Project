@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { annualVehicleTax, getVehicleCostDefaults, updatePlanInput } from './vehicleCostDefaults.js';
 import { calculatePurchasePlan, defaultPlan } from './purchasePlan.js';
-import catalog from '../vehicle/planningVehicleCatalog.json' with { type: 'json' };
+import catalog from '../vehicle/planningVehicleCatalog.js';
 
 test('자동차세는 구간별 전체 배기량 세율과 지방교육세를 적용한다', () => {
   assert.equal(annualVehicleTax(1000), 10.4);

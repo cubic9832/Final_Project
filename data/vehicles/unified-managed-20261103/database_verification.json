@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "database_rows": 384,
+  "training_catalog_rows": 384,
+  "id_sets_identical": true,
+  "all_ml_fields_identical": true,
+  "published": 381
+}
