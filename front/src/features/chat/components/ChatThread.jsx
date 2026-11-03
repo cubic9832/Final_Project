@@ -43,8 +43,9 @@ export default function ChatThread({ messages, viewer, memberName, connected, er
 
   return (
     <div className="chat-thread">
+      {/* 메시지 통로(WebSocket) 상태 — 상담 상태 배지(대기 · 진행 중)와 헷갈리지 않게 대화창 오른쪽 위에 작게, "연결" 대신 "수신" */}
       <p className={`chat-connection${connected ? ' is-on' : ''}`} role="status">
-        {connected ? '● 실시간 연결됨' : '연결 중… 끊기면 자동으로 다시 연결합니다.'}
+        {connected ? '● 실시간 수신 중' : '● 연결이 끊겨 다시 연결하는 중…'}
       </p>
       <ul className="chat-board" ref={boardRef} aria-label="상담 대화" aria-live="polite">
         {messages.length === 0 && <li className="chat-empty">아직 대화가 없습니다.</li>}

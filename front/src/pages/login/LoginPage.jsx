@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { Car } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { googleLogin, login } from '../../features/auth/authApi';
 import { afterLoginPath } from '../../features/taste-test/tastePrompt';
@@ -9,7 +8,6 @@ import PasswordInput from '../../features/auth/components/PasswordInput';
 import PasswordResetModal from './PasswordResetModal';
 import RecaptchaBox from './RecaptchaBox';
 import GoogleLoginButton from './GoogleLoginButton';
-import theme from '../../styles/theme';
 import './LoginPage.css';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -170,7 +168,8 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-heading">
         <h1>로그인</h1>
-        <p>저장한 분석 결과와 구매계획을 이어서 확인하세요.</p>
+        {/* 11-03 회의: 비회원 간편 체험 삭제 — "계정이 필요한 이유" 박스 대신 제목 아래 한 줄로 */}
+        <p>분석 결과 저장과 이전 기록 조회는 로그인 후 이용할 수 있어요.</p>
       </div>
 
       <div className="login-grid">
@@ -251,35 +250,7 @@ export default function LoginPage() {
             </Link>
           </p>
         </section>
-
-        <aside className="login-demo-card" aria-labelledby="demo-title">
-          <div className="login-demo-icon" aria-hidden="true">
-            <Car size={theme.iconSize.lg} strokeWidth={1.5} />
-          </div>
-          <span className="login-demo-eyebrow">로그인 없이 먼저 확인</span>
-          <h2 id="demo-title">예시 조건으로 간편 체험해 보세요.</h2>
-          <p>입력 없이 추천 예산, 신용위험 요인, 차량 6대를 바로 확인할 수 있습니다.</p>
-          {/* 체험용 예시 조건 (실제 사용자 정보 아님) */}
-          <div className="login-demo-tags">
-            <span>월소득 280만 원</span>
-            <span>선수금 500만 원</span>
-            <span>연 15,000km</span>
-          </div>
-          <button
-            className="login-demo-button"
-            type="button"
-            onClick={() => navigate('/#financial')}
-          >
-            간편 체험 시작하기
-          </button>
-          <div className="login-card-footer" aria-hidden="true" />
-        </aside>
       </div>
-
-      <aside className="login-privacy">
-        <h2>계정이 필요한 이유</h2>
-        <p>분석 결과 저장과 이전 기록 조회는 로그인이 필요합니다. 체험 결과는 브라우저를 닫으면 저장되지 않습니다.</p>
-      </aside>
 
       <footer className="login-footer">
         <strong>CreditCompass</strong>
