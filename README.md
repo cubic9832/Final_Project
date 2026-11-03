@@ -69,6 +69,15 @@ cd back && ./gradlew bootRun
 cd front && npm install && npm run dev
 ```
 
+## CI
+
+모든 브랜치에 푸시하면 GitHub Actions 가 `back`(MySQL 포함)과 `front` 단위 테스트를 실행합니다. `ml`·`tools` 의 Python 테스트는 실행하지 않습니다.
+
+- 실패하면 GitHub 가 푸시한 사람에게 메일을 보냅니다. GitHub **Settings → Notifications → Actions** 에서 Email 을 켜고 **Only notify for failed workflows** 를 선택해 두세요. 메일은 GitHub 알림 이메일로 갑니다.
+- 푸시 자체는 막지 않습니다. `develop` 에는 실패한 코드도 올라갈 수 있으니 메일을 받으면 바로 고칩니다.
+- `main` 은 PR 로만 변경하며 `back-test`·`front-test` 를 통과해야 머지할 수 있습니다.
+- 실패 원인은 Actions 실행 화면의 로그와 `back-test-report` 아티팩트에서 확인합니다.
+
 ## 회원 인증 키 (환경변수)
 
 로그인 · 회원가입의 외부 서비스 키는 **코드 · DB · git 에 넣지 않고 환경변수로만** 줍니다. 키가 없어도 아래처럼 개발 모드로 동작하므로, 조원은 키 없이 그대로 실행하면 됩니다.
