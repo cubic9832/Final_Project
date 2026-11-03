@@ -7,7 +7,7 @@
     <select id="countProfileMissing" resultType="int">
         SELECT COUNT(*) FROM users u
         LEFT JOIN user_profiles p ON p.user_id = u.id
-        WHERE p.birth_date IS NULL OR p.gender IS NULL
+        WHERE u.role &lt;&gt; 'WITHDRAWN' AND (p.birth_date IS NULL OR p.gender IS NULL)
     </select>
 
     <!-- 진단 수는 회원의 기록만 (탈퇴하면 user_id 가 NULL 이 되어 빠진다) -->

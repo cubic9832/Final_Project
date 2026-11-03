@@ -12,6 +12,7 @@ import com.kh.back.member.mapper.UserProfileMapper;
 import com.kh.back.auth.service.NickNamePolicy;
 import com.kh.back.auth.service.PasswordChangeLimiter;
 import com.kh.back.auth.mapper.RefreshTokenMapper;
+import com.kh.back.chat.service.ChatRoomService;
 import com.kh.back.common.exception.ApiException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,6 +39,7 @@ public class MemberServiceImpl implements MemberService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordChangeLimiter passwordChangeLimiter; // 보완 4 추가: 비밀번호 변경과 같은 "현재 비밀번호 틀린 횟수"
     private final RefreshTokenMapper refreshTokenMapper;
+    private final ChatRoomService chatRoomService; // 보완 15: 탈퇴하면 진행 중 1:1 상담 종료
 
     @Override
     @Transactional(readOnly = true)
@@ -198,11 +200,33 @@ public class MemberServiceImpl implements MemberService {
         }
         passwordChangeLimiter.reset(userId);
 
-        // users 를 참조하는 데이터를 먼저 정리한 뒤 회원을 삭제한다 (외래키 때문에 순서가 중요)
+        // 보완 15 (11-03 회의): 회원 줄은 남기고 "탈퇴 회원" 으로 바꾼다 — 1:1 상담 · 만족도 · 신고 · 콤파 대화는 그대로 남는다
+        // 개인 데이터는 지우고, 이메일 · 닉네임은 알아볼 수 없는 값으로 → 같은 이메일로 다시 가입하면 새 회원 (예전 기록과 연결 안 됨)
         memberMapper.deleteFavoriteVehicles(userId);
         memberMapper.deletePurchasePlans(userId);
         memberMapper.detachInputSnapshots(userId);
-        memberMapper.deleteById(userId); // refresh_token(V6) · user_profiles(V8, 보완 5)는 ON DELETE CASCADE 로 함께 삭제 → 다른 브라우저 로그인도 끝남
+        memberMapper.deleteProfile(userId);
+        memberMapper.deleteSocialAccounts(userId);
+        memberMapper.deleteAgreements(userId);
+        memberMapper.deleteCurrentTaste(userId);
+        if ("ADMIN".equals(member.getRole())) {
+            chatRoomService.releaseRoomsOf(userId); // 맡던 진행 중 상담 → 대기 (다른 관리자가 다시 맡는다)
+            memberMapper.deleteAdminAccount(userId);
+            memberMapper.deleteQuickReplies(userId);
+        }
+        chatRoomService.closeForWithdrawal(userId); // 대기 · 진행 중이던 내 상담은 종료
+        refreshTokenMapper.deleteByUserId(userId); // 다른 브라우저 로그인도 끝남
+        memberMapper.anonymize(userId, withdrawnEmail(userId), withdrawnNickName(userId));
+    }
+
+    // 탈퇴 회원 이메일: 실제로 받을 수 없는 주소(.invalid), 번호로 겹치지 않게
+    static String withdrawnEmail(Long userId) {
+        return "withdrawn-" + userId + "@deleted.invalid";
+    }
+
+    // 탈퇴 회원 닉네임: 관리자 상담 화면 · 운영 로그에 이 이름으로 보인다. 13자 이상이라 회원이 고를 수 없는 이름(닉네임은 2~12자)
+    static String withdrawnNickName(Long userId) {
+        return "[탈퇴한 회원] 번호 " + userId;
     }
 
     // 10-22: 5번 틀려 잠겼으면 비밀번호를 보지 않고 거절(429), 아니면 비밀번호가 틀렸는지

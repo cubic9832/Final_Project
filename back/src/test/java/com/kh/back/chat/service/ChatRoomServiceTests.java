@@ -45,7 +45,7 @@ class ChatRoomServiceTests {
     @Mock ChatBroadcaster broadcaster;
     @Mock CurrentRoleLookup currentRoleLookup;
     @Mock AdminAuditLogMapper adminAuditLogMapper;
-    @Mock MemberMapper memberMapper; // 9단계: 정지 여부 (기본은 null = 확인할 회원 없음 → 통과)
+    @Mock MemberMapper memberMapper; // 9단계: 정지 여부 — 기본은 정지 안 된 회원 (보완 15: null 이면 탈퇴 회원 → MEMBER_NOT_FOUND)
     @Spy ChatContentFilter contentFilter = new ChatContentFilter(); // 진짜 금칙어 목록으로 검사
     @InjectMocks ChatRoomServiceImpl service;
 
@@ -58,6 +58,7 @@ class ChatRoomServiceTests {
         lenient().when(currentRoleLookup.currentRole(SUPER)).thenReturn("SUPER_ADMIN");
         // 저장한 메시지를 다시 읽으면 같은 내용이 나온다고 가정
         lenient().when(chatMapper.findMessageById(any())).thenAnswer(inv -> new ChatMessageDto());
+        lenient().when(memberMapper.findById(anyLong())).thenAnswer(inv -> new MemberDto()); // 정지 안 된 보통 회원
     }
 
     private ChatRoomDto room(String status, Long assignedAdminId) {

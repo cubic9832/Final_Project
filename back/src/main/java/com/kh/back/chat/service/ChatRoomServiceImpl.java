@@ -300,11 +300,22 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     @Override
     @Transactional
     public void closeForSuspension(Long userId) {
+        closeRoomOf(userId, "회원 계정이 이용 정지되어 상담이 종료되었습니다.");
+    }
+
+    @Override
+    @Transactional
+    public void closeForWithdrawal(Long userId) {
+        closeRoomOf(userId, "회원이 탈퇴하여 상담이 종료되었습니다.");
+    }
+
+    // 회원의 대기 · 진행 중 상담을 닫고 안내 문구를 남긴다 (이미 종료됐거나 상담이 없으면 아무것도 안 함)
+    private void closeRoomOf(Long userId, String notice) {
         ChatRoomDto room = chatMapper.findRoomByUserId(userId);
         if (room == null || chatMapper.close(room.getId()) == 0) {
             return;
         }
-        system(room.getId(), "회원 계정이 이용 정지되어 상담이 종료되었습니다.");
+        system(room.getId(), notice);
         broadcaster.roomChanged(room.getId(), ChatRoomDto.CLOSED);
     }
 
@@ -312,11 +323,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     // 9단계: 정지된 회원은 상담을 시작하거나 메시지를 보낼 수 없다
     // (정지 순간 이미 받은 access token 이 최대 30분 남아도 상담은 바로 막힌다)
+    // 보완 15: 탈퇴한 회원(findById 가 null)도 막는다 — 탈퇴 순간 남은 access token 으로 상담을 다시 열지 못하게
     private void requireNotSuspended(Long userId) {
         MemberDto member = memberMapper.findById(userId);
-        if (member != null) {
-            AccountSuspension.requireActive(member);
+        if (member == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원 정보를 찾을 수 없습니다.");
         }
+        AccountSuspension.requireActive(member);
     }
 
     private void closeRoom(Long roomId, String notice) {

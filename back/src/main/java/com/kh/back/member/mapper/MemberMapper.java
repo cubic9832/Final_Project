@@ -32,5 +32,19 @@ public interface MemberMapper {
 
     int detachInputSnapshots(Long userId);     // 분석 입력 기록은 남기고 회원 연결만 끊음 (user_id = NULL)
 
-    int deleteById(Long id);                   // 회원 삭제 (refresh_token 은 V6 ON DELETE CASCADE 로 함께 삭제)
+    // 보완 15: 회원 줄은 남기고 "탈퇴 회원" 으로 바꾼다 (role = WITHDRAWN, 이메일 · 닉네임 · 비밀번호를 알아볼 수 없는 값으로)
+    int anonymize(@Param("id") Long id, @Param("email") String email, @Param("nickName") String nickName);
+
+    // 보완 15: 예전에는 회원 삭제 때 CASCADE 로 함께 지워지던 개인 데이터 — 이제 직접 지운다
+    int deleteProfile(Long userId);            // 생년월일 · 성별 등
+
+    int deleteSocialAccounts(Long userId);     // 구글 연결 (끊어야 같은 구글 계정으로 새로 가입할 수 있다)
+
+    int deleteAgreements(Long userId);         // 약관 동의
+
+    int deleteCurrentTaste(Long userId);       // 취향 테스트 결과
+
+    int deleteAdminAccount(Long userId);       // 관리자 권한 (관리자가 탈퇴할 때)
+
+    int deleteQuickReplies(Long userId);       // 상담원 자주 쓰는 문구
 }
