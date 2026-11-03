@@ -6,5 +6,6 @@ public interface ChatService {
     ChatResponse reply(Long memberId, ChatRequest request);
     ChatResponse guideReply(Long memberId, ChatGuideRequest request);
     ChatHistoryResponse history(Long memberId);
+    ChatHistoryResponse history(Long memberId, Long beforeId);
     void clear(Long memberId);
 }

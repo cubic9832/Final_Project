@@ -95,7 +95,7 @@ export default function AdminVehiclesPanel() {
       ['국산 차량', vehicles.filter(v => v.origin === '국산').length, '트림·사양 기준'], ['수입 차량', vehicles.filter(v => v.origin === '수입').length, '트림·사양 기준'],
     ].map(([label, value, note]) => <div className="admin-stat" key={label}><span>{label}</span><strong>{value}<small> 건</small></strong><small>{note}</small></div>)}</div>
     <section className="admin-card"><div className="admin-card-heading"><div><h3>차량 목록</h3><p>같은 모델도 연료와 트림이 다르면 각각 관리합니다. 공개 상태인 차량만 추천에 반영됩니다.</p></div><button type="button" className="admin-outline-button" onClick={() => setReload(value => value + 1)}>목록 새로고침</button></div>
-      <div className="vehicle-management-filters"><label className="admin-search-field"><Search size={theme.iconSize.sm} aria-hidden="true" /><input type="search" aria-label="브랜드, 모델 또는 트림 검색" placeholder="브랜드, 모델, 트림 검색" value={filters.keyword} onChange={event => updateFilter('keyword', event.target.value)} /></label>
+      <div className="vehicle-management-filters"><label className="admin-search-field form-focus-group"><Search size={theme.iconSize.sm} aria-hidden="true" /><input type="search" aria-label="브랜드, 모델 또는 트림 검색" placeholder="브랜드, 모델, 트림 검색" value={filters.keyword} onChange={event => updateFilter('keyword', event.target.value)} /></label>
         {[
           ['brand', '브랜드', brands], ['fuel', '연료', vehicleFuels], ['status', '관리 상태', vehicleStatuses],
         ].map(([key, label, options]) => <label key={key} className="vehicle-management-filter"><span>{label}</span><select value={filters[key]} onChange={event => updateFilter(key, event.target.value)}><option value="">전체</option>{options.map(option => <option key={option}>{option}</option>)}</select></label>)}

@@ -90,9 +90,23 @@ const GlobalStyle = createGlobalStyle`
   a:focus-visible,
   button:focus-visible,
   input:focus-visible,
-  select:focus-visible {
+  select:focus-visible,
+  textarea:focus-visible {
     outline: 2px solid var(--color-blue);
     outline-offset: 2px;
+  }
+
+  /* Composite fields show focus on their outer rounded border only. */
+  .form-focus-group:focus-within {
+    border-color: var(--color-blue);
+    outline: 2px solid var(--color-blue);
+    outline-offset: 2px;
+  }
+
+  .form-focus-group input:focus,
+  .form-focus-group input:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

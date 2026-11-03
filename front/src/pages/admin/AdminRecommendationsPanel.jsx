@@ -65,7 +65,7 @@ export default function AdminRecommendationsPanel() {
     <section className="admin-card"><div className="admin-card-heading"><div><h3>추천 후보 차량 검수</h3><p>추천 서버가 실제로 고르는 후보 차량입니다. 가격 출처 · 확인일 · 승차 정원 상태를 검수하세요.</p></div>
       <span className="admin-count-badge">전체 {candidates.length}건 · 차종 {modelCount}개 · 이미지 없는 차종 {noImage}개 · 승차 정원 확인 필요 {seatCheck}건</span></div>
       <div className="admin-filters">
-        <label className="admin-search-field"><Search size={theme.iconSize.sm} aria-hidden="true" /><input type="search" placeholder="브랜드 · 모델 · 트림" value={query.keyword} onChange={(event) => change({ keyword: event.target.value })} aria-label="후보 차량 검색" /></label>
+        <label className="admin-search-field form-focus-group"><Search size={theme.iconSize.sm} aria-hidden="true" /><input type="search" placeholder="브랜드 · 모델 · 트림" value={query.keyword} onChange={(event) => change({ keyword: event.target.value })} aria-label="후보 차량 검색" /></label>
         <label className="admin-filter-field">연료<select value={query.fuel} onChange={(event) => change({ fuel: event.target.value })}><option value="">전체</option>{Object.entries(FUEL_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <label className="admin-filter-field">검수<select value={query.check} onChange={(event) => change({ check: event.target.value })}><option value="">전체</option><option value="seats">승차 정원 확인 필요</option><option value="image">이미지 없음</option></select></label>
       </div>

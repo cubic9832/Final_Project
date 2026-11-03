@@ -15,6 +15,7 @@ import AdminMembersPanel from './AdminMembersPanel';
 import AdminModelsPanel from './AdminModelsPanel';
 import AdminLogsPanel from './AdminLogsPanel';
 import AdminChatPanel from './AdminChatPanel';
+import AdminChatbotPanel from './AdminChatbotPanel';
 import './AdminPage.css';
 
 const sections = [
@@ -24,6 +25,7 @@ const sections = [
   { id: 'members', label: '회원 관리', icon: Users, description: '가입 현황과 회원 상태, 운영 권한을 확인합니다.', panel: AdminMembersPanel },
   // 8단계: 1:1 상담 — 대기 목록은 실시간(WebSocket), 먼저 [맡기] 를 누른 관리자가 답한다
   { id: 'chat', label: '1:1 상담', icon: MessagesSquare, description: '회원의 상담 요청을 맡아 실시간으로 답합니다.', panel: AdminChatPanel },
+  { id: 'chatbot', label: '콤파 대화·평가', icon: MessagesSquare, description: '콤파의 질문·답변과 좋아요·싫어요 평가를 확인합니다.', panel: AdminChatbotPanel },
   { id: 'models', label: '모델 관리', icon: Cpu, description: '적용 중인 모델의 평가 결과와 학습 기록을 확인합니다.', panel: AdminModelsPanel },
   { id: 'logs', label: '운영 로그', icon: ScrollText, description: '관리자 변경 이력과 서비스 오류를 추적합니다.', panel: AdminLogsPanel },
 ];
