@@ -151,11 +151,14 @@ class ChatRoomServiceTests {
     }
 
     @Test
-    void 일반_관리자는_남의_상담을_넘기거나_종료할_수_없다() {
+    void 일반_관리자도_남이_맡은_상담을_넘기고_종료할_수_있다() { // 11-03
         room(ChatRoomDto.ACTIVE, OTHER_ADMIN);
-        assertCode(() -> service.transfer(ADMIN, ROOM, ADMIN, null), "CHAT_FORBIDDEN");
-        assertCode(() -> service.closeByAdmin(ADMIN, ROOM), "CHAT_FORBIDDEN");
-        verify(chatMapper, never()).transfer(anyLong(), anyLong(), anyLong());
+        when(chatMapper.transfer(ROOM, OTHER_ADMIN, ADMIN)).thenReturn(1);
+        service.transfer(ADMIN, ROOM, ADMIN, null);
+        verify(chatMapper).transfer(ROOM, OTHER_ADMIN, ADMIN);
+        when(chatMapper.close(ROOM)).thenReturn(1);
+        service.closeByAdmin(ADMIN, ROOM);
+        assertCode(() -> service.closeByAdmin(MEMBER, ROOM), "CHAT_FORBIDDEN"); // 회원은 안 됨
     }
 
     @Test
@@ -238,43 +241,41 @@ class ChatRoomServiceTests {
     }
 
     @Test
-    void 경고는_진행_중인_상담에서_담당자만() {
+    void 경고는_진행_중인_상담에서_관리자만() { // 11-03: 담당이 아니어도 관리자면 된다
         room(ChatRoomDto.ACTIVE, OTHER_ADMIN);
-        assertCode(() -> service.warn(ADMIN, ROOM, "욕설 · 비속어"), "CHAT_FORBIDDEN");
+        assertCode(() -> service.warn(MEMBER, ROOM, "욕설 · 비속어"), "CHAT_FORBIDDEN");
         room(ChatRoomDto.CLOSED, ADMIN);
         assertCode(() -> service.warn(ADMIN, ROOM, "욕설 · 비속어"), "CHAT_NOT_ACTIVE");
         verify(chatMapper, never()).warn(anyLong());
     }
 
     @Test
-    void 영구_제한은_총관리자만_할_수_있다() {
+    void 영구_제한은_일반_관리자도_할_수_있다() { // 11-03
         ChatRoomDto room = room(ChatRoomDto.ACTIVE, ADMIN);
-        assertCode(() -> service.restrict(ADMIN, ROOM, 0, "성희롱 · 음란"), "CHAT_FORBIDDEN"); // 담당자여도 영구는 안 됨
-        verify(chatMapper, never()).restrict(anyLong(), org.mockito.ArgumentMatchers.anyInt());
-
         room.setRestrictedUntil(java.time.LocalDateTime.of(9999, 12, 31, 23, 59, 59));
-        service.restrict(SUPER, ROOM, 0, "성희롱 · 음란");
-        verify(adminAuditLogMapper).insert(SUPER, "CHAT_RESTRICT", "MEMBER", MEMBER, "상담 제한 영구 (성희롱 · 음란)");
+        service.restrict(ADMIN, ROOM, 0, "성희롱 · 음란");
+        verify(adminAuditLogMapper).insert(ADMIN, "CHAT_RESTRICT", "MEMBER", MEMBER, "상담 제한 영구 (성희롱 · 음란)");
         ArgumentCaptor<ChatMessageDto> notice = ArgumentCaptor.forClass(ChatMessageDto.class);
         verify(chatMapper).insertMessage(notice.capture());
         assertThat(notice.getValue().getContent()).doesNotContain("9999").contains("더 이상 새 상담을 시작할 수 없습니다");
     }
 
     @Test
-    void 제한을_푸는_것은_총관리자만() {
+    void 제한은_일반_관리자도_풀_수_있다() { // 11-03
         ChatRoomDto room = room(ChatRoomDto.CLOSED, ADMIN);
         room.setRestricted(true);
         room.setRestrictedUntil(java.time.LocalDateTime.of(2026, 11, 2, 15, 0));
-        assertCode(() -> service.unrestrict(ADMIN, ROOM), "CHAT_FORBIDDEN"); // 제한을 건 담당자여도 안 됨
-        service.unrestrict(SUPER, ROOM);
+        service.unrestrict(OTHER_ADMIN, ROOM);
         verify(chatMapper).unrestrict(ROOM);
+        assertCode(() -> service.unrestrict(MEMBER, ROOM), "CHAT_FORBIDDEN"); // 회원은 안 됨
     }
 
     @Test
-    void 일반_관리자는_남의_상담을_제한하거나_풀_수_없다() {
-        room(ChatRoomDto.ACTIVE, OTHER_ADMIN);
-        assertCode(() -> service.restrict(ADMIN, ROOM, 3, null), "CHAT_FORBIDDEN");
-        verify(chatMapper, never()).restrict(anyLong(), org.mockito.ArgumentMatchers.anyInt());
+    void 일반_관리자도_남이_맡은_상담을_제한할_수_있다() { // 11-03
+        ChatRoomDto room = room(ChatRoomDto.ACTIVE, OTHER_ADMIN);
+        room.setRestrictedUntil(java.time.LocalDateTime.of(2026, 11, 6, 15, 0)); // restrict 뒤 다시 읽은 값
+        service.restrict(ADMIN, ROOM, 3, null);
+        verify(chatMapper).restrict(ROOM, 3);
     }
 
     @Test

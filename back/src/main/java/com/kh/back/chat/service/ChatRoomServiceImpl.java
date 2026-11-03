@@ -189,7 +189,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         if (!ChatRoomDto.ACTIVE.equals(room.getStatus())) {
             throw new ApiException(HttpStatus.CONFLICT, "CHAT_NOT_ACTIVE", "진행 중인 상담만 넘길 수 있습니다.");
         }
-        requireOwnerOrSuper(actorId, room, "내가 맡은 상담만 넘길 수 있습니다.");
+        requireAdminActor(actorId, "관리자만 상담을 넘길 수 있습니다.");
         if (toAdminId.equals(room.getAssignedAdminId())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "CHAT_SAME_ADMIN", "지금 담당자에게는 넘길 수 없습니다.");
         }
@@ -207,26 +207,23 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         broadcaster.roomChanged(roomId, ChatRoomDto.ACTIVE);
     }
 
-    // [상담 종료] (관리자): 담당 관리자 또는 총관리자. 대기 중인 상담은 담당자가 없으니 총관리자만
+    // [상담 종료] (관리자): 관리자 · 총관리자 누구나 (11-03: 총관리자에게 몰린 일을 일반 관리자도 — 대기 중인 상담 포함)
     @Override
     @Transactional
     public void closeByAdmin(Long actorId, Long roomId) {
         ChatRoomDto room = requireRoom(roomId);
-        requireOwnerOrSuper(actorId, room, "담당 상담원 또는 총관리자만 종료할 수 있습니다.");
+        requireAdminActor(actorId, "관리자만 상담을 종료할 수 있습니다.");
         closeRoom(roomId, "상담원이 상담을 종료했습니다.");
     }
 
-    // [상담 제한]: 욕설 등 → 진행 중이면 종료하고, days 일 동안 새 상담 불가 (0 = 영구, 총관리자만). 담당 관리자 또는 총관리자
+    // [상담 제한]: 욕설 등 → 진행 중이면 종료하고, days 일 동안 새 상담 불가 (0 = 영구). 관리자 · 총관리자 누구나 (11-03)
     // 이유는 운영 로그에만 (회원에게는 기간만 안내)
     @Override
     @Transactional
     public void restrict(Long actorId, Long roomId, int days, String reason) {
         ChatRoomDto room = requireRoom(roomId);
-        requireOwnerOrSuper(actorId, room, "담당 상담원 또는 총관리자만 제한할 수 있습니다.");
+        requireAdminActor(actorId, "관리자만 상담을 제한할 수 있습니다.");
         boolean permanent = days == ChatRestrictRequest.PERMANENT;
-        if (permanent && !"SUPER_ADMIN".equals(currentRoleLookup.currentRole(actorId))) {
-            throw forbidden("영구 제한은 총관리자만 할 수 있습니다.");
-        }
         chatMapper.restrict(roomId, days);
         chatMapper.close(roomId); // 이미 종료된 상담이면 0줄 — 그대로 둔다
         ChatRoomDto restricted = chatMapper.findRoomById(roomId);
@@ -244,7 +241,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
                 : until.format(UNTIL_FORMAT) + "까지 새 상담을 시작할 수 없습니다.";
     }
 
-    // [경고]: 제한하기 전 단계. 진행 중인 상담에서 담당 관리자 또는 총관리자
+    // [경고]: 제한하기 전 단계. 진행 중인 상담에서 관리자 · 총관리자 누구나 (11-03)
     // 회원에게 사유와 횟수를 안내하고(SYSTEM), 횟수는 방에 쌓인다 → 관리자가 제한할지 판단하는 근거
     @Override
     @Transactional
@@ -253,7 +250,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         if (!ChatRoomDto.ACTIVE.equals(room.getStatus())) {
             throw new ApiException(HttpStatus.CONFLICT, "CHAT_NOT_ACTIVE", "진행 중인 상담에만 경고할 수 있습니다.");
         }
-        requireOwnerOrSuper(actorId, room, "담당 상담원 또는 총관리자만 경고할 수 있습니다.");
+        requireAdminActor(actorId, "관리자만 경고할 수 있습니다.");
         chatMapper.warn(roomId);
         int count = room.getWarningCount() + 1;
         adminAuditLogMapper.insert(actorId, "CHAT_WARN", "MEMBER", room.getUserId(), "상담 경고 " + count + "회 (" + reason.strip() + ")");
@@ -262,15 +259,12 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         broadcaster.roomChanged(roomId, ChatRoomDto.ACTIVE);
     }
 
-    // [제한 풀기]: 잘못 제한했을 때. 총관리자만
+    // [제한 풀기]: 잘못 제한했을 때. 관리자 · 총관리자 누구나 (11-03 — 누가 풀었는지는 운영 로그에 남는다)
     @Override
     @Transactional
     public void unrestrict(Long actorId, Long roomId) {
         ChatRoomDto room = requireRoom(roomId);
-        // 푸는 것은 기간과 관계없이 총관리자만 (제한을 건 상담원이 혼자 되돌리지 않게, 채팅 기록을 보고 판단)
-        if (!"SUPER_ADMIN".equals(currentRoleLookup.currentRole(actorId))) {
-            throw forbidden("상담 제한은 총관리자만 풀 수 있습니다.");
-        }
+        requireAdminActor(actorId, "관리자만 상담 제한을 풀 수 있습니다.");
         if (!room.isRestricted()) {
             throw new ApiException(HttpStatus.CONFLICT, "CHAT_NOT_RESTRICTED", "제한 중인 상담이 아닙니다.");
         }
@@ -359,9 +353,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         return saved;
     }
 
-    private void requireOwnerOrSuper(Long actorId, ChatRoomDto room, String message) {
-        boolean owner = actorId.equals(room.getAssignedAdminId());
-        if (!owner && !"SUPER_ADMIN".equals(currentRoleLookup.currentRole(actorId))) {
+    // 11-03: 상담 관리(넘기기 · 종료 · 경고 · 제한 · 풀기)는 관리자 · 총관리자 누구나 — 담당이 아니어도 된다
+    // (총관리자 전용은 관리자 권한 주기 · 빼기와 상담원 모니터링(만족도 · 신고)만). 지금 DB 의 권한으로 확인
+    private void requireAdminActor(Long actorId, String message) {
+        if (!isAdmin(actorId)) {
             throw forbidden(message);
         }
     }

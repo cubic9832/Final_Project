@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * 9단계: 계정 정지 { "days": 7, "reason": "부적절한 이용" }. days = 0 이면 영구 (총관리자만 정지할 수 있다).
+ * 9단계: 계정 정지 { "days": 7, "reason": "부적절한 이용" }. days = 0 이면 영구 (관리자 · 총관리자, 11-03).
  * 사유는 운영 로그에 남긴다 (회원에게는 언제까지인지만 보인다).
  */
 @Getter
