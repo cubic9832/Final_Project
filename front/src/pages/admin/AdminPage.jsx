@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Car, Cpu, LayoutDashboard, ListChecks, LogOut, MessagesSquare, RefreshCw, ScrollText, ShieldCheck, Users } from 'lucide-react';
+import { Car, Cpu, LayoutDashboard, ListChecks, LogOut, MessagesSquare, ScrollText, ShieldCheck, Users } from 'lucide-react';
 import theme from '../../styles/theme';
 import GlobalToast from '../../components/GlobalToast';
 import { logout } from '../../features/auth/authApi';
@@ -20,7 +20,7 @@ import './AdminPage.css';
 
 const sections = [
   { id: 'overview', label: '운영 현황', icon: LayoutDashboard, description: '데이터와 서비스 상태를 한눈에 살펴보세요.', panel: AdminOverviewPanel },
-  { id: 'vehicles', label: '차량 관리', icon: Car, description: '차량별 주요 정보와 공개 상태를 확인합니다.', panel: AdminVehiclesPanel },
+  { id: 'vehicles', label: '차량 관리', icon: Car, description: '차량을 등록하고 제원·가격·공개 상태를 관리합니다.', panel: AdminVehiclesPanel },
   { id: 'recommendations', label: '추천 관리', icon: ListChecks, description: '추천 서버가 고르는 후보 차량의 가격 출처와 확인 상태를 검수합니다.', panel: AdminRecommendationsPanel },
   { id: 'members', label: '회원 관리', icon: Users, description: '가입 현황과 회원 상태, 운영 권한을 확인합니다.', panel: AdminMembersPanel },
   // 8단계: 1:1 상담 — 대기 목록은 실시간(WebSocket), 먼저 [맡기] 를 누른 관리자가 답한다
@@ -39,7 +39,6 @@ export default function AdminPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const member = useAuthStore((state) => state.member);
-  const [updatedAt, setUpdatedAt] = useState(() => new Date());
   const [isLogoutOpen, setIsLogoutOpen] = useState(false); // 로그아웃 확인 팝업 (헤더와 같은 팝업)
   const section = sections.find(item => item.id === params.get('tab')) || sections[0];
   const Panel = section.panel;
@@ -53,7 +52,7 @@ export default function AdminPage() {
   }
 
   return <div className="admin-page">
-    <div className="admin-workspace-heading"><div><span className="admin-eyebrow">ADMIN WORKSPACE</span><h1>관리자 대시보드</h1><p>차량과 추천 서비스를 한곳에서 관리하세요.</p></div>
+    <div className="admin-workspace-heading"><div><h1>관리자 대시보드</h1></div>
       <div className="admin-account-bar">
         <span className="admin-account-name"><strong>{member?.nickName}</strong>{ROLE_LABELS[member?.role]}</span>
         <button className="admin-outline-button" type="button" onClick={() => setIsLogoutOpen(true)}><LogOut size={theme.iconSize.sm} aria-hidden="true" />로그아웃</button>
@@ -63,7 +62,7 @@ export default function AdminPage() {
       <aside className="admin-sidebar"><div className="admin-sidebar-heading"><ShieldCheck size={theme.iconSize.md} aria-hidden="true" /><div><strong>운영 관리</strong><span>CreditComPass</span></div></div>
         <nav className="admin-navigation" aria-label="관리자 메뉴">{sections.map(({ id, label, icon: Icon }) => <Link key={id} to={`/console?tab=${id}`} aria-current={section.id === id ? 'page' : undefined}><Icon size={theme.iconSize.md} aria-hidden="true" /><span>{label}</span></Link>)}</nav>
       </aside>
-      <div className="admin-content"><header className="admin-heading"><div><h2>{section.label}</h2><p>{section.description}</p></div><button className="admin-outline-button" type="button" onClick={() => setUpdatedAt(new Date())}><RefreshCw size={theme.iconSize.sm} aria-hidden="true" />화면 새로고침</button></header><div className="admin-preview-note"><span role="status">표시 시각 {updatedAt.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</span></div><Panel key={`${section.id}-${updatedAt.getTime()}`} /></div>
+      <div className="admin-content"><header className="admin-heading"><div><h2>{section.label}</h2><p>{section.description}</p></div></header><Panel key={section.id} /></div>
     </div>
     {isLogoutOpen && <LogoutConfirmModal onConfirm={handleLogout} onClose={() => setIsLogoutOpen(false)} />}
     {/* 공통 Layout 밖이라 알림 표시 자리를 여기 둔다 (회원 관리의 권한 변경 알림 등) */}
