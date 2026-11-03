@@ -41,7 +41,7 @@
 .vehicle-editor-input-wrap input,.vehicle-editor-input-wrap select,.vehicle-editor-field textarea { width: 100%; min-width: 0; min-height: 44px; padding: var(--space-8) var(--space-12); border: 1px solid var(--color-border-input); border-radius: var(--radius-sm); color: var(--color-text); background: var(--color-surface); font-family: inherit; font-size: var(--font-body); }
 .vehicle-editor-input-wrap:has(> span) input { padding-right: var(--space-64); }
 .vehicle-editor-input-wrap > span { position: absolute; top: 50%; right: var(--space-12); transform: translateY(-50%); font-size: var(--font-caption); color: var(--color-muted); pointer-events: none; }
-.vehicle-editor-field textarea { min-height: 104px; resize: vertical; line-height: 1.7; }
+.vehicle-editor-field textarea { min-height: 104px; resize: none; line-height: 1.7; }
 .vehicle-editor-wide { grid-column: 1 / -1; }
 .vehicle-editor-aside { display: flex; flex-direction: column; gap: var(--space-24); position: sticky; top: var(--space-24); }
 .vehicle-editor-aside .admin-card { padding: var(--space-24); }
@@ -58,7 +58,7 @@
 .vehicle-editor-preview-info h4 { color: var(--color-primary); font-size: var(--font-card-title); margin-top: var(--space-8); overflow-wrap: anywhere; }
 .vehicle-editor-preview-info p { color: var(--color-muted); font-size: var(--font-caption); margin-top: var(--space-4); overflow-wrap: anywhere; }
 .vehicle-editor-preview-info > strong { display: block; margin-top: var(--space-16); color: var(--color-primary); font-size: var(--font-figure-md); }
-.vehicle-editor-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-16); }
+.vehicle-editor-footer { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-16); padding-top: var(--space-24); border-top: 1px solid var(--color-border-input); }
 .vehicle-editor-footer > p { display: flex; align-items: flex-start; gap: var(--space-8); font-size: var(--font-caption); color: var(--color-muted); max-width: 360px; }
 .vehicle-editor-footer > p svg { flex-shrink: 0; }
 .vehicle-editor-footer > div { display: flex; align-items: center; gap: var(--space-12); }
@@ -75,3 +75,8 @@
 .vehicle-management-pagination button:disabled { opacity: .4; cursor: default; }
 .vehicle-management-pagination > span { margin-left: var(--space-8); font-size: var(--font-caption); color: var(--color-muted); }
 .vehicle-management-pagination button:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+
+.vehicle-management-add { margin-left: auto; }
+@media (max-width: 480px) { .vehicle-management-add { width: 100%; margin-left: 0; } }
+
+.vehicle-editor-footer > div:only-child { margin-left: auto; }
