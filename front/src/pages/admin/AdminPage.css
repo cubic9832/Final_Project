@@ -6,8 +6,7 @@
 .admin-page h1,.admin-page h2,.admin-page h3 { color: var(--color-primary); letter-spacing: -.5px; }
 .admin-workspace-heading { display: flex; justify-content: space-between; align-items: center; gap: var(--space-16); flex-wrap: wrap; margin-bottom: var(--space-24); }
 .admin-eyebrow { color: var(--color-blue-strong); font-size: var(--font-caption); font-weight: 700; letter-spacing: 1px; }
-.admin-workspace-heading h1 { margin-top: var(--space-8); font-size: var(--font-page-title); }
-.admin-workspace-heading p { margin-top: var(--space-8); color: var(--color-text-sub); }
+.admin-workspace-heading h1 { font-size: var(--font-page-title); }
 .admin-example-badge,.admin-count-badge { display: inline-flex; align-items: center; padding: var(--space-4) var(--space-12); border-radius: var(--radius-pill); font-size: var(--font-caption); font-weight: 700; }
 .admin-example-badge { color: var(--color-primary); background: var(--color-warning-tint); }
 .admin-count-badge { color: var(--color-primary); background: var(--color-blue-tint); }
@@ -28,7 +27,6 @@
 .admin-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-16); margin-bottom: var(--space-16); }
 .admin-heading h2 { font-size: var(--font-section-title); }
 .admin-heading p { margin-top: var(--space-8); color: var(--color-text-sub); }
-.admin-preview-note { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-24); color: var(--color-muted); font-size: var(--font-caption); }
 .admin-panel-stack { display: flex; flex-direction: column; gap: var(--space-24); }
 .admin-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--space-16); }
 .admin-stat { display: flex; flex-direction: column; gap: var(--space-8); padding: var(--space-16); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
