@@ -71,6 +71,13 @@
   gap: var(--space-12);
 }
 
+/* 수신 상태 + [상담 종료] / [새로 상담하기] 를 오른쪽 한 줄로 */
+.consult-status-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+
 .consult-badge {
   padding: var(--space-4) var(--space-12);
   font-size: var(--font-caption);
