@@ -46,6 +46,17 @@ class AdminVehicleTests {
         v.putAll(Map.of("lengthMm",4400,"drive","2WD","status","DRAFT","imageUrl","","sourceName","공식 자료","sourceUrl","https://example.com/official","checkedOn","2026-10-26","memo","내부 메모"));
         return v;
     }
+    @Test void importedSeatingVariantsRemainIndependentlyEditable() throws Exception {
+        var payload=request();
+        payload.putAll(Map.of("brand","현대","model","팰리세이드","year","2027","trim","Exclusive",
+            "fuel","GASOLINE","drive","미확인","priceWon",44780000,"seats",9));
+        payload.put("version",jdbc.queryForObject("SELECT version FROM managed_vehicles WHERE id='legacy-C0028'",Long.class));
+        var siblingPrice=jdbc.queryForObject("SELECT payload->>'$.price' FROM managed_vehicles WHERE id='legacy-C0030'",String.class);
+        mvc.perform(put("/api/v1/admin/vehicles/legacy-C0028").header("Authorization",admin())
+                .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(payload)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.vehicle.seats").value(9));
+        assertThat(jdbc.queryForObject("SELECT payload->>'$.price' FROM managed_vehicles WHERE id='legacy-C0030'",String.class)).isEqualTo(siblingPrice);
+    }
     @Test void duplicateDeletionRestoreAndCosts() throws Exception {
         var payload=request(); payload.put("monthlyInsurance",0);payload.put("monthlyTax",25000);payload.put("monthlyMaintenance",45000);
         String created=mvc.perform(post("/api/v1/admin/vehicles").header("Authorization",admin()).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(payload))).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();

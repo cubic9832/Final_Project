@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CalendarDays, ChartNoAxesCombined, Flag, Target, Trophy, Wallet } from 'lucide-react';
-import catalog from '../../../vehicle/planningVehicleCatalog.json';
+import { useVehicle } from '../../../vehicle/useVehicle';
+import VehicleCatalogGate from '../../../vehicle/components/VehicleCatalogGate.jsx';
 import { calculatePurchasePlan } from '../../purchasePlan';
 import SavedPurchasePlanSection from './SavedPurchasePlanSection';
 import { calculateSavingsProgress, createProgressPlan, currentDate, deleteSavingRecord, formatMoney, getSavingRecords, isProgressPlan, monthIndex, planStorageKey, progressStorageKey, shiftMonth } from '../../savingsProgress';
@@ -11,7 +12,6 @@ import RecurringSavingsSettings from './RecurringSavingsSettings';
 import { applyRecurringSavings, isRecurringRule } from '../../recurringSavings';
 import { purchasePlanUpdatedEvent, syncSavedSavings } from '../../purchasePlanSync';
 import SavingsRecordHistory from './SavingsRecordHistory';
-import DreamCarTabs from '../../components/DreamCarTabs';
 import DreamCarPageHeader from '../../components/DreamCarPageHeader';
 import './SavingsProgressPage.css';
 
@@ -26,7 +26,7 @@ function readProgress() {
     return { plans: updated, error: '' };
   } catch { return { plans: [], error: '저장된 실행 기록을 읽을 수 없습니다. 브라우저 저장 공간 또는 데이터 상태를 확인해 주세요. 기존 데이터를 덮어쓰지 않았습니다.' }; }
 }
-function readSavedPlan() {
+function readSavedPlan(catalog) {
   try {
     const saved = JSON.parse(localStorage.getItem(planStorageKey));
     const vehicle = catalog.find(car => car.id === saved?.vehicleId);
@@ -36,6 +36,11 @@ function readSavedPlan() {
   return null;
 }
 export default function SavingsProgressPage() {
+  const { planningVehicles } = useVehicle();
+  return <VehicleCatalogGate>{planningVehicles.length ? <SavingsProgressPageContent catalog={planningVehicles} /> : <p role="status">차량 카탈로그가 비어 있습니다.</p>}</VehicleCatalogGate>;
+}
+
+function SavingsProgressPageContent({ catalog }) {
   const [asOfDate, setAsOfDate] = useState(currentDate);
   const asOfMonth = asOfDate.slice(0, 7);
   const [editingId, setEditingId] = useState(null);
@@ -46,13 +51,13 @@ export default function SavingsProgressPage() {
     window.addEventListener('focus', refresh);
     return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, []);
-  const [savedPlan, setSavedPlan] = useState(readSavedPlan);
+  const [savedPlan, setSavedPlan] = useState(() => readSavedPlan(catalog));
   useEffect(() => {
-    function refreshSaved() { setSavedPlan(readSavedPlan()); setState(readProgress()); }
+    function refreshSaved() { setSavedPlan(readSavedPlan(catalog)); setState(readProgress()); }
     window.addEventListener('storage', refreshSaved);
     window.addEventListener(purchasePlanUpdatedEvent, refreshSaved);
     return () => { window.removeEventListener('storage', refreshSaved); window.removeEventListener(purchasePlanUpdatedEvent, refreshSaved); };
-  }, []);
+  }, [catalog]);
   const [notice, setNotice] = useState('');
   const plan = state.plans.at(-1);
   const summary = plan ? calculateSavingsProgress(plan, asOfMonth) : null;
@@ -88,7 +93,6 @@ export default function SavingsProgressPage() {
   }) : [];
   return <div className="savings-page">
     <DreamCarPageHeader eyebrow="MY DREAM JOURNEY" title="계획을 넘어, 내 차에 가까이." description="매달의 작은 실행을 모아 드림카까지의 여정을 확인하세요." />
-    <DreamCarTabs />
     {state.error && <p className="savings-error" role="alert">{state.error}</p>}
     <SavedPurchasePlanSection savedPlan={savedPlan} activePlan={plan} asOfDate={asOfDate} onStart={start} onUpdate={update} onSavingsChange={syncSavings} />
     {notice && <p className="savings-notice" role="status">{notice}</p>}

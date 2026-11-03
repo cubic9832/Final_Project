@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import catalog from './planningVehicleCatalog.json' with { type: 'json' };
+import catalog from './planningVehicleCatalog.js';
 import { resolvePlanningEfficiency } from './resolvePlanningEfficiency.js';
 import { getVehicleCostDefaults } from '../dream-car/vehicleCostDefaults.js';
 import { calculatePurchasePlan, defaultPlan } from '../dream-car/purchasePlan.js';
@@ -9,7 +9,7 @@ test('전체 트림의 연비·전비 누락을 보완하고 연료비를 계산
   for (const vehicle of catalog) {
     const info = resolvePlanningEfficiency(vehicle);
     assert.ok(Number.isFinite(info.value) && info.value > 0, vehicle.id);
-    assert.equal(info.unit, vehicle.fuel === 'ELECTRIC' ? 'km/kWh' : 'km/L');
+    assert.equal(info.unit, vehicle.fuel === 'ELECTRIC' ? 'km/kWh' : vehicle.fuel === 'HYDROGEN' ? 'km/kg' : 'km/L');
     const result = calculatePurchasePlan(vehicle.price / 10000, { ...defaultPlan, ...getVehicleCostDefaults(vehicle).inputs });
     assert.ok(result && Number.isFinite(result.monthlyCosts.energy), vehicle.id);
     if (vehicle.efficiency > 0) assert.equal(info.value, vehicle.efficiency);

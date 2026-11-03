@@ -15,15 +15,16 @@ export default function RecommendationSurvey({ phase, index, total, question, va
   const currentOptionPage = Math.min(optionPage, Math.max(0, optionPageCount - 1));
   return <div className="recommendation-survey">
     <div className="survey-navigation">
-      <span>차량 맞춤 추천</span><span className="survey-phase">{phase}</span>
+      <h1>차량 맞춤 추천</h1><span className="survey-phase">{phase}</span>
     </div>
+    <p className="survey-introduction">재무 상태와 차량 취향에 맞는 나만의 차량을 찾아보세요.</p>
     <div className="survey-progress-label"><span>{phase}</span><span>{index + 1} / {total}</span></div>
     <progress className="survey-progress" value={index + 1} max={total} aria-label={`${phase} 진행 상황`} />
     <form ref={formRef} onSubmit={event => { event.preventDefault(); if (!disabled && !busy) onNext(); }}>
       <section className="survey-question" aria-labelledby="survey-title">
         <div className="survey-body"><div className="survey-answer" key={question.id}>
         <p className="survey-eyebrow">{question.category}</p>
-        <h1 id="survey-title" ref={heading} tabIndex={-1}>{question.title}</h1>
+        <h2 id="survey-title" ref={heading} tabIndex={-1}>{question.title}</h2>
         <p id="survey-description" className="survey-description">{question.description}</p>
         <div className="survey-answer-content">
         {question.options && <fieldset className={`survey-options${question.compact ? ' survey-options-grid' : ''}`} disabled={busy} aria-describedby="survey-description">

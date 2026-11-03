@@ -36,7 +36,7 @@ class VehicleApiControllerTests {
     @Test
     void returnsVehiclePriceInWonAndSource() throws Exception {
         VehicleDto vehicle = new VehicleDto();
-        vehicle.setId(42L);
+        vehicle.setId("managed-42");
         vehicle.setPrice(new BigDecimal("25550000.00"));
         vehicle.setPowertrain("1.6 하이브리드");
         vehicle.setDisplacementCc(1580);
@@ -49,7 +49,7 @@ class VehicleApiControllerTests {
         mvc.perform(get("/api/v1/vehicles"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[0].id").value(42))
+                .andExpect(jsonPath("$.data[0].id").value("managed-42"))
                 .andExpect(jsonPath("$.data[0].price").value(25550000))
                 .andExpect(jsonPath("$.data[0].powertrain").value("1.6 하이브리드"))
                 .andExpect(jsonPath("$.data[0].displacementCc").value(1580))
@@ -70,12 +70,12 @@ class VehicleApiControllerTests {
     @Test
     void searchReturnsVehiclesInRelevanceOrderAndSkipsIdsMissingFromDatabase() throws Exception {
         when(repository.findAll()).thenReturn(List.of(vehicle(3L), vehicle(7L), vehicle(9L)));
-        when(searchRepository.searchIds("현대 하이브리드")).thenReturn(List.of(7L, 99L, 3L));
+        when(searchRepository.searchIds("현대 하이브리드")).thenReturn(List.of("7", "99", "3"));
         mvc.perform(get("/api/v1/vehicles").param("q", "  현대 하이브리드 "))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(2))
-                .andExpect(jsonPath("$.data[0].id").value(7))
-                .andExpect(jsonPath("$.data[1].id").value(3));
+                .andExpect(jsonPath("$.data[0].id").value("7"))
+                .andExpect(jsonPath("$.data[1].id").value("3"));
     }
 
     @Test
@@ -83,7 +83,7 @@ class VehicleApiControllerTests {
         when(repository.findAll()).thenReturn(List.of(vehicle(3L)));
         mvc.perform(get("/api/v1/vehicles").param("q", " "))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(3));
+                .andExpect(jsonPath("$.data[0].id").value("3"));
         verifyNoInteractions(searchRepository);
     }
 
@@ -109,7 +109,7 @@ class VehicleApiControllerTests {
 
     private static VehicleDto vehicle(Long id) {
         VehicleDto vehicle = new VehicleDto();
-        vehicle.setId(id);
+        vehicle.setId(String.valueOf(id));
         return vehicle;
     }
 }

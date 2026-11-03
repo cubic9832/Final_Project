@@ -4,7 +4,7 @@ import { emptyVehicle } from './vehicleManagementExamples.js';
 import bodyRegistry from '../../../../../data/vehicles/body-type-registry-v1.json';
 import { bodyTypeLabel } from '../../../features/financial/vehiclePreferences.js';
 
-const fuelLabels = { GASOLINE: '가솔린', HYBRID: '하이브리드', DIESEL: '경유', ELECTRIC: '전기', LPG: 'LPG' };
+const fuelLabels = { GASOLINE: '가솔린', HYBRID: '하이브리드', DIESEL: '디젤', ELECTRIC: '전기', LPG: 'LPG', HYDROGEN: '수소' };
 const domesticBrands = new Set(['현대', '기아', '제네시스', 'KG모빌리티', '르노코리아', '쉐보레']);
 
 // 학습 시 고정한 전체 추천 카탈로그. 저장·공개 상태 변경은 UI 안에서만 적용한다.

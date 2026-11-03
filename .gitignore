@@ -18,3 +18,5 @@ out/
 
 # Reproducible 3M comparison shards; keep manifests, evidence and reports.
 /data/households/synthetic/ui-height-high-value-3m-20261102/shard-*/
+
+/data/households/synthetic/unified-managed-3m-20261103/shard-*/
