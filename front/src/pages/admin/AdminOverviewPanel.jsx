@@ -4,11 +4,11 @@ import { ArrowRight, CheckCircle2, Cpu, Database, Lock, Mail, Server, UserRoundP
 import theme from '../../styles/theme';
 import { describeLog, formatLogTime, personName } from './adminLogFormat';
 import { getAdminOverview, getAuditLogs, getMailStatus, getMemberSummary, getModelServerInfo, getSystemStatus } from '../../features/admin/adminApi';
-import { getVehicles } from '../../features/vehicle/vehicleApi';
+import { listAdminVehicles } from './vehicles/adminVehicleApi';
 import './AdminMembersPanel.css'; // 7일 막대(admin-member-trend) 같이 씀
 
 // 7단계 운영 현황 — 화면의 모든 값은 실제 데이터 (10-27: 남아 있던 고정 값도 모두 바꿈)
-// 회원 · 진단 · 할 일 = 관리자 API(DB), 차량 = 차량 API(DB), 추천 후보 · 모델 = 추천 서버(FastAPI) 정보
+// 회원 · 진단 · 할 일 = 관리자 API(DB), 차량 = 차량 관리 API(managed_vehicles, 차량 관리 탭과 같은 기준), 추천 후보 · 모델 = 추천 서버(FastAPI) 정보
 // 각 값은 따로 불러온다: 불러오는 중 undefined, 실패하면 null → 화면에는 "…" / "-"
 
 // 불러오기 하나를 { key: 결과 } 로 모아 두는 작은 도우미 (화면을 떠나면 응답을 버린다)
@@ -29,7 +29,7 @@ function useLoads(loaders) {
 // 컴포넌트 밖에 두어 매번 새로 만들어지지 않게 (useEffect 가 한 번만 돈다)
 const LOADERS = {
   members: getMemberSummary,
-  vehicles: getVehicles,
+  vehicles: (signal) => listAdminVehicles(signal).then((list) => list.filter((vehicle) => vehicle.status !== '삭제됨')),
   overview: getAdminOverview,
   system: getSystemStatus,
   mail: getMailStatus,

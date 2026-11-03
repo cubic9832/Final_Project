@@ -200,6 +200,7 @@ function MemberList({ version, onChanged }) {
               <option value="">전체</option>
               <option value="USER">일반 회원</option>
               <option value="ADMIN">관리자</option>
+              <option value="SUPER_ADMIN">총관리자</option>
             </select>
           </label>
         </form>

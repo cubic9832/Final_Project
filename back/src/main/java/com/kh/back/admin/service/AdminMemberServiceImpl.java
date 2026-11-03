@@ -99,7 +99,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         if (current.equals(role)) {
             return; // 이미 그 권한이면 아무것도 하지 않는다
         }
-        // 보완 11: 권한은 admin_accounts 표 — 일반 회원으로 되돌리면 표에서 지우고, 관리자로 지정하면 넣는다 (지정한 총관리자도 남긴다)
+        // 보완 11: 권한은 admin_accounts 표 — 일반 회원으로 되돌리면 표에서 지우고, 관리자로 지정하면 넣는다 (누가 지정했는지는 운영 로그에 남는다)
         if ("USER".equals(role)) {
             adminMemberMapper.revokeAdmin(targetId);
             chatRoomService.releaseRoomsOf(targetId); // 8단계: 맡던 진행 중 상담 → 대기 (다른 관리자가 다시 맡는다)

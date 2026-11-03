@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 7단계: 운영 로그 (관리자 작업 기록, V13). 관리자 · 총관리자가 볼 수 있다 (SecurityConfig /api/v1/admin/**).
+ * 7단계: 운영 로그 (관리자 작업 기록, V15). 관리자 · 총관리자가 볼 수 있다 (SecurityConfig /api/v1/admin/**).
  */
 @RestController
 @RequestMapping("/api/v1/admin/audit-logs")
