@@ -230,16 +230,18 @@ export default function GoogleSignupPage() {
               </label>
             </div>
           </fieldset>
-          {renderError('terms')}
-
-          {serverError && (
-            <p className="signup-error" role="alert">
-              {serverError} <Link to="/login">로그인 화면으로</Link>
-            </p>
-          )}
-          <button className="signup-submit" type="submit" disabled={submitting}>
-            {submitting ? '가입 중…' : '가입 완료'}
-          </button>
+          {/* 11-03: 약관 · 가입 실패 문구는 버튼 오른쪽 같은 줄 (회원가입 화면과 같게) */}
+          <div className="signup-submit-row">
+            <button className="signup-submit" type="submit" disabled={submitting}>
+              {submitting ? '가입 중…' : '가입 완료'}
+            </button>
+            {renderError('terms')}
+            {serverError && (
+              <p className="signup-error" role="alert">
+                {serverError} <Link to="/login">로그인 화면으로</Link>
+              </p>
+            )}
+          </div>
         </form>
       </section>
 

@@ -643,19 +643,21 @@ export default function SignupPage() {
               </div>
             ))}
           </fieldset>
-          {renderError('terms')}
-
-          <p className="signup-notice" role="status">
-            {notice}
-          </p>
-          {serverError && (
-            <p className="signup-error" role="alert">
-              {serverError}
+          {/* 11-03: 약관 · 가입 실패 · 안내 문구는 버튼 오른쪽 같은 줄 — 버튼 위에 끼면 버튼이 아래로 밀렸다 */}
+          <div className="signup-submit-row">
+            <button className="signup-submit" type="submit" disabled={submitting}>
+              {submitting ? '가입 중…' : '회원가입 완료'}
+            </button>
+            {renderError('terms')}
+            {serverError && (
+              <p className="signup-error" role="alert">
+                {serverError}
+              </p>
+            )}
+            <p className="signup-notice" role="status">
+              {notice}
             </p>
-          )}
-          <button className="signup-submit" type="submit" disabled={submitting}>
-            {submitting ? '가입 중…' : '회원가입 완료'}
-          </button>
+          </div>
         </form>
 
         <p className="signup-login-link">

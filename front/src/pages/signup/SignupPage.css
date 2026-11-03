@@ -112,6 +112,43 @@
   font-size: 11px;
 }
 
+/* 11-03: 입력칸 아래 경고 · 확인 문구는 칸 사이 빈 공간(18px)에 띄운다 → 떠도 아래 칸이 움직이지 않음
+   (칸 맨 아래 문구만 — 이메일 칸처럼 뒤에 인증 코드 줄이 있으면 그대로 흐름 안에) */
+.signup-input-wrap,
+.signup-code-row {
+  position: relative;
+}
+
+.signup-input-wrap > .signup-error:last-child,
+.signup-input-wrap > .signup-field-notice:last-child,
+.signup-code-row > .signup-error:last-child {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+/* 가입 버튼 + 오른쪽 문구 한 줄 */
+.signup-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.signup-submit-row .signup-submit {
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+.signup-submit-row .signup-error,
+.signup-submit-row .signup-notice:not(:empty) {
+  margin: 0;
+  line-height: 1.5;
+}
+
 .signup-field input {
   width: 100%;
   height: 42px;
