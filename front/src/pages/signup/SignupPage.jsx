@@ -663,12 +663,6 @@ export default function SignupPage() {
         </p>
       </section>
 
-      <footer className="signup-footer">
-        <strong>CreditCompass</strong>
-        <p>첫차 구매 전, 감당 가능한 비용부터 확인하세요.</p>
-        <small>본 서비스는 교육·시연용이며 실제 NICE·KCB 신용점수나 금융기관 심사 결과를 의미하지 않습니다.</small>
-      </footer>
-
       {/* 팝업: 약관 보기, 회원가입 완료 */}
       {viewingTerm && (
         <TermsModal

@@ -419,31 +419,6 @@
   text-decoration: underline;
 }
 
-.signup-footer {
-  margin-top: 24px;
-  padding: 28px;
-  background: #15365f;
-  color: #fff;
-}
-
-.signup-footer strong {
-  font-size: 16px;
-}
-
-.signup-footer p {
-  margin-top: 8px;
-  color: #c5d7ea;
-  font-size: 12px;
-}
-
-.signup-footer small {
-  display: block;
-  margin-top: 10px;
-  color: #a9bed6;
-  font-size: 10px;
-  line-height: 1.8;
-}
-
 /* 보완 5: 화면이 좁으면 2칸을 위아래로 쌓는다 */
 @media (max-width: 960px) {
   .signup-columns {
