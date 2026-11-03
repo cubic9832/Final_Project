@@ -1,4 +1,27 @@
-.financial-recommendations-page { padding: var(--space-8) 0 var(--space-48); }
+.financial-recommendations-page { width: 100%; max-width: var(--layout-max-width); margin: 0 auto; padding: 0 0 var(--space-24); color: var(--color-primary); animation: recommendations-fade-in 180ms ease-out; }
+.recommendations-heading { min-height: 82px; margin-bottom: var(--space-24); }
+.recommendations-heading h1 { font-size: var(--font-page-title); line-height: 1.4; letter-spacing: -.03em; }
+.recommendations-heading p { margin-top: var(--space-8); color: var(--color-muted); font-size: var(--font-body); line-height: 1.7; }
+.recommendations-context > summary, .candidate-decision-summary > summary { cursor: pointer; font-size: var(--font-body); font-weight: 700; padding-block: var(--space-8); }
+.recommendations-context { padding: var(--space-12) var(--space-24); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
+.recommendations-context .financial-recommendations-summary { margin-top: var(--space-12); padding: var(--space-16) 0; border: 0; }
+.financial-recommendations-page .candidate-decision-summary { margin-top: var(--space-12); padding: var(--space-12) var(--space-24); }
+.financial-recommendations-page .financial-recommendation-card { height: 440px; }
+.financial-recommendations-page .financial-recommendation-media { height: 112px; min-height: 112px; }
+.financial-recommendations-page .financial-recommendation-media img { width: 100%; height: 100%; object-fit: contain; }
+.financial-recommendations-page .financial-recommendation-card-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: var(--space-16); }
+.financial-recommendations-page .financial-recommendation-aligned-summary { min-height: 0; }
+.financial-recommendations-page .financial-recommendation-card-body h2 { font-size: var(--font-card-title); }
+.financial-recommendations-page .financial-recommendation-card-body h2 + p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--font-caption); }
+.financial-recommendations-page .financial-recommendation-specs { margin-top: var(--space-12); padding: var(--space-12); gap: var(--space-8); }
+.financial-recommendations-page .financial-recommendation-specs > div:first-child { padding-bottom: var(--space-8); }
+.financial-recommendations-page .financial-recommendation-specs > div:first-child dd { font-size: var(--font-body); }
+.recommendation-detail-button { width: 100%; min-height: 40px; margin-top: auto; padding: var(--space-8) var(--space-12); border: 1px solid var(--color-border-input); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-primary); font-size: var(--font-body); font-weight: 700; cursor: pointer; }
+.recommendation-detail-button:hover { background: var(--color-blue-tint); }
+.recommendation-detail-button:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+@keyframes recommendations-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media(prefers-reduced-motion:reduce) { .financial-recommendations-page { animation: none; } }
+@media(max-width:480px) { .recommendations-heading h1 { font-size: var(--font-page-title-mobile, 24px); } }
 .financial-recommendations-page.has-comparison-tray { padding-bottom:200px; }
 .candidate-comparison-tray { position:fixed; z-index:20; bottom:var(--space-16); left:50%; transform:translateX(-50%); width:min(1216px,calc(100% - 64px)); display:flex; align-items:center; justify-content:space-between; gap:var(--space-24); padding:var(--space-16) var(--space-24); border:1px solid var(--color-border-input); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:0 4px 16px var(--color-border); }
 .candidate-comparison-tray strong { color:var(--color-primary); font-size:var(--font-subtitle); }
@@ -144,3 +167,22 @@
 .candidate-open-comparison:hover { background: var(--color-mint-hover); }
 .candidate-open-comparison:disabled { opacity: 0.5; cursor: not-allowed; }
 .candidate-open-comparison:focus-visible, .candidate-comparison-table-wrap:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 3px; }
+
+.financial-recommendations-summary dd.lifestyle-summary-text { font-size: var(--font-body); line-height: 1.6; overflow-wrap: anywhere; }
+.candidate-vehicle-specifications { margin-top: var(--space-16); }
+.candidate-vehicle-specifications summary { cursor: pointer; color: var(--color-primary); font-weight: 700; padding: var(--space-8) 0; }
+.candidate-vehicle-specifications summary:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+.candidate-vehicle-specifications dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--space-8); padding: var(--space-8) 0; border-bottom: 1px solid var(--color-border); }
+.candidate-vehicle-specifications dd { margin: 0; overflow-wrap: anywhere; }
+.candidate-vehicle-specifications a { color: var(--color-blue-strong); }
+.vehicle-preference-summary { margin-top: var(--space-24); }
+.vehicle-preference-summary h4 { color: var(--color-primary); font-size: var(--font-body); margin-bottom: var(--space-8); }
+.vehicle-preference-summary dl > div { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: var(--space-8); padding: var(--space-8) 0; border-bottom: 1px solid var(--color-border); }
+.vehicle-preference-summary dt { color: var(--color-text-sub); }
+.vehicle-preference-summary dd { margin: 0; color: var(--color-primary); overflow-wrap: anywhere; }
+.vehicle-sales-verification summary { cursor: pointer; color: var(--color-primary); font-weight: 700; padding: var(--space-8) 0; }
+.vehicle-sales-verification summary:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+.vehicle-sales-verification dl > div { padding: var(--space-8) 0; border-bottom: 1px solid var(--color-border); }
+.vehicle-sales-verification dt { font-weight: 700; }
+.vehicle-sales-verification dd { margin: var(--space-8) 0 0; overflow-wrap: anywhere; }
+.vehicle-sales-verification a { display: inline-block; margin-right: var(--space-8); color: var(--color-blue-strong); }

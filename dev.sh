@@ -13,6 +13,7 @@ cd "$ROOT_DIR"
 
 DEFAULT_DB_PORT=3307
 export DB_PORT="${DB_PORT:-$DEFAULT_DB_PORT}"
+export DB_HOST="${DB_HOST:-192.168.10.18}"
 export ES_PORT="${ES_PORT:-9200}"
 
 require_docker() {
@@ -137,9 +138,7 @@ stop_apps() {
 }
 
 start_apps() {
-  if [ "$DB_PORT" != "$DEFAULT_DB_PORT" ]; then
-    export SPRING_DATASOURCE_URL="jdbc:mysql://localhost:$DB_PORT/final_sample?serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
-  fi
+  export SPRING_DATASOURCE_URL="jdbc:mysql://$DB_HOST:$DB_PORT/final_sample?serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
 
   print_lan_access
 
@@ -165,7 +164,9 @@ start_apps() {
 case "${1:-up}" in
   up)
     require_docker
-    start_db
+    if [ "$DB_HOST" = "localhost" ] || [ "$DB_HOST" = "127.0.0.1" ]; then
+      start_db
+    fi
     start_search
     start_apps
     ;;

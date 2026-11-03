@@ -34,6 +34,7 @@ class Profile:
     purchase_price_ceiling: float = 0
     preferred_body_type: str = 'any'
     body_importance: int = 3
+    preferred_height: str = 'any'
 
     def __post_init__(self):
         if self.financing_mode not in ('fixed', 'automatic', 'recommendation'):
@@ -62,7 +63,9 @@ class Profile:
             raise ValueError('Invalid minimum seating capacity')
         if self.preferred_size not in ('any', 'small', 'medium', 'large'):
             raise ValueError('Unknown preferred size')
-        if self.preferred_body_type not in ('any', 'SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'OTHER'):
+        if self.preferred_height not in ('any', 'low', 'medium', 'high'):
+            raise ValueError('Unknown preferred height')
+        if self.preferred_body_type not in ('any', 'SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'COUPE', 'CONVERTIBLE', 'ROADSTER', 'OTHER'):
             raise ValueError('Unknown preferred body type')
 
 

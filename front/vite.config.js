@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 // /api 로 시작하는 요청을 Spring Boot 로 전달한다 (개발 서버 전용)
-const API_TARGET = 'http://localhost:8080';
+const API_TARGET = process.env.VITE_API_TARGET || 'http://localhost:8080';
 
 // 프로젝트 루트 .env.local (백엔드와 같은 키 파일) 의 VITE_ 값. front/.env.local · 환경변수보다 우선한다.
 // 빈 값은 건너뛴다. 백엔드 LocalKeyFileEnvironmentPostProcessor 와 같은 KEY=VALUE 규칙
@@ -22,6 +22,7 @@ function rootKeyFileDefines() {
 }
 
 export default defineConfig({
+  cacheDir: process.env.VITE_CACHE_DIR || 'node_modules/.vite',
   plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
   define: rootKeyFileDefines(),
   server: {
@@ -30,7 +31,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api/v2': {
-        target: 'http://127.0.0.1:8002',
+        target: process.env.VITE_ML_TARGET || 'http://127.0.0.1:8002',
         changeOrigin: true,
       },
       '/api/v1/recommendations': {

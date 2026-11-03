@@ -1,0 +1,67 @@
+{
+  "catalog_count": 347,
+  "model_count": 117,
+  "height_coverage": 347,
+  "height_status_counts": {
+    "estimated": 197,
+    "official-reference": 148,
+    "cross-site-reported": 2
+  },
+  "source_hashes": {
+    "rich_catalog": "30591b8a181abef179d4a08c2b15701825e89391c4a459533a44bdc5bffe52ad",
+    "specifications": "3bdf4ac6c773c6114846193474ee64bde8f165d996b76f2125baf22dc9c91e1e"
+  },
+  "source_branch": "230488c6d2775cd017eac2d4fadbefef5e1bbc23",
+  "skipped": [
+    {
+      "id": "research-2f7d8729da556495",
+      "reason": "no-recorded-price"
+    },
+    {
+      "id": "research-6140c12787f85049",
+      "reason": "no-recorded-price"
+    }
+  ],
+  "maximum_price": 784000000,
+  "new_ids": [
+    "SPORT-0313da36e7595ef7",
+    "SPORT-03970cd84d30d96f",
+    "SPORT-0aa5ec06e05bfbfe",
+    "SPORT-0c45e6ba03b35c07",
+    "SPORT-0eb9f32638b38d6b",
+    "SPORT-107f17bb620ba8cd",
+    "SPORT-4bb264913759e74b",
+    "SPORT-4f6544766d9ec799",
+    "SPORT-5ea71e4b2e97abc7",
+    "SPORT-6a007c7fea67dfbc",
+    "SPORT-6fd53300ad6c5cfb",
+    "SPORT-839c9159aedb4458",
+    "SPORT-9b8a152a6b916393",
+    "SPORT-9ffbe45a9fd7cad6",
+    "SPORT-aaacde75ec1de4df",
+    "SPORT-bf59f2a2a3aaea76",
+    "SPORT-e57a272b0b2fca6e",
+    "SPORT-e767c60466be92fc",
+    "SPORT-ed9f1e3b6a60f706",
+    "SPORT-eea982011b1ca734",
+    "SPORT-f3297d0c4ea75370",
+    "SPORT-f5326c56ad8df80e",
+    "research-09ba848c424f73d6",
+    "research-2252ddfcfaf4f93d",
+    "research-325b63506b5cf709",
+    "research-39295d8e95003284",
+    "research-3be8660b2daab103",
+    "research-41dbe8464511fe28",
+    "research-4ee3df1a41b7dede",
+    "research-6cd54995b2928c34",
+    "research-81f001cd557917d0",
+    "research-901d5a74773caa55",
+    "research-90fba97cde44e041",
+    "research-94eaa971ad63e86a",
+    "research-b2432b18494d0213",
+    "research-c096cac3883cc344",
+    "research-d386d919e490ca62",
+    "research-d40dc69716d07f60",
+    "research-f4a205961e52ed2b"
+  ]
+}

@@ -49,20 +49,59 @@ class ProfileRequest(BaseModel):
     purchase_price_ceiling: float = Field(default=0, ge=0, le=1e12)
     minimum_seats: int = Field(default=0, ge=0, le=9, strict=True)
     preferred_size: Literal['any', 'small', 'medium', 'large'] = 'any'
-    preferred_body_type: Literal['any', 'SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'OTHER'] = 'any'
+    preferred_height: Literal['any', 'low', 'medium', 'high'] = 'any'
+    preferred_body_type: Literal['any', 'SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'COUPE', 'CONVERTIBLE', 'ROADSTER', 'OTHER'] = 'any'
     body_importance: int = Field(default=3, ge=1, le=5, strict=True)
     financing_mode: Literal['fixed', 'automatic', 'recommendation'] = Field(default='recommendation', exclude=True, deprecated=True)
+
+
+class LifestyleRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True, allow_inf_nan=False)
+    sportiness: float | None = Field(default=None, ge=0, le=1)
+    angularity: float | None = Field(default=None, ge=0, le=1)
+    acceleration: float | None = Field(default=None, ge=0, le=1)
+    purpose: Literal['commute', 'family', 'weekend-drive'] | None = None
+    brand: str | None = Field(default=None, min_length=1, max_length=40)
+    design_importance: int = Field(default=3, ge=1, le=5)
+    performance_importance: int = Field(default=3, ge=1, le=5)
+    purpose_importance: int = Field(default=3, ge=1, le=5)
+    brand_importance: int = Field(default=3, ge=1, le=5)
 
 
 class RecommendationRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     profile: ProfileRequest
+    lifestyle: LifestyleRequest | None = None
+    scenario: 'ScenarioRequest | None' = None
     k: int = Field(default=3, ge=1, le=20, strict=True)
+
+
+class ScenarioRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True, allow_inf_nan=False)
+    sportiness: float | None = Field(default=None, ge=0, le=1)
+    angularity: float | None = Field(default=None, ge=0, le=1)
+    acceleration: float | None = Field(default=None, ge=0, le=1)
+    design_importance: int = Field(default=3, ge=1, le=5)
+    performance_importance: int = Field(default=3, ge=1, le=5)
+    asset_retention_importance: int | None = Field(default=None, ge=1, le=5)
+    running_cost_importance: int | None = Field(default=None, ge=1, le=5)
+
+
+RecommendationRequest.model_rebuild()
 
 
 def load_service(directory, *, apply_specification_updates=True):
     path = Path(directory)
     meta = json.loads((path / 'metadata.json').read_text(encoding='utf-8'))
+    if meta['schema'] in ('ui-scenario-ranker-v1', 'ui-scenario-height-ranker-v2'):
+        from vehicle_matching.ui_scenario_service import UiScenarioService
+        return UiScenarioService.load(path)
+    if meta['schema'] == 'scenario-ranker-v1':
+        from vehicle_matching.scenario_service import ScenarioService
+        return ScenarioService.load(path)
+    if meta['schema'] in ('lifestyle-pair-v1', 'controlled-cohort-ranker-v1'):
+        from vehicle_matching.lifestyle_service import LifestyleService
+        return LifestyleService.load(path)
     if catalog_fingerprint(path / 'catalog.json') != meta['training']['catalog_sha256']:
         raise ValueError('Catalog checksum mismatch; explicitly train or version the new catalog')
     override = os.environ.get('ML_CANDIDATE_CATALOG')
@@ -83,7 +122,8 @@ def load_service(directory, *, apply_specification_updates=True):
     ranker.assumptions = replace(ranker.assumptions, acquisition_ratio=0, stress_rate_addition=0,
                                  stress_running_multiplier=1, version='cost-utility-v2.3-base-cost-only')
     from vehicle_matching.body_types import apply_body_types
-    current = CandidateService(ranker, apply_body_types(vehicles, strict=False))
+    current = CandidateService(ranker, apply_body_types(vehicles, strict=False),
+                               ml_only=meta['training'].get('ranking_policy') == 'required-eligibility-then-ml-only-experimental')
     current.model_bundle = path.name
     return current
 
@@ -91,10 +131,13 @@ def load_service(directory, *, apply_specification_updates=True):
 def create_app(service=None):
     @asynccontextmanager
     async def lifespan(application):
-        application.state.candidates = service or load_service(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/candidate-preferences/20261027-seating-verified-v1')))
+        application.state.candidates = service or load_service(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261102-height-high-value-3m')))
         from vehicle_matching.managed_catalog import ManagedCatalog
         url=os.environ.get('ML_MANAGED_CATALOG_URL','http://127.0.0.1:8080/api/v1/vehicles/recommendation-catalog')
-        application.state.managed_catalog = ManagedCatalog(url) if service is None and url else None
+        from vehicle_matching.lifestyle_service import LifestyleService
+        from vehicle_matching.scenario_service import ScenarioService
+        from vehicle_matching.ui_scenario_service import UiScenarioService
+        application.state.managed_catalog = ManagedCatalog(url) if service is None and url and not isinstance(application.state.candidates, (LifestyleService,ScenarioService,UiScenarioService)) else None
         yield
 
     application = FastAPI(title='Experimental user–vehicle ranking', lifespan=lifespan)
@@ -103,7 +146,7 @@ def create_app(service=None):
         current=request.app.state.candidates
         provider=request.app.state.managed_catalog
         if provider is None:return current
-        updated=CandidateService(current.ranker,provider.read())
+        updated=CandidateService(current.ranker,provider.read(),ml_only=current.ml_only)
         updated.model_bundle=current.model_bundle
         return updated
 
@@ -126,13 +169,17 @@ def create_app(service=None):
         current = current_service(request)
         return {'success': True, 'data': {'modelVersion': 'candidate-v2', 'catalogCount': len(current.vehicles),
                 'modelBundle': getattr(current, 'model_bundle', None),
-                'scorePolicy': POLICY,
+                'lifestyleSupported': getattr(current.ranker, 'schema', None) in ('lifestyle-pair-v1', 'controlled-cohort-ranker-v1'),
+                'scenarioSupported': getattr(current.ranker, 'schema', None) in ('scenario-ranker-v1', 'ui-scenario-ranker-v1', 'ui-scenario-height-ranker-v2'),
+                'brandOptions': [] if getattr(current.ranker,'schema',None) in ('scenario-ranker-v1','ui-scenario-ranker-v1','ui-scenario-height-ranker-v2') else getattr(current, 'brands', []),
+                'trainingCatalogCount': len(current.catalog) if hasattr(current, 'catalog') else len(current.vehicles),
+                'scorePolicy': current.policy,
                 'catalogSource': 'managed-database' if request.app.state.managed_catalog is not None else 'model-snapshot',
                 'featureCount': len(current.ranker.mean) if hasattr(current.ranker, 'mean') else None,
                 'rankerSchema': getattr(current.ranker, 'schema', 'candidate-v2'),
                 'modelNames': len({(v.brand, v.model) for v in current.vehicles}),
                 'verifiedLengthCount': sum(v.length_mm is not None for v in current.vehicles),
-                'verifiedSeatsCount': sum(v.seats is not None and v.seats_status != 'user-provided' for v in current.vehicles),
+                'verifiedSeatsCount': sum(v.seats is not None and v.seats_status == 'official-source-verified' for v in current.vehicles),
                 'registeredSeatingCount': sum(v.seats is not None or bool(v.seat_options) for v in current.vehicles),
                 'seatingInputConflictCount': sum(v.seats_status == 'official-reference-conflict' for v in current.vehicles),
                 'seatingOptionsCount': sum(bool(v.seat_options) for v in current.vehicles),
@@ -143,7 +190,18 @@ def create_app(service=None):
     def recommendations(payload: RecommendationRequest, request: Request):
         try:
             profile = Profile(**payload.profile.model_dump(), down_payment=0, months=0, annual_rate=0, financing_mode='recommendation')
-            return {'success': True, 'data': current_service(request).recommend(profile, payload.k)}
+            current = current_service(request)
+            if getattr(current.ranker, 'schema', None) in ('scenario-ranker-v1', 'ui-scenario-ranker-v1', 'ui-scenario-height-ranker-v2'):
+                if payload.lifestyle is not None:
+                    return problem(request,409,'입력 항목 변경 필요','현재 화면에서 이용 환경·차체·연료·크기를 다시 선택해 주세요.')
+                return {'success':True,'data':current.recommend(profile,payload.k,payload.scenario.model_dump() if payload.scenario else None)}
+            if payload.scenario is not None:
+                return problem(request,409,'모델 업데이트 필요','현재 취향 입력을 지원하는 모델로 서버를 시작해 주세요.')
+            if getattr(current.ranker, 'schema', None) in ('lifestyle-pair-v1', 'controlled-cohort-ranker-v1'):
+                return {'success': True, 'data': current.recommend(profile, payload.k, payload.lifestyle.model_dump() if payload.lifestyle else None)}
+            if payload.lifestyle is not None:
+                return problem(request, 409, '모델 업데이트 필요', '취향 입력을 지원하는 모델로 서버를 시작해 주세요.')
+            return {'success': True, 'data': current.recommend(profile, payload.k)}
         except ValueError as error:
             return problem(request, 400, '입력 오류', str(error))
 

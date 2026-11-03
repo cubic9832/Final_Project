@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import GlobalToast from './GlobalToast';
@@ -16,10 +16,14 @@ const Main = styled.main`
 export default function Layout({ children }) {
   const memberId = useAuthStore((state) => state.member?.id);
   const { pathname } = useLocation();
-  const home = pathname === '/' || pathname === '/about';
+  const home = pathname === '/' || pathname === '/about' || pathname === '/about-preview';
+  const previousPath = useRef(pathname);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+  useLayoutEffect(() => {
+    const surveyPaths = ['/financial', '/financial/environment', '/financial/vehicle'];
+    const stayingInSurvey = surveyPaths.includes(previousPath.current) && surveyPaths.includes(pathname);
+    if (!stayingInSurvey) window.scrollTo({ top: 0, behavior: 'instant' });
+    previousPath.current = pathname;
   }, [pathname]);
 
   return (

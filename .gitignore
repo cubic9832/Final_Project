@@ -15,3 +15,6 @@ out/
 # Runtime uploaded vehicle images
 /uploads/
 /back/uploads/
+
+# Reproducible 3M comparison shards; keep manifests, evidence and reports.
+/data/households/synthetic/ui-height-high-value-3m-20261102/shard-*/

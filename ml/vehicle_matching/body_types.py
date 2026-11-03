@@ -3,9 +3,11 @@ import json
 from dataclasses import replace
 from vehicle_matching.catalog import ROOT
 
-BODY_TYPES = ('SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP')
+LEGACY_BODY_TYPES = ('SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP')
+SPORTS_BODY_TYPES = ('COUPE', 'CONVERTIBLE', 'ROADSTER')
+BODY_TYPES = (*LEGACY_BODY_TYPES, *SPORTS_BODY_TYPES)
 
-OTHER_BODY_TYPES = ('HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP')
+OTHER_BODY_TYPES = ('HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', *SPORTS_BODY_TYPES)
 
 
 def matches_body_preference(preferred, actual):
