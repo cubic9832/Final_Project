@@ -49,7 +49,19 @@ cd front && npm install && npm run dev        # 프론트
 
 프론트 http://localhost:5173 · 백엔드 http://localhost:8080
 
-**키 (선택)**: 키 없이도 개발 모드로 동작합니다. 메일 · reCAPTCHA · 구글 로그인 · LLM 키를 쓰려면 루트에서 `.env.example` 을 `.env.local` 로 복사해 채웁니다 (`cp .env.example .env.local`, PowerShell 은 `Copy-Item`). 자세한 내용은 [개발 가이드](docs/development.md#외부-서비스-키).
+### 키 (선택)
+
+키 없이도 개발 모드로 동작합니다. 메일 · reCAPTCHA · 구글 로그인 · LLM 키를 쓸 때만 프로젝트 루트에서 키 파일을 만들어 채우고, 서버 · 프론트를 다시 켭니다.
+
+```bash
+cp .env.example .env.local                  # Git Bash · macOS
+```
+
+```powershell
+Copy-Item .env.example .env.local           # Windows PowerShell
+```
+
+키별 설명과 발급처는 `.env.example` 주석과 [개발 가이드](docs/development.md#외부-서비스-키)에 있습니다.
 
 ## 문서
 
