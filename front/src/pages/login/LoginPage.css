@@ -2,7 +2,7 @@
   padding: var(--space-8) 0 var(--space-48);
 }
 
-/* 11-03: 간편 체험 카드를 지워 로그인 카드 한 장 → 제목 · 카드를 가운데 같은 폭으로 */
+/* 11-03: 간편 체험 카드를 지워 로그인 카드 한 장 → 제목 · 카드를 가운데 같은 폭으로 (제목 글자는 카드 왼쪽 끝에 맞춰 왼쪽 정렬) */
 .login-heading,
 .login-grid {
   max-width: 560px;
@@ -11,7 +11,6 @@
 
 .login-heading {
   margin-bottom: var(--space-24);
-  text-align: center;
 }
 
 .login-heading h1 {
