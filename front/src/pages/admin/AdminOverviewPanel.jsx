@@ -66,7 +66,7 @@ function serviceRows({ system, model, mail }) {
     : system ? { status: 'up', detail: `회원·차량 서비스 · ${formatLogTime(system.apiStartedAt)} 부터 실행 중` }
       : { status: 'down', detail: '서버가 응답하지 않습니다.' };
   const dbRow = system === undefined ? { status: 'checking', detail: '확인 중…' }
-    : system?.databaseUp ? { status: 'up', detail: `회원·차량 데이터 · 응답 ${system.databaseMillis}ms · DB 번호 V${system.databaseVersion}` }
+    : system?.databaseUp ? { status: 'up', detail: `${system.databaseVersion ? `최종 적용 버전 V${system.databaseVersion}` : '적용 기록 없음'} · 응답 ${system.databaseMillis}ms` }
       // 관리자 API 자체가 실패하면 권한 확인에 쓰는 DB 도 확인할 수 없다
       : { status: 'down', detail: system ? 'DB 에 연결할 수 없습니다.' : '서버를 거쳐 확인하므로 지금은 확인할 수 없습니다.' };
   const modelRow = model === undefined ? { status: 'checking', detail: '확인 중…' }
@@ -74,7 +74,7 @@ function serviceRows({ system, model, mail }) {
       : { status: 'down', detail: '추천 서버가 켜져 있지 않거나 3초 안에 응답하지 않습니다.' };
   return [
     { id: 'api', name: 'Spring API', ...apiRow },
-    { id: 'database', name: 'MySQL', ...dbRow },
+    { id: 'database', name: 'DB 변경 이력', ...dbRow },
     { id: 'model', name: '추천 서버', ...modelRow },
     { id: 'mail', name: '메일 발송', ...mailRow(mail) },
   ];
