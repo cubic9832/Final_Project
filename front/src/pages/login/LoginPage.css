@@ -180,29 +180,6 @@
   font-size: var(--font-caption);
 }
 
-.login-footer {
-  padding: var(--space-24);
-  background: var(--color-primary);
-  color: var(--color-surface);
-}
-
-.login-footer strong {
-  font-size: var(--font-subtitle);
-}
-
-.login-footer p {
-  margin-top: var(--space-8);
-  color: var(--color-text-on-primary);
-}
-
-.login-footer small {
-  display: block;
-  margin-top: var(--space-8);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-caption);
-  line-height: 1.8;
-}
-
 /* 보완 6: 로그인 여러 번 실패 후 나타나는 reCAPTCHA */
 .login-recaptcha {
   margin-top: 16px;

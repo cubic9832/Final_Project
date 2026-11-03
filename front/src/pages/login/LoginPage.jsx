@@ -252,12 +252,6 @@ export default function LoginPage() {
         </section>
       </div>
 
-      <footer className="login-footer">
-        <strong>CreditCompass</strong>
-        <p>첫차 구매 전, 감당 가능한 비용부터 확인하세요.</p>
-        <small>본 서비스는 교육·시연용이며 실제 NICE·KCB 신용점수나 금융기관 심사 결과를 의미하지 않습니다.</small>
-      </footer>
-
       {/* 비밀번호 찾기 팝업. 로그인 칸에 적은 이메일을 미리 채워 준다 */}
       {isResetOpen && (
         <PasswordResetModal initialEmail={form.email} onClose={() => setIsResetOpen(false)} />
