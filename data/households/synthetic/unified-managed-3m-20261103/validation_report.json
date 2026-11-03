@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "profiles": 396746,
+  "comparisons": 3000000,
+  "financial_group_leakage": false,
+  "generator_test": {
+    "accuracy": 0.6938098804557749,
+    "expected_accuracy": 0.6934498483654501,
+    "log_loss": 0.5546965244655405
+  }
+}

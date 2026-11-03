@@ -2,7 +2,7 @@ import client from '../../../shared/api/client.js';
 import { resolveVehicleImage } from '../../../features/vehicle/resolveVehicleImage.js';
 import { bodyTypeOptions } from '../../../features/financial/vehiclePreferences.js';
 
-const fuels = { GASOLINE: '가솔린', HYBRID: '하이브리드', DIESEL: '경유', ELECTRIC: '전기', LPG: 'LPG' };
+const fuels = { GASOLINE: '가솔린', HYBRID: '하이브리드', DIESEL: '경유', ELECTRIC: '전기', LPG: 'LPG', HYDROGEN: '수소' };
 const statuses = { DRAFT: '작성 중', REVIEW: '검수 대기', PUBLISHED: '공개', DISCONTINUED: '판매 종료', DELETED: '삭제됨' };
 const reverse = (map, value) => Object.keys(map).find(key => map[key] === value);
 export function toAdminVehicle(row) {

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import FinancialResultProgress from '../../components/FinancialResultProgress.jsx';
 import FinancialAnalysis from '../recommendations/FinancialAnalysis.jsx';
 import './FinancialResultPage.css';
 import { calculateFinancialSummary } from '../../calculateFinancialSummary.js';
@@ -37,6 +38,7 @@ export default function FinancialResultPage() {
     <header className="result-heading">
       <div><h1>재무 진단 결과</h1><p>구매 예산과 월 유지비, 차량 구매 후 남는 자금을 확인해 보세요.</p></div>
     </header>
+    <FinancialResultProgress />
     <FinancialAnalysis totals={calculateFinancialSummary(diagnosis.values, diagnosis.loans ?? [])} result={result} compact />
     <div className="result-actions"><button type="button" className="result-edit" onClick={() => navigate('/financial/vehicle', { state: { ...diagnosis, returnToVehicleReview: true } })}>차량 취향 수정</button><button type="button" className="result-next" onClick={() => navigate('/financial/recommendations', { state })}>추천 차량 보기</button></div>
   </div>;

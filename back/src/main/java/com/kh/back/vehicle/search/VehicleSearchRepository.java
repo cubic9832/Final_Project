@@ -30,7 +30,7 @@ public class VehicleSearchRepository {
         index.refresh();
     }
 
-    public List<Long> searchIds(String keyword) {
+    public List<String> searchIds(String keyword) {
         // 모든 단어가 어느 필드엔가 있어야 맞고("현대 하이브리드"), 입력 중인 차명·브랜드 앞부분("그랜")도 맞게 한다
         NativeQuery query = NativeQuery.builder()
                 .withQuery(q -> q.bool(b -> b

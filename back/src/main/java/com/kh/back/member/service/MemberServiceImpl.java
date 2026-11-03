@@ -199,8 +199,6 @@ public class MemberServiceImpl implements MemberService {
         passwordChangeLimiter.reset(userId);
 
         // users 를 참조하는 데이터를 먼저 정리한 뒤 회원을 삭제한다 (외래키 때문에 순서가 중요)
-        memberMapper.deleteFavoriteVehicles(userId);
-        memberMapper.deletePurchasePlans(userId);
         memberMapper.detachInputSnapshots(userId);
         memberMapper.deleteById(userId); // refresh_token(V6) · user_profiles(V8, 보완 5)는 ON DELETE CASCADE 로 함께 삭제 → 다른 브라우저 로그인도 끝남
     }

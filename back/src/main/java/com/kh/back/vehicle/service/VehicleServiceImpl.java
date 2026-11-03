@@ -29,9 +29,9 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     @Transactional(readOnly = true)
     public List<VehicleResponse> searchVehicles(String keyword) {
-        List<Long> ids = vehicleSearchRepository.searchIds(keyword);
+        List<String> ids = vehicleSearchRepository.searchIds(keyword);
         if (ids.isEmpty()) return List.of();
-        Map<Long, VehicleDto> vehicles = vehicleMapper.findAll().stream()
+        Map<String, VehicleDto> vehicles = vehicleMapper.findAll().stream()
                 .collect(Collectors.toMap(VehicleDto::getId, Function.identity()));
         return ids.stream().map(vehicles::get).filter(Objects::nonNull).map(VehicleResponse::from).toList();
     }

@@ -1,0 +1,97 @@
+{
+  "status": "passed",
+  "model_bundle": "20261103-unified-managed-3m",
+  "catalog_rows": 384,
+  "published_rows": 381,
+  "review_rows": 3,
+  "database_comparison": {
+    "status": "passed",
+    "database_rows": 384,
+    "training_catalog_rows": 384,
+    "id_sets_identical": true,
+    "all_ml_fields_identical": true,
+    "published": 381
+  },
+  "runtime": {
+    "modelVersion": "candidate-v2",
+    "catalogCount": 384,
+    "modelBundle": "20261103-unified-managed-3m",
+    "lifestyleSupported": false,
+    "scenarioSupported": true,
+    "brandOptions": [],
+    "trainingCatalogCount": 384,
+    "scorePolicy": "required-eligibility-then-ui-scenario-ml",
+    "catalogSource": "managed-verified-snapshot",
+    "featureCount": 39,
+    "rankerSchema": "ui-scenario-height-ranker-v2",
+    "modelNames": 123,
+    "verifiedLengthCount": 342,
+    "verifiedSeatsCount": 42,
+    "registeredSeatingCount": 356,
+    "seatingInputConflictCount": 0,
+    "seatingOptionsCount": 294,
+    "requiredFields": [
+      "monthly_income",
+      "monthly_expenses",
+      "existing_monthly_payment",
+      "liquid_assets",
+      "emergency_reserve",
+      "monthly_savings",
+      "annual_distance"
+    ],
+    "assumptions": {
+      "version": "cost-utility-v2.3-base-cost-only",
+      "acquisition_ratio": 0,
+      "monthly_insurance": 100000,
+      "monthly_maintenance": 60000,
+      "monthly_tax": 25000,
+      "efficiency_ranges": [
+        [
+          8,
+          14
+        ],
+        [
+          14,
+          22
+        ],
+        [
+          10,
+          16
+        ],
+        [
+          6,
+          10
+        ],
+        [
+          3,
+          6
+        ]
+      ],
+      "energy_prices": [
+        1800,
+        1800,
+        1700,
+        1100,
+        350
+      ],
+      "hydrogen_price_per_kg": 13000
+    }
+  },
+  "checks": {
+    "saved_inference": "passed",
+    "training_quality_gate": "passed",
+    "front_tests": 99,
+    "back_tests": "passed",
+    "ml_targeted_tests": 15,
+    "vehicle_search_K5": "passed",
+    "dream_car_existing_plan": "passed",
+    "taste_links_preserved": 10
+  },
+  "legacy_ml_suite": {
+    "failures": 16,
+    "errors": 8,
+    "same_in_baseline": true,
+    "log": "tmp/catalog-unification-backup/ml-tests.log",
+    "baseline_log": "tmp/catalog-unification-backup/ml-baseline-tests.log"
+  }
+}

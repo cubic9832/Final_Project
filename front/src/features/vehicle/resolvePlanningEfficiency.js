@@ -6,10 +6,11 @@ const estimates = {
   HYBRID: { default: 18, SUV: 16, MPV: 14 },
   DIESEL: { default: 14, SUV: 12, MPV: 11 },
   LPG: { default: 9, SUV: 8, MPV: 7 },
+  HYDROGEN: { default: 100 },
   ELECTRIC: { default: 5, SUV: 4.5, MPV: 3.5 },
 };
 export function resolvePlanningEfficiency(vehicle) {
-  const unit = vehicle.fuel === 'ELECTRIC' ? 'km/kWh' : 'km/L';
+  const unit = vehicle.fuel === 'ELECTRIC' ? 'km/kWh' : vehicle.fuel === 'HYDROGEN' ? 'km/kg' : 'km/L';
   if (Number.isFinite(vehicle.efficiency) && vehicle.efficiency > 0) return { value: vehicle.efficiency, unit, estimated: false, basis: `등록 사양${vehicle.efficiency_reference_only ? ' (참고값)' : ''} · ${vehicle.checked_on || '확인일 미등록'}`, sourceUrl: vehicle.source_url };
   const details = resolveVehicleDetails(vehicle);
   const field = details?.fields.find(item => /국내\s*복합(연비|전비)/.test(item.label) && typeof item.value === 'string' && item.value.includes(unit));

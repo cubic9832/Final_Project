@@ -81,12 +81,12 @@ function Write-LanAccess([string]$Ip, [int]$Port) {
         Write-Host '같은 네트워크 IP를 찾지 못했습니다. ipconfig에서 이더넷 IPv4를 확인하세요.'
         return
     }
-    $check = "mysql -h $Ip -P $Port -u server -pserver final_sample -e `"SELECT MAX(version) v, MIN(success) ok FROM flyway_schema_history; SELECT status, COUNT(*) c FROM managed_vehicles GROUP BY status;`""
+    $check = "mysql -h $Ip -P $Port -u server -pserver final_sample -e `"SELECT MAX(CAST(version AS UNSIGNED)) v, MIN(success) ok FROM flyway_schema_history; SELECT status, COUNT(*) c FROM managed_vehicles GROUP BY status;`""
     Write-Host "같은 네트워크 IPv4: $Ip"
     Write-Host "다른 PC 프론트: http://${Ip}:5173"
     Write-Host '다른 PC DB 확인 (cmd, mysql 클라이언트 필요):'
     Write-Host $check
-    Write-Host '기대값: v=20, ok=1, PUBLISHED=308, REVIEW=3'
+    Write-Host '기대값: v=27 이상, ok=1 (통합 초기 카탈로그: PUBLISHED=381, REVIEW=3)'
 }
 
 function Start-App([string]$Name, [int]$Port, [string]$Directory, [string]$Command) {

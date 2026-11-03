@@ -89,6 +89,10 @@ def train(data, output, epochs=30, *, feature_names=FEATURE_NAMES, encoder=encod
                 'selected_epoch':epoch,'epochs':epochs,'selection':'lowest validation log loss; holdout evaluated after selection',
                 'seed':20261030,'source_sha256':{str(path.relative_to(ROOT)):file_hash(path) for path in
                     (Path(__file__),ROOT/'ml/vehicle_matching/ui_scenario_features.py',ROOT/'ml/vehicle_matching/ui_scenario_model.py')}}
+    build_report_path = data/'build_report.json'
+    if build_report_path.exists() and 'legacy_mapping_count' in json.loads(build_report_path.read_text(encoding='utf-8')):
+        provenance['catalog_origin'] = 'managed-database'
+        provenance['catalog_build_sha256'] = file_hash(build_report_path)
     model=ranker_type(net,stats,traits);model.save(output,provenance,data/'catalog.json',data/'vehicle_traits.json')
     saved=ranker_type.load(output)
     # Rebuild a held-out user's features through the production inference entry point.

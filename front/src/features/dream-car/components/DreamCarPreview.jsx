@@ -4,7 +4,7 @@ import { resolveVehicleImage } from '../../vehicle/resolveVehicleImage';
 import theme from '../../../styles/theme';
 import './DreamCarPreview.css';
 
-const fuels = { GASOLINE: '가솔린', HYBRID: '하이브리드', ELECTRIC: '전기', DIESEL: '디젤', LPG: 'LPG' };
+const fuels = { GASOLINE: '가솔린', HYBRID: '하이브리드', ELECTRIC: '전기', DIESEL: '디젤', LPG: 'LPG', HYDROGEN: '수소' };
 
 export default function DreamCarPreview({ vehicle }) {
   const [failedImage, setFailedImage] = useState('');
