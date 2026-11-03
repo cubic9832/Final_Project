@@ -1,7 +1,9 @@
 package com.kh.back.admin.service;
 
+import com.kh.back.admin.dto.AdminMailStatus;
 import com.kh.back.admin.dto.AdminSystemStatus;
 import com.kh.back.admin.mapper.AdminSystemMapper;
+import com.kh.back.auth.service.VerificationMailSender;
 import java.lang.management.ManagementFactory;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 public class AdminSystemServiceImpl implements AdminSystemService {
 
     private final AdminSystemMapper adminSystemMapper;
+    private final VerificationMailSender mailSender;
 
     @Override
     public AdminSystemStatus getStatus() {
@@ -33,5 +36,16 @@ public class AdminSystemServiceImpl implements AdminSystemService {
             log.warn("admin system status: database check failed: {}", e.getMessage());
             return new AdminSystemStatus(startedAt, false, null, null);
         }
+    }
+
+    // 보완 13: 메일 계정이 있는지는 설정에서, 성공 · 실패 수는 운영 로그 표(admin_audit_logs)의 MAIL_SENT · MAIL_FAILED 에서
+    @Override
+    public AdminMailStatus getMailStatus() {
+        return new AdminMailStatus(
+                mailSender.isMailEnabled(),
+                adminSystemMapper.countMailSince(true),
+                adminSystemMapper.countMailSince(false),
+                adminSystemMapper.findLastMailFailedAt(),
+                adminSystemMapper.findLastMailFailedReason());
     }
 }

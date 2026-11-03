@@ -12,6 +12,7 @@ import com.kh.back.admin.mapper.AdminAuditLogMapper;
 import com.kh.back.admin.mapper.AdminMemberMapper;
 import com.kh.back.auth.mapper.RefreshTokenMapper;
 import com.kh.back.auth.service.LoginAttemptLimiter;
+import com.kh.back.chat.service.ChatRoomService;
 import com.kh.back.common.exception.ApiException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,7 @@ class AdminRoleChangeTests {
     @Mock LoginAttemptLimiter loginAttemptLimiter;
     @Mock RefreshTokenMapper refreshTokenMapper;
     @Mock AdminAuditLogMapper adminAuditLogMapper;
+    @Mock ChatRoomService chatRoomService;
     @InjectMocks AdminMemberServiceImpl service;
 
     private static final Long SUPER_ADMIN_ID = 1L;
@@ -37,7 +39,7 @@ class AdminRoleChangeTests {
 
         service.changeRole(SUPER_ADMIN_ID, 7L, "ADMIN");
 
-        verify(adminMemberMapper).grantAdmin(7L, "ADMIN", SUPER_ADMIN_ID); // 보완 11: admin_accounts 에 넣고 지정한 사람도 남긴다
+        verify(adminMemberMapper).grantAdmin(7L, "ADMIN"); // 보완 11: admin_accounts 에 넣는다 (지정한 사람은 운영 로그에, 보완 14)
         verify(refreshTokenMapper).deleteByUserId(7L); // 로그인된 기기 모두 로그아웃 → 다시 로그인하면 새 권한
         verify(adminAuditLogMapper).insert(SUPER_ADMIN_ID, "ROLE_CHANGE", "MEMBER", 7L, "USER → ADMIN"); // 운영 로그
     }
@@ -46,7 +48,7 @@ class AdminRoleChangeTests {
     void 자기_자신의_권한은_못_바꾼다() {
         assertThatThrownBy(() -> service.changeRole(SUPER_ADMIN_ID, SUPER_ADMIN_ID, "USER"))
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCode()).isEqualTo("SELF_ROLE_CHANGE"));
-        verify(adminMemberMapper, never()).grantAdmin(anyLong(), any(), any());
+        verify(adminMemberMapper, never()).grantAdmin(anyLong(), any());
     }
 
     @Test
@@ -55,7 +57,7 @@ class AdminRoleChangeTests {
 
         assertThatThrownBy(() -> service.changeRole(SUPER_ADMIN_ID, 2L, "USER"))
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCode()).isEqualTo("SUPER_ADMIN_PROTECTED"));
-        verify(adminMemberMapper, never()).grantAdmin(anyLong(), any(), any());
+        verify(adminMemberMapper, never()).grantAdmin(anyLong(), any());
     }
 
     @Test
@@ -70,7 +72,7 @@ class AdminRoleChangeTests {
 
         service.changeRole(SUPER_ADMIN_ID, 7L, "ADMIN");
 
-        verify(adminMemberMapper, never()).grantAdmin(anyLong(), any(), any());
+        verify(adminMemberMapper, never()).grantAdmin(anyLong(), any());
         verify(refreshTokenMapper, never()).deleteByUserId(anyLong());
         verify(adminAuditLogMapper, never()).insert(any(), any(), any(), any(), any());
     }
@@ -82,6 +84,7 @@ class AdminRoleChangeTests {
         service.changeRole(SUPER_ADMIN_ID, 7L, "USER");
 
         verify(adminMemberMapper).revokeAdmin(7L);
+        verify(chatRoomService).releaseRoomsOf(7L); // 8단계: 맡던 상담은 대기로
         verify(adminAuditLogMapper).insert(SUPER_ADMIN_ID, "ROLE_CHANGE", "MEMBER", 7L, "ADMIN → USER");
     }
 

@@ -18,6 +18,7 @@ import com.kh.back.common.jwt.JwtProvider;
 import com.kh.back.member.dto.MemberDto;
 import com.kh.back.member.dto.MemberResponse;
 import com.kh.back.member.mapper.MemberMapper;
+import com.kh.back.member.service.AccountSuspension;
 import com.kh.back.member.dto.UserAgreementDto;
 import com.kh.back.member.dto.UserProfileDto;
 import com.kh.back.member.mapper.UserAgreementMapper;
@@ -506,6 +507,7 @@ public class AuthServiceImpl implements AuthService {
         if (member == null) {
             throw refreshInvalid();
         }
+        AccountSuspension.requireActive(member); // 9단계: 정지되면 로그인 유지도 끊는다 (정지할 때 refresh 도 지우지만 한 번 더)
 
         // 한 번 쓴 refresh token 은 새 값으로 바꾼다 (rotation → 훔친 토큰을 오래 쓰지 못하게)
         // 6단계: 행을 지우고 새로 넣지 않고 같은 행의 토큰 값만 바꾼다
@@ -529,7 +531,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // access token(JWT) 과 refresh token(무작위 문자열)을 함께 발급한다
+    // 9단계: 정지된 계정이면 토큰을 주지 않는다 — 로그인 · 구글 로그인 · 비밀번호 변경 뒤 재발급이 모두 여기를 지난다
     private AuthTokens issueTokens(MemberDto member) {
+        AccountSuspension.requireActive(member);
         // 회원 번호와 역할을 담은 access token(JWT) 발급 (유효 시간: application.yml 의 jwt.access-token-validity)
         String accessToken = jwtProvider.createAccessToken(member.getId(), member.getRole());
 

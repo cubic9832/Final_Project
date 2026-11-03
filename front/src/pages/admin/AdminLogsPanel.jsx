@@ -1,10 +1,10 @@
 // 7단계: 운영 로그 탭 (실제 데이터, V13 admin_audit_logs)
-// 지금 기록되는 작업은 총관리자의 관리자 권한 주기 · 빼기. 이름은 지금 회원 정보에서 읽고, 탈퇴했으면 "탈퇴한 회원"
+// 관리자 작업(권한 · 잠금 해제 · 상담 경고 · 제한 등) + 보완 13 메일 발송 기록(서버 자동). 이름은 지금 회원 정보에서 읽고, 탈퇴했으면 "탈퇴한 회원"
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
 import theme from '../../styles/theme';
 import { getAuditLogs } from '../../features/admin/adminApi';
-import { ACTION_LABELS, describeLog, formatLogTime, personName } from './adminLogFormat';
+import { ACTION_LABELS, describeLog, formatLogTime, logActor, logTarget } from './adminLogFormat';
 import './AdminMembersPanel.css';
 
 const PAGE_SIZE = 20;
@@ -19,8 +19,8 @@ const safeCell = (value) => {
 function downloadCsv(logs) {
   const values = [
     ['시각', '관리자', '작업', '대상', '내용'],
-    ...logs.map((log) => [formatLogTime(log.createdAt), personName(log.actorNickName, log.actorId),
-      ACTION_LABELS[log.action] ?? log.action, personName(log.targetNickName, log.targetId), describeLog(log)]),
+    ...logs.map((log) => [formatLogTime(log.createdAt), logActor(log),
+      ACTION_LABELS[log.action] ?? log.action, logTarget(log), describeLog(log)]),
   ];
   const csv = values.map((row) => row.map((value) => `"${safeCell(value).replaceAll('"', '""')}"`).join(',')).join('\n');
   const url = URL.createObjectURL(new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8' }));
@@ -59,7 +59,7 @@ export default function AdminLogsPanel() {
   return (
     <section className="admin-card">
       <div className="admin-card-heading">
-        <div><h3>운영 이력</h3><p>관리자 작업 기록 (최근 순). 관리자 권한 주기 · 빼기와 로그인 잠금 해제가 기록됩니다.</p></div>
+        <div><h3>운영 이력</h3><p>관리자 작업 기록 (최근 순). 권한 주기 · 빼기, 잠금 해제, 상담 경고 · 제한 등이 기록됩니다. 인증 메일 발송 기록은 [작업] 에서 골라 봅니다.</p></div>
         <button type="button" className="admin-outline-button" disabled={!logs.length} onClick={() => downloadCsv(logs)}>
           <Download size={theme.iconSize.sm} aria-hidden="true" />CSV 내보내기
         </button>
@@ -72,6 +72,15 @@ export default function AdminLogsPanel() {
             <option value="">전체</option>
             <option value="ROLE_CHANGE">권한 변경</option>
             <option value="LOGIN_UNLOCK">잠금 해제</option>
+            <option value="CHAT_WARN">상담 경고</option>
+            <option value="CHAT_RESTRICT">상담 제한</option>
+            <option value="CHAT_UNRESTRICT">상담 제한 풀기</option>
+            <option value="CHAT_TRANSFER">상담 넘기기</option>
+            <option value="MEMBER_SUSPEND">계정 정지</option>
+            <option value="MEMBER_UNSUSPEND">계정 정지 풀기</option>
+            {/* 보완 13: 메일 발송 기록은 "전체" 에 섞지 않고 여기서 골라 본다 */}
+            <option value="MAIL_FAILED">메일 발송 실패</option>
+            <option value="MAIL_SENT">메일 발송</option>
           </select>
         </label>
       </div>
@@ -100,8 +109,8 @@ export default function AdminLogsPanel() {
                 <tr key={log.id}>
                   <td>{formatLogTime(log.createdAt)}</td>
                   <td>{ACTION_LABELS[log.action] ?? log.action}</td>
-                  <td><strong>{personName(log.targetNickName, log.targetId)}</strong><small>{describeLog(log)}</small></td>
-                  <td>{personName(log.actorNickName, log.actorId)}</td>
+                  <td><strong>{logTarget(log)}</strong><small>{describeLog(log)}</small></td>
+                  <td>{logActor(log)}</td>
                 </tr>
               ))}
             </tbody>

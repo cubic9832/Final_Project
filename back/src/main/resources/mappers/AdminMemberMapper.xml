@@ -29,7 +29,8 @@
                EXISTS (SELECT 1 FROM social_accounts s WHERE s.user_id = u.id) AS has_google,
                p.birth_date, p.gender,
                (SELECT COUNT(*) FROM refresh_token r WHERE r.user_id = u.id AND r.expires_at &gt; NOW()) AS active_sessions,
-               (SELECT MAX(r.created_at) FROM refresh_token r WHERE r.user_id = u.id AND r.expires_at &gt; NOW()) AS last_used_at
+               (SELECT MAX(r.created_at) FROM refresh_token r WHERE r.user_id = u.id AND r.expires_at &gt; NOW()) AS last_used_at,
+               u.suspended_until, (u.suspended_until IS NOT NULL AND u.suspended_until &gt; NOW()) AS suspended
         FROM users u
         LEFT JOIN admin_accounts a ON a.user_id = u.id
         LEFT JOIN user_profiles p ON p.user_id = u.id
@@ -53,6 +54,15 @@
         SELECT COALESCE(a.role, 'USER') FROM users u LEFT JOIN admin_accounts a ON a.user_id = u.id WHERE u.id = #{id}
     </select>
 
+    <!-- 9단계: 계정 정지 · 풀기 (총관리자만). 정지가 끝나는 시각만 바꾼다 — 누가 · 왜는 운영 로그에 -->
+    <update id="suspend">
+        UPDATE users SET suspended_until = #{until} WHERE id = #{id}
+    </update>
+
+    <update id="unsuspend">
+        UPDATE users SET suspended_until = NULL WHERE id = #{id}
+    </update>
+
     <!-- 7단계: 로그인 잠금 해제 — 잠금은 이메일로 세므로(보완 6) 이메일을 찾는다 -->
     <select id="findEmail" resultType="string">
         SELECT email FROM users WHERE id = #{id}
@@ -60,8 +70,8 @@
 
     <!-- 보완 11: 관리자 · 총관리자로 지정 (이미 있으면 권한 · 지정한 사람만 바꾼다) -->
     <insert id="grantAdmin">
-        INSERT INTO admin_accounts (user_id, role, granted_by) VALUES (#{id}, #{role}, #{grantedBy})
-        ON DUPLICATE KEY UPDATE role = VALUES(role), granted_by = VALUES(granted_by)
+        INSERT INTO admin_accounts (user_id, role) VALUES (#{id}, #{role})
+        ON DUPLICATE KEY UPDATE role = VALUES(role)
     </insert>
 
     <!-- 보완 11: 관리자 해제 = 표에서 지운다 → 일반 회원(USER) -->

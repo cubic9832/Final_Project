@@ -24,9 +24,14 @@ public interface AdminMemberMapper {
     String findEmail(Long id); // 로그인 잠금 해제용 (없으면 null)
 
     // 보완 11: 권한은 admin_accounts(V21) — 지정은 넣기(있으면 바꾸기), 해제는 지우기
-    int grantAdmin(@Param("id") Long id, @Param("role") String role, @Param("grantedBy") Long grantedBy);
+    int grantAdmin(@Param("id") Long id, @Param("role") String role);
 
     int revokeAdmin(Long id);
+
+    // 9단계: 계정 정지 (until = 정지가 끝나는 시각) · 풀기
+    int suspend(@Param("id") Long id, @Param("until") LocalDateTime until);
+
+    int unsuspend(Long id);
 
     int countJoinedSince(LocalDateTime since);
 

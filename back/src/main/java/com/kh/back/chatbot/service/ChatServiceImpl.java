@@ -2,6 +2,7 @@ package com.kh.back.chatbot.service;
 
 import com.kh.back.chatbot.dto.*;
 import com.kh.back.chatbot.util.PiiMasker;
+import com.kh.back.chatbot.repository.ChatHistoryRepository;
 import com.kh.back.common.exception.ApiException;
 import java.time.LocalDate;
 import java.time.Clock;
@@ -28,13 +29,20 @@ public class ChatServiceImpl implements ChatService {
     private final UserContextProvider userContext;
     private final String provider;
     private final Clock clock;
+    private final ChatHistoryRepository history;
+    private final String geminiModel;
+    private final String openaiModel;
 
     public ChatServiceImpl(ChatMemory memory, ChatKnowledge knowledge, ChatPrompt prompt, GeminiClient gemini,
                            OpenAiClient openai, UserContextProvider userContext,
-                           @Value("${chatbot.provider:gemini}") String provider, Clock clock) {
+                           @Value("${chatbot.provider:gemini}") String provider, Clock clock,
+                           ChatHistoryRepository history,
+                           @Value("${chatbot.gemini.model:gemini-3.5-flash-lite}") String geminiModel,
+                           @Value("${spring.ai.openai.chat.options.model:gpt-5.6-luna}") String openaiModel) {
         this.memory = memory; this.knowledge = knowledge; this.prompt = prompt; this.gemini = gemini;
         this.openai = openai; this.userContext = userContext; this.provider = provider;
         this.clock = clock;
+        this.history = history; this.geminiModel = geminiModel; this.openaiModel = openaiModel;
         if (!Set.of("gemini", "openai").contains(provider)) throw new IllegalArgumentException("CHATBOT_PROVIDER must be gemini or openai");
         Arrays.setAll(locks, index -> new ReentrantLock());
     }
@@ -57,6 +65,11 @@ public class ChatServiceImpl implements ChatService {
             if (used >= 30) throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "CHAT_DAILY_LIMIT", "오늘 질문 횟수(30회)를 모두 사용했습니다. 내일 다시 이용해 주세요.");
             usage.put(memberId, new Usage(today, used + 1));
             String masked = PiiMasker.mask(question);
+            // Durable history is separate from the ten messages supplied to the model.
+            var stored = history.history(memberId, null, 10).messages().stream()
+                .<Message>map(item -> item.role().equals("user") ? new UserMessage(item.text()) : new AssistantMessage(item.text())).toList();
+            memory.clear(id(memberId));
+            if (!stored.isEmpty()) memory.add(id(memberId), stored);
             List<Message> previous = List.copyOf(memory.get(id(memberId)));
             String lastQuestion = previous.stream().filter(item -> item instanceof UserMessage).reduce((first, second) -> second).map(Message::getText).orElse("");
             var context = knowledge.search(lastQuestion + " " + masked);
@@ -66,10 +79,12 @@ public class ChatServiceImpl implements ChatService {
             String answer = PiiMasker.mask(provider.equals("openai")
                     ? openai.generate(instruction, masked, previous)
                     : gemini.generate(masked, previous.stream().map(item -> new ChatRequest.Turn(item instanceof UserMessage ? "user" : "model", item.getText())).toList(), instruction));
+            var pair = history.savePair(memberId, masked, answer, "DIRECT_INPUT", null, "AI", provider,
+                provider.equals("openai") ? openaiModel : geminiModel);
             // Store complete masked pairs only after success, keeping failed calls out of memory.
             memory.add(id(memberId), List.of(new UserMessage(masked), new AssistantMessage(answer)));
             return new ChatResponse(answer, masked, 29 - used, context.stream()
-                    .map(chunk -> new ChatResponse.Source(chunk.id(), chunk.title(), chunk.text())).toList());
+                    .map(chunk -> new ChatResponse.Source(chunk.id(), chunk.title(), chunk.text())).toList(), pair.questionId(), pair.answerId());
         } finally {
             if (acquired) capacity.release();
             lock.unlock();
@@ -82,11 +97,15 @@ public class ChatServiceImpl implements ChatService {
         if (request.guideId() == null || request.guideId().isBlank() || request.guideId().length() > 80)
             throw new ApiException(HttpStatus.BAD_REQUEST, "CHAT_INVALID", "안내 항목을 선택해 주세요.");
         var guide = ChatGuideAnswers.find(request.guideId());
+        String source = request.source() == null ? "QUICK_QUESTION" : request.source();
+        if (!Set.of("QUICK_QUESTION", "TERM_CLICK").contains(source))
+            throw new ApiException(HttpStatus.BAD_REQUEST, "CHAT_INVALID", "올바른 질문 종류를 선택해 주세요.");
         var lock = lock(memberId);
         if (!lock.tryLock()) throw busy();
         try {
+            var pair = history.savePair(memberId, guide.question(), guide.answer(), source, request.guideId(), "FIXED", null, null);
             memory.add(id(memberId), List.of(new UserMessage(guide.question()), new AssistantMessage(guide.answer())));
-            return new ChatResponse(guide.answer(), guide.question(), remaining(memberId), List.of());
+            return new ChatResponse(guide.answer(), guide.question(), remaining(memberId), List.of(), pair.questionId(), pair.answerId());
         } finally { lock.unlock(); }
     }
 
@@ -97,12 +116,19 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public ChatHistoryResponse history(Long memberId) {
+        return history(memberId, null);
+    }
+
+    @Override
+    public ChatHistoryResponse history(Long memberId, Long beforeId) {
         requireMember(memberId);
+        if (beforeId != null && beforeId <= 0)
+            throw new ApiException(HttpStatus.BAD_REQUEST, "CHAT_INVALID", "올바른 대화 번호를 입력해 주세요.");
         var lock = lock(memberId);
         if (!lock.tryLock()) throw busy();
         try {
-            return new ChatHistoryResponse(memory.get(id(memberId)).stream()
-                    .map(item -> new ChatHistoryResponse.Message(item instanceof UserMessage ? "user" : "model", PiiMasker.mask(item.getText()))).toList(), remaining(memberId));
+            var page = history.history(memberId, beforeId, 20);
+            return new ChatHistoryResponse(page.messages(), remaining(memberId), page.hasMore());
         } finally { lock.unlock(); }
     }
 
@@ -111,7 +137,10 @@ public class ChatServiceImpl implements ChatService {
         requireMember(memberId);
         var lock = lock(memberId);
         if (!lock.tryLock()) throw busy();
-        try { memory.clear(id(memberId)); } finally { lock.unlock(); }
+        try {
+            history.startNewConversation(memberId);
+            memory.clear(id(memberId));
+        } finally { lock.unlock(); }
     }
 
     private LocalDate today() { return LocalDate.now(clock); }

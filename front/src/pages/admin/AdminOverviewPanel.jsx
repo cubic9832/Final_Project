@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Cpu, Database, Lock, Server, UserRoundPen } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Cpu, Database, Lock, Mail, Server, UserRoundPen } from 'lucide-react';
 import theme from '../../styles/theme';
 import { describeLog, formatLogTime, personName } from './adminLogFormat';
-import { getAdminOverview, getAuditLogs, getMemberSummary, getModelServerInfo, getSystemStatus } from '../../features/admin/adminApi';
+import { getAdminOverview, getAuditLogs, getMailStatus, getMemberSummary, getModelServerInfo, getSystemStatus } from '../../features/admin/adminApi';
 import { getVehicles } from '../../features/vehicle/vehicleApi';
 import './AdminMembersPanel.css'; // 7일 막대(admin-member-trend) 같이 씀
 
@@ -32,6 +32,7 @@ const LOADERS = {
   vehicles: getVehicles,
   overview: getAdminOverview,
   system: getSystemStatus,
+  mail: getMailStatus,
   model: getModelServerInfo,
   logs: (signal) => getAuditLogs({ size: 3 }, signal).then((result) => result.logs),
 };
@@ -40,15 +41,27 @@ const LOADERS = {
 const show = (value, format) => (value === undefined ? '…' : value === null ? '-' : format(value));
 const formatManwon = (won) => `${Math.round(won / 10000).toLocaleString('ko-KR')}만 원`;
 
-const serviceIcons = { api: Server, database: Database, model: Cpu };
+const serviceIcons = { api: Server, database: Database, model: Cpu, mail: Mail };
 const STATUS_VIEW = {
   checking: { label: '확인 중', className: 'is-neutral' },
   up: { label: '정상', className: 'is-ok' },
   down: { label: '연결 안 됨', className: 'is-check' },
+  failed: { label: '실패 있음', className: 'is-check' },
+  dev: { label: '개발 모드', className: 'is-neutral' },
 };
 
-// 서비스 연결 상태 3줄. Spring · MySQL 은 관리자 API 한 번, 추천 서버는 화면이 직접 불러 본다
-function serviceRows({ system, model }) {
+// 보완 13: 메일 발송 줄 — 최근 24시간 실패가 있으면 "실패 있음" + 마지막 실패 시각 · 사유, 메일 계정이 없으면 "개발 모드"
+function mailRow(mail) {
+  if (mail === undefined) return { status: 'checking', detail: '확인 중…' };
+  if (mail === null) return { status: 'down', detail: '메일 발송 기록을 불러오지 못했습니다.' };
+  const counts = `최근 24시간 보냄 ${mail.sent}건 · 실패 ${mail.failed}건`;
+  if (mail.failed > 0) return { status: 'failed', detail: `${counts} · 마지막 실패 ${formatLogTime(mail.lastFailedAt)} (${mail.lastFailedReason})` };
+  if (!mail.mailEnabled) return { status: 'dev', detail: `${counts} · 메일 계정이 없어 서버 로그로 대신합니다.` };
+  return { status: 'up', detail: `인증 메일 · ${counts}` };
+}
+
+// 서비스 연결 상태 4줄. Spring · MySQL · 메일은 관리자 API, 추천 서버는 화면이 직접 불러 본다
+function serviceRows({ system, model, mail }) {
   const apiRow = system === undefined ? { status: 'checking', detail: '확인 중…' }
     : system ? { status: 'up', detail: `회원·차량 서비스 · ${formatLogTime(system.apiStartedAt)} 부터 실행 중` }
       : { status: 'down', detail: '서버가 응답하지 않습니다.' };
@@ -63,12 +76,13 @@ function serviceRows({ system, model }) {
     { id: 'api', name: 'Spring API', ...apiRow },
     { id: 'database', name: 'MySQL', ...dbRow },
     { id: 'model', name: '추천 서버', ...modelRow },
+    { id: 'mail', name: '메일 발송', ...mailRow(mail) },
   ];
 }
 
 export default function AdminOverviewPanel() {
   const data = useLoads(LOADERS);
-  const { members, vehicles, overview, model, logs } = data;
+  const { members, vehicles, overview, model, mail, logs } = data;
 
   const cards = [
     { label: '차량 데이터', value: show(vehicles, (list) => `${list.length}건`), note: '차량·트림 정보 관리', tab: 'vehicles' },
@@ -82,6 +96,8 @@ export default function AdminOverviewPanel() {
     { title: '생년월일 · 성별 미입력 회원', count: overview?.profileMissing, note: '연령대 통계와 추천에 쓰이는 정보 — 구글 가입 직후 등', tab: 'members', icon: UserRoundPen },
     { title: '로그인이 잠긴 회원', count: overview?.lockedMembers, note: '비밀번호 5번 실패로 10분 잠금 — 회원 상세에서 잠금 해제', tab: 'members', icon: Lock },
     { title: '추천 서버 연결', count: model === null ? 1 : model ? 0 : undefined, note: model === null ? '추천 서버가 응답하지 않습니다 (ml/serve-candidates.ps1)' : '추천 서버가 정상 응답합니다', tab: 'models', icon: Cpu },
+    // 보완 13: 인증 메일 실패 — 메일 계정 · 앱 비밀번호 · 하루 발송 한도를 확인 (사유는 서비스 연결 상태의 "메일 발송" 줄)
+    { title: '인증 메일 발송 실패 (24시간)', count: mail?.failed, unit: '건', note: '메일 계정 · 앱 비밀번호 · 하루 발송 한도 확인 — 사유는 서비스 연결 상태에', tab: 'overview', icon: Mail },
   ];
   const todo = tasks.filter((task) => task.count > 0).length;
 
@@ -93,9 +109,9 @@ export default function AdminOverviewPanel() {
     <section className="admin-summary" aria-label="운영 요약">{cards.map(card => <Link className="admin-stat" to={`/console?tab=${card.tab}`} key={card.label}><span>{card.label}</span><strong>{card.value}</strong><small>{card.note}</small></Link>)}</section>
     <div className="admin-grid-2">
       <section className="admin-card"><div className="admin-card-heading"><div><h3>먼저 확인할 작업</h3><p>지금 처리가 필요한 항목입니다.</p></div><span className="admin-count-badge">{overview === undefined ? '확인 중' : `할 일 ${todo}개`}</span></div>
-        <div className="admin-task-list">{tasks.map(({ title, count, note, tab, icon: Icon }) => <Link key={title} to={`/console?tab=${tab}`} className="admin-task"><span className="admin-icon-box"><Icon size={theme.iconSize.md} aria-hidden="true" /></span><div><strong>{title} · {count === undefined ? '…' : title === '추천 서버 연결' ? (count ? '확인 필요' : '정상') : count ? `${count}명` : '없음'}</strong><p>{note}</p></div><ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link>)}</div>
+        <div className="admin-task-list">{tasks.map(({ title, count, unit = '명', note, tab, icon: Icon }) => <Link key={title} to={`/console?tab=${tab}`} className="admin-task"><span className="admin-icon-box"><Icon size={theme.iconSize.md} aria-hidden="true" /></span><div><strong>{title} · {count === undefined ? '…' : title === '추천 서버 연결' ? (count ? '확인 필요' : '정상') : count ? `${count}${unit}` : '없음'}</strong><p>{note}</p></div><ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link>)}</div>
       </section>
-      <section className="admin-card"><div className="admin-card-heading"><div><h3>서비스 연결 상태</h3><p>화면을 열 때 서버 · DB · 추천 서버가 응답하는지 확인합니다.</p></div></div>
+      <section className="admin-card"><div className="admin-card-heading"><div><h3>서비스 연결 상태</h3><p>화면을 열 때 서버 · DB · 추천 서버가 응답하는지, 인증 메일이 나가는지 확인합니다.</p></div></div>
         <div className="admin-service-list" aria-live="polite">{services.map(service => { const Icon = serviceIcons[service.id]; const view = STATUS_VIEW[service.status]; return <div className="admin-service-row" key={service.id}><Icon size={theme.iconSize.md} aria-hidden="true" /><div><strong>{service.name}</strong><p>{service.detail}</p></div><span className={`admin-status ${view.className}`}>{view.label}</span></div>; })}</div>
       </section>
     </div>

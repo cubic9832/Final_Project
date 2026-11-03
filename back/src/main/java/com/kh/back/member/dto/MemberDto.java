@@ -26,6 +26,8 @@ public class MemberDto {
     private String nickName;
     private String role;           // USER · ADMIN
     private LocalDateTime createdAt;
+    private LocalDateTime suspendedUntil; // 9단계: 정지가 끝나는 시각 (NULL = 정지 아님, 9999년 = 영구)
+    private boolean suspended;            // 9단계: 지금 정지 중인지 (SQL 이 NOW() 와 비교해 계산)
 
     // 보완 8: 비밀번호 없이 구글로만 가입했는지 (회원 탈퇴 확인 방법이 달라진다)
     public boolean isSocialOnly() {
