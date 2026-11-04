@@ -1,4 +1,4 @@
-import { isProgressPlan, planStorageKey, progressStorageKey, updateProgressSettings } from './savingsProgress.js';
+import { createProgressPlan, isProgressPlan, planStorageKey, progressStorageKey, updateProgressSettings } from './savingsProgress.js';
 
 export const purchasePlanUpdatedEvent = 'dream-car-purchase-plan-updated';
 export function mergeSavingsInputs(plan, patch) {
@@ -29,9 +29,10 @@ export function savePurchasePlanWithProgress(purchase, target, asOfDate, vehicle
     const next = mergeExecutionSettings(plans[index], purchase, target, asOfDate);
     plans[index] = { ...next, vehicleId: vehicle.id, name: `${vehicle.brand} ${vehicle.model}`, trim: vehicle.trim };
   }
+  if (!plans.length) plans.push(createProgressPlan(vehicle, purchase.inputs, target, asOfDate, crypto.randomUUID()));
   try {
     localStorage.setItem(planStorageKey, JSON.stringify(purchase));
-    if (plans.length) localStorage.setItem(progressStorageKey, JSON.stringify(plans));
+    localStorage.setItem(progressStorageKey, JSON.stringify(plans));
   } catch (error) {
     if (previousPurchase === null) localStorage.removeItem(planStorageKey); else localStorage.setItem(planStorageKey, previousPurchase);
     throw error;
