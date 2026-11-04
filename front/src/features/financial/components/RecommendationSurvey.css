@@ -66,7 +66,7 @@
 @media (prefers-reduced-motion: reduce) { .recommendation-survey .survey-answer, .survey-spinner { animation: none; } .survey-option, .survey-progress::-webkit-progress-value { transition: none; } }
 
 .survey-body { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,2fr); justify-content: space-between; gap: var(--space-24); align-items: stretch; }
-.survey-answer { display: flex; flex-direction: column; min-width: 0; min-height: 440px; padding: var(--space-24); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); animation: survey-enter 180ms ease-out; }
+.survey-answer { display: flex; flex-direction: column; min-width: 0; min-height: 440px; padding: var(--space-24); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); animation: survey-enter 400ms ease-out; }
 .survey-answer > .survey-eyebrow, .survey-answer > h1, .survey-answer > .survey-description { flex-shrink: 0; }
 .survey-answer-content { flex: 1; min-height: 0; width: 100%; max-width: 480px; padding-block: var(--space-4); }
 .survey-options:not(.survey-options-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -130,3 +130,7 @@
 .survey-answer .survey-review li { padding-block: var(--space-8); }
 .survey-answer .financial-survey-input .financial-field { margin-bottom: var(--space-16); }
 .survey-answer .financial-survey-input .financial-expense-mode { margin-top: var(--space-16); }
+
+/* 조건 목록은 공용 모달에서 확인하며 예산 카드 높이는 유지한다. */
+.survey-conditions-modal > p { color:var(--color-muted); font-size:var(--font-body); line-height:1.8; }
+.survey-conditions-modal dl > div { padding-block:var(--space-16); }
