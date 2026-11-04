@@ -278,11 +278,13 @@ function TasteCard({ state }) {
       )}
       {state.status === 'done' && state.data && (
         <>
-          <Link className="my-taste-type" to="/taste-test">
+          {/* 11-04: 링크 아님 — 취향 테스트 화면은 이 탭의 임시 기록(미저장 결과)을 먼저 보여 줘서,
+              누르면 저장된 취향이 아닌 화면이 뜰 수 있다. 저장된 결과는 여기서 바로 보여 준다 */}
+          <div className="my-taste-type">
             <span>저장된 취향</span>
             <strong>{state.data.type?.name ?? '알 수 없는 유형'}</strong>
             {state.data.type?.description && <p>{state.data.type.description}</p>}
-          </Link>
+          </div>
           <p className="my-taste-how">
             취향이 바뀌었다면 테스트를 다시 하세요. 결과 화면에서 &quot;현재 취향을 바꿀까요?&quot;를 확인하면 새 결과로 바뀝니다.
           </p>
