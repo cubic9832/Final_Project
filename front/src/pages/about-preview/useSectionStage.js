@@ -6,10 +6,10 @@ const transitionLockMs = 620;
 
 export default function useSectionStage(containerRef) {
   const [activeSection, setActiveSection] = useState(0);
-  const [stageEnabled, setStageEnabled] = useState(() => matchMedia('(min-width: 1025px) and (min-height: 700px)').matches);
+  const [stageEnabled, setStageEnabled] = useState(() => matchMedia('(min-width: 769px)').matches);
 
   useEffect(() => {
-    const media = matchMedia('(min-width: 1025px) and (min-height: 700px)');
+    const media = matchMedia('(min-width: 769px)');
     const update = () => setStageEnabled(media.matches);
     update();
     media.addEventListener('change', update);

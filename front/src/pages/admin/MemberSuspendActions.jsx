@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Ban } from 'lucide-react';
 import theme from '../../styles/theme';
 import { suspendMember, unsuspendMember } from '../../features/admin/adminApi';
+import useActionLock from '../../features/admin/useActionLock';
 import ChoiceWithOther from '../../features/chat/components/ChoiceWithOther';
 import { OTHER, choiceText } from '../../features/chat/choice';
 import { suspendedText } from './adminLogFormat';
@@ -28,7 +29,9 @@ export default function MemberSuspendActions({ member, onChanged }) {
   const [choice, setChoice] = useState('');
   const [other, setOther] = useState('');
   const [confirming, setConfirming] = useState(false);
-  const [busy, setBusy] = useState(false);
+  // 한 번만 보내고, 성공하면 목록을 다시 불러와 이 회원 정보(member)가 바뀔 때까지 잠근다 (정지 · 정지 풀기가 두 번 가지 않게)
+  const lock = useActionLock(member);
+  const busy = lock.locked;
   const [error, setError] = useState('');
 
   // 11-03: 계정 정지는 관리자 · 총관리자 누구나 (총관리자 전용은 권한 주기 · 빼기와 상담원 모니터링만)
@@ -48,10 +51,9 @@ export default function MemberSuspendActions({ member, onChanged }) {
 
   // 서버 요청 하나를 감싸서: 성공하면 알림 + 목록 다시 불러오기, 실패하면 문구 (그사이 탈퇴했으면 목록 새로고침)
   async function run(request, done) {
-    setBusy(true);
     setError('');
     try {
-      await request();
+      if (!(await lock.run(request))) return;
       showToast(done);
       setOpen(false);
       setConfirming(false);
@@ -63,8 +65,6 @@ export default function MemberSuspendActions({ member, onChanged }) {
         return;
       }
       setError(errorMessage(err, '처리하지 못했습니다.'));
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -88,8 +88,9 @@ export default function MemberSuspendActions({ member, onChanged }) {
     return (
       <div className="admin-member-role">
         <div className="admin-member-role-buttons">
-          <button type="button" className="admin-outline-button" onClick={() => setOpen(true)}>
-            <Ban size={theme.iconSize.sm} aria-hidden="true" />계정 정지
+          {/* 정지 직후 목록이 다시 오기 전에는 아직 "정지 전" 화면이라 잠가 둔다 */}
+          <button type="button" className="admin-outline-button" onClick={() => setOpen(true)} disabled={busy}>
+            <Ban size={theme.iconSize.sm} aria-hidden="true" />{busy ? '반영 중…' : '계정 정지'}
           </button>
         </div>
       </div>

@@ -1,0 +1,18 @@
+.purchase-cost-dialog { width:min(640px,calc(100% - 32px)); max-height:calc(100dvh - 48px); margin:auto; padding:0; border:1px solid var(--color-border); border-radius:var(--radius-lg); color:var(--color-text); background:var(--color-surface); }
+.purchase-cost-dialog::backdrop { background:rgb(0 0 0 / .4); }
+.purchase-cost-dialog header { display:flex; align-items:center; justify-content:space-between; gap:var(--space-16); padding:var(--space-24); border-bottom:1px solid var(--color-border); }
+.purchase-cost-dialog h2 { font-size:var(--font-card-title); }
+.purchase-cost-dialog header button { display:grid; place-items:center; width:40px; height:40px; flex-shrink:0; border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-primary); background:var(--color-surface); }
+.purchase-cost-content { padding:var(--space-24); }
+.purchase-cost-content .dream-fields { margin-top:var(--space-24); }
+.purchase-cost-preview { position:sticky; top:0; z-index:1; display:grid; gap:var(--space-8); padding:var(--space-16); border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-background); }
+.purchase-cost-preview span,.purchase-cost-preview small { font-size:var(--font-caption); color:var(--color-text-sub); }
+.purchase-cost-preview strong { font-size:var(--font-figure-md); color:var(--color-primary); }
+.purchase-cost-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-12); margin-top:var(--space-24); }
+.purchase-cost-dialog footer { padding:0 var(--space-24) var(--space-24); }
+.purchase-cost-dialog footer button { width:100%; }
+.purchase-cost-defaults { width:100%; margin-bottom:var(--space-16); }
+.purchase-cost-content > a { display:block; color:var(--color-blue-strong); text-decoration:underline; }
+.dream-cost-error { margin-top:var(--space-16); font-size:var(--font-body); color:var(--color-danger); }
+.purchase-cost-dialog button:focus-visible,.purchase-cost-dialog a:focus-visible { outline:2px solid var(--color-blue); outline-offset:3px; }
+@media(max-width:480px) { .purchase-cost-content .dream-fields { grid-template-columns:1fr; } }

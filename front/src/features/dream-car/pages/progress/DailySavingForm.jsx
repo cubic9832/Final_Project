@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Plus } from 'lucide-react';
 import { recordDailySaving } from '../../savingsProgress';
 import theme from '../../../../styles/theme';
 import SavingDatePicker from './SavingDatePicker';
 
-export default function DailySavingForm({ plan, asOfDate, record, onSave, onCancel }) {
+export default function DailySavingForm({ plan, asOfDate, record, onSave, onCancel, onDirtyChange }) {
   const [date, setDate] = useState(record?.date || asOfDate);
   const [amount, setAmount] = useState(record?.amount?.toString() ?? '');
   const [memo, setMemo] = useState(record?.memo ?? '');
   const [error, setError] = useState('');
+  useEffect(() => {
+    onDirtyChange?.(date !== (record?.date || asOfDate) || amount !== (record?.amount?.toString() ?? '') || memo !== (record?.memo ?? ''));
+  }, [date, amount, memo, record, asOfDate, onDirtyChange]);
   function submit(event) {
     event.preventDefault();
     if (amount.trim() === '' || !/^\d+(\.\d{1,2})?$/.test(amount)) { setError('저축액을 소수점 둘째 자리까지 숫자로 입력해 주세요.'); return; }

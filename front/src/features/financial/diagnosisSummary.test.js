@@ -34,3 +34,11 @@ test('자세히 보기용으로 대출 종류 · 잔액 · 월 상환액을 원 
   assert.deepEqual(summary.loans, [{ type: '신용대출', balance: 10_000_000, payment: 250_000 }]);
   assert.equal(summary.otherIncome, 0);
 });
+
+// 모델 관리: 여러 모델에 트래픽을 나눌 때 어느 모델의 추천으로 저장한 진단인지 남긴다
+test('추천한 모델 이름(modelBundle)이 있으면 함께 저장한다', () => {
+  const summary = buildDiagnosisSummary({ values: { income: 100 }, assets: {} },
+    { modelVersion: 'scenario-v1', modelBundle: '20261103-unified-managed-3m' });
+  assert.equal(summary.modelBundle, '20261103-unified-managed-3m');
+  assert.equal(summary.modelVersion, 'scenario-v1');
+});

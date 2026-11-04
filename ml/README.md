@@ -24,9 +24,30 @@ python -m venv ml/.venv
 ./ml/serve-candidates.ps1
 ```
 
+mac/Linux (프로젝트 루트):
+
+```bash
+python3 -m venv ml/.venv   # python3 가 3.14 보다 새로워 torch 설치가 안 되면: uv venv --python 3.13 ml/.venv
+ml/.venv/bin/python -m pip install -e "./ml[serve,test]"   # uv 로 만들었다면: uv pip install --python ml/.venv/bin/python -e "./ml[serve,test]"
+./ml/serve-candidates.sh
+```
+
 API는 `127.0.0.1:8002`, 추천은 `POST /api/v2/recommendations`를 사용한다.
-루트 `dev.ps1`도 같은 서버를 실행한다. 모델 교체 후 서버를 재시작한다.
+루트 `dev.ps1` · `dev.sh`도 같은 서버를 실행한다 (`dev.sh`는 `ml/.venv`가 있을 때만). 모델 교체 후 서버를 재시작한다.
 기존 hhc 모델을 사용하려면 `-Run 'outputs/models/candidate-preferences/20261027-seating-verified-v1'`을 지정한다.
+
+### 여러 모델 동시 서빙 (관리자 모델 관리 · 트래픽 분배)
+
+추천 서버 하나가 모델 하나를 서빙한다. 포트와 폴더를 바꿔 여러 개 띄우면, Spring(`/api/v1/recommendation/**`)이
+관리자 화면에서 정한 비율대로 사용자를 나눠 보낸다(같은 사용자는 같은 모델).
+
+```bash
+ML_EXTRA_RUNS="outputs/models/scenario-choices/20261102-height-high-value-3m@8003" ./dev.sh
+# 직접 띄울 때: PORT=8003 RUN=outputs/models/scenario-choices/<폴더> ./ml/serve-candidates.sh
+#               + Spring 환경변수 RECOMMENDATION_UPSTREAMS=http://127.0.0.1:8002,http://127.0.0.1:8003
+```
+
+비율은 화면 입력과 맞는 모델(`scenarioSupported`)에만 줄 수 있다.
 
 ## 데이터 재생성과 학습
 

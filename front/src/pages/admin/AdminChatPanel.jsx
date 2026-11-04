@@ -14,6 +14,7 @@ import useChatRoom from '../../features/chat/useChatRoom';
 import { ROLE_LABELS } from '../../features/auth/roles';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
+import useActionLock from '../../features/admin/useActionLock';
 import './AdminChatPanel.css';
 
 const FILTERS = [
@@ -116,7 +117,9 @@ export default function AdminChatPanel() {
 function RoomDetail({ room, meId, isSuper, onChanged }) {
   const navigate = useNavigate();
   const chat = useChatRoom(room.id, onChanged);
-  const [busy, setBusy] = useState(false);
+  // 한 번만 보내고, 성공하면 목록을 다시 불러와 이 상담(room)이 바뀔 때까지 잠근다 (맡기 · 종료 등이 두 번 가지 않게)
+  const lock = useActionLock(room);
+  const busy = lock.locked;
   const [openForm, setOpenForm] = useState(''); // 'transfer' · 'warn' · 'restrict' · '' (한 번에 하나만 펼친다)
   const mine = room.assignedAdminId === meId;
   // 11-03: 넘기기 · 종료 · 경고 · 상담 제한 · 제한 풀기는 관리자 · 총관리자 누구나 (이 화면은 관리자만 들어온다)
@@ -127,16 +130,13 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
   const [confirm, setConfirm] = useState(null);
 
   async function run(action, done) {
-    setBusy(true);
     try {
-      await action();
+      if (!(await lock.run(action))) return;
       showToast(done);
       onChanged();
     } catch (error) {
       showToast(chatErrorMessage(error, '처리하지 못했습니다. 목록을 새로고침해 주세요.'));
       onChanged();
-    } finally {
-      setBusy(false);
     }
   }
 

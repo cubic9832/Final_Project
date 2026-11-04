@@ -2,7 +2,8 @@ import { Fragment, useEffect, useState } from 'react';
 import { ThumbsUp, ThumbsDown, MessageSquare, Search, ArrowUp, ArrowDown } from 'lucide-react';
 import theme from '../../styles/theme';
 import Pagination from '../../components/Pagination';
-import { getAdminChatbotExchanges, getAdminChatbotMessages } from '../../features/chatbot/chatApi';
+import { getAdminChatbotExchanges, getAdminChatbotMessages, getAdminChatbotPrompts } from '../../features/chatbot/chatApi';
+import AdminChatPromptPanel from './AdminChatPromptPanel';
 import './AdminChatbotPanel.css';
 
 const sourceLabels = { DIRECT_INPUT: '직접 입력', QUICK_QUESTION: '추천 질문', TERM_CLICK: '용어 클릭' };
@@ -10,8 +11,35 @@ const ratingLabels = { LIKE: '좋아요', DISLIKE: '싫어요' };
 const failureMessage = (failure) => failure.response?.data?.detail || failure.response?.data?.error?.message || '조회하지 못했습니다. 다시 시도해 주세요.';
 
 export default function AdminChatbotPanel() {
-  const [query, setQuery] = useState({ rating: 'ALL', page: 0, keyword: '', sort: '', direction: 'ASC' });
-  const [keyword, setKeyword] = useState('');
+  const [tab, setTab] = useState('history');
+  const [historySearch, setHistorySearch] = useState('');
+  const [reload, setReload] = useState(0);
+  const [prompts, setPrompts] = useState({ status: 'loading', data: [], error: '' });
+  useEffect(() => {
+    const controller = new AbortController();
+    getAdminChatbotPrompts(controller.signal).then(data => {
+      if (!controller.signal.aborted) setPrompts({ status: 'done', data, error: '' });
+    }).catch(failure => {
+      if (!controller.signal.aborted) setPrompts({ status: 'error', data: [], error: failureMessage(failure) });
+    });
+    return () => controller.abort();
+  }, [reload]);
+  function refresh() { setPrompts(current => ({ ...current, status: 'loading', error: '' })); setReload(value => value + 1); }
+  return <div className="admin-panel-stack compa-admin">
+    <div className="compa-admin-tabs" role="tablist" aria-label="콤파 관리">
+      <button id="compa-history-tab" role="tab" aria-selected={tab === 'history'} aria-controls="compa-history-panel" type="button" onClick={() => setTab('history')}>대화·평가 기록</button>
+      <button id="compa-prompts-tab" role="tab" aria-selected={tab === 'prompts'} aria-controls="compa-prompts-panel" type="button" onClick={() => { setTab('prompts'); refresh(); }}>프롬프트 관리</button>
+    </div>
+    <section id={tab === 'history' ? 'compa-history-panel' : 'compa-prompts-panel'} role="tabpanel" aria-labelledby={tab === 'history' ? 'compa-history-tab' : 'compa-prompts-tab'}>
+      {tab === 'prompts' ? <AdminChatPromptPanel state={prompts} onRefresh={refresh} onView={version => { setHistorySearch(version); setTab('history'); }} /> :
+        <ChatbotHistory key={historySearch} initialKeyword={historySearch} />}
+    </section>
+  </div>;
+}
+
+function ChatbotHistory({ initialKeyword }) {
+  const [query, setQuery] = useState({ rating: 'ALL', page: 0, keyword: initialKeyword, sort: '', direction: 'ASC' });
+  const [keyword, setKeyword] = useState(initialKeyword);
   const [reload, setReload] = useState(0);
   const [state, setState] = useState({ status: 'loading', data: null, error: '' });
   const [selected, setSelected] = useState(null);
@@ -47,15 +75,15 @@ export default function AdminChatbotPanel() {
       <div className="compa-admin-heading"><h3>콤파 대화 기록</h3>
       <form className="compa-admin-toolbar" onSubmit={(event) => { event.preventDefault(); changeQuery({ ...query, keyword: keyword.trim(), page: 0 }); }}>
         <div className="compa-admin-search form-focus-group">
-          <input type="search" aria-label="질문 내용 또는 회원 닉네임 검색" placeholder="질문·회원 닉네임 검색" value={keyword} maxLength={50} onChange={(event) => setKeyword(event.target.value)} />
-          <button type="submit" className="compa-admin-search-submit" aria-label="질문 또는 회원 닉네임 검색"><Search size={theme.iconSize.md} aria-hidden="true" /></button>
+          <input type="search" aria-label="질문, 회원 닉네임 또는 프롬프트 버전 검색" placeholder="질문·회원 닉네임·버전 검색" value={keyword} maxLength={50} onChange={(event) => setKeyword(event.target.value)} />
+          <button type="submit" className="compa-admin-search-submit" aria-label="질문, 회원 닉네임 또는 버전 검색"><Search size={theme.iconSize.md} aria-hidden="true" /></button>
         </div>
       </form>
       </div>
       {state.status === 'loading' && <p className="admin-empty" role="status">대화 기록을 불러오는 중…</p>}
       {state.status === 'error' && <p className="admin-empty" role="alert">{state.error} <button type="button" className="admin-text-button" onClick={() => { setState({ status: 'loading', data: null, error: '' }); setReload((value) => value + 1); }}>다시 시도</button></p>}
       {state.status === 'done' && <>
-        {state.data.ratingCounts && <p className="compa-admin-rating-counts" role="status"><span>좋아요 {state.data.ratingCounts.likes.toLocaleString()}건</span><span>싫어요 {state.data.ratingCounts.dislikes.toLocaleString()}건</span><span>평가 없음 {state.data.ratingCounts.unrated.toLocaleString()}건</span></p>}
+        {state.data.ratingCounts && <p className="compa-admin-rating-counts" role="status"><span className="compa-admin-version-summary">{state.data.promptVersion ? `프롬프트 ${state.data.promptVersion}` : '전체 버전·고정 답변 포함'}</span><span>좋아요 {state.data.ratingCounts.likes.toLocaleString()}건</span><span>싫어요 {state.data.ratingCounts.dislikes.toLocaleString()}건</span><span>평가 없음 {state.data.ratingCounts.unrated.toLocaleString()}건</span></p>}
         <div className="compa-admin-table-wrap"><table className="compa-admin-table">
           <caption className="sr-only">콤파 질문·답변 및 평가 목록</caption>
           <colgroup>{[8, 30, 10, 12, 8, 11, 14, 7].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
@@ -78,6 +106,7 @@ export default function AdminChatbotPanel() {
               <td><button className="admin-text-button" type="button" aria-expanded={selected?.answerId === item.answerId} aria-controls={`compa-admin-detail-${item.answerId}`} aria-label={`${item.question} 상세 ${selected?.answerId === item.answerId ? '접기' : '보기'}`} onClick={() => select(item)}>{selected?.answerId === item.answerId ? '접기' : '보기'}</button></td>
             </tr>
             {selected?.answerId === item.answerId && <tr><td colSpan={8} className="compa-admin-detail-cell"><section className="compa-admin-detail" id={`compa-admin-detail-${item.answerId}`} aria-label="질문과 답변 상세">
+              <p className="compa-prompt-answer-meta">{item.answerType === 'FIXED' ? '고정 답변 · 프롬프트 미사용' : `프롬프트 ${item.promptVersion || '—'} · ${item.provider || '제공사 기록 없음'} · ${item.model || '모델 기록 없음'}`}</p>
               <h3>질문</h3><p>{item.question}</p><h3>콤파 답변</h3><p>{item.answer}</p>
               <button type="button" className="admin-outline-button" aria-expanded={contextOpen} onClick={() => setContextOpen(!contextOpen)}><MessageSquare size={theme.iconSize.sm} aria-hidden="true" />{contextOpen ? '대화 맥락 접기' : '대화 맥락 보기'}</button>
               {contextOpen && <Conversation key={item.conversationId} exchange={item} />}

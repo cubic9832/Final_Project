@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DiagnosisServiceImpl implements DiagnosisService {
 
-    // model_versions 에 남길 추천 서버 이름 (버전은 추천 서버 응답의 modelVersion, 예: candidate-v2)
+    // model_versions 에 남길 추천 서버 이름 (버전은 추천 서버 응답의 modelBundle, 없으면 modelVersion 예: candidate-v2)
     static final String MODEL_NAME = "vehicle-candidate-recommender";
 
     private final DiagnosisMapper diagnosisMapper;
@@ -30,7 +30,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         }
         DiagnosisRow row = new DiagnosisRow();
         row.setUserId(userId);
-        row.setModelVersionId(modelVersionId(request.getModelVersion()));
+        String versionLabel = request.getModelBundle() != null ? request.getModelBundle() : request.getModelVersion();
+        row.setModelVersionId(modelVersionId(versionLabel));
         row.setMonthlyIncome(request.getMonthlyIncome());
         row.setMonthlyExpense(request.getMonthlyExpense());
         row.setMonthlyAvailable(request.getMonthlyAvailable());

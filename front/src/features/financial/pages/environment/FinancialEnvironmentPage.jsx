@@ -15,7 +15,7 @@ export default function FinancialEnvironmentPage() {
   const [step, setStep] = useState(() => Math.max(0, Number(routeState?.environmentStep) || 0));
   const { options, error } = useRecommendationOptions();
   const scenarioMode = options?.scenarioSupported ?? vehicle.scenarioMode ?? true;
-  const questions = environmentQuestions(scenarioMode);
+  const questions = environmentQuestions(scenarioMode, vehicle);
   const index = Math.min(step, questions.length - 1);
   const question = questions[index];
   const diagnosis = { ...state, vehicle: { ...vehicle, scenarioMode } };

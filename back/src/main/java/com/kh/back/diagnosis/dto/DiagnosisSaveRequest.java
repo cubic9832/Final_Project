@@ -25,6 +25,11 @@ public class DiagnosisSaveRequest {
     @Pattern(regexp = "^[A-Za-z0-9._-]{1,50}$", message = "모델 버전 형식이 올바르지 않습니다.")
     private String modelVersion;
 
+    // 추천 서버 응답의 모델 이름 (학습 결과 폴더, 예: 20261103-unified-managed-3m). 있으면 이것을 모델 버전으로 남긴다
+    // → 여러 모델에 트래픽을 나눠도 모델 관리 화면에서 모델별 진단 수를 셀 수 있다
+    @Pattern(regexp = "^[A-Za-z0-9._-]{1,50}$", message = "모델 이름 형식이 올바르지 않습니다.")
+    private String modelBundle;
+
     @NotNull(message = "월 실수령액이 필요합니다.")
     @PositiveOrZero
     private Long monthlyIncome;        // 월 실수령 소득 (기타 정기소득 포함)
