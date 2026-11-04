@@ -1,11 +1,22 @@
 /* 7단계: 회원 관리 탭 — 가입 추이 막대 · 나이대 · 성별 막대 · 페이지 버튼 (차트 라이브러리 없이 CSS 로) */
 
+/* 가입 추이 · 나이대 · 성별 카드 높이를 맞추고, 가입 추이 막대는 늘어난 높이를 채운다 */
+.admin-member-charts {
+  align-items: stretch;
+}
+
+.admin-member-trend-card {
+  display: flex;
+  flex-direction: column;
+}
+
 .admin-member-trend {
   display: grid;
+  flex: 1;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   align-items: end;
   gap: var(--space-8);
-  height: 180px;
+  min-height: 180px;
   padding: 0;
   list-style: none;
 }

@@ -84,8 +84,8 @@ function MemberSummary({ version }) {
         <div className="admin-stat"><span>관리자</span><strong>{summary.admins}명</strong><small>총관리자 포함 · 총관리자가 지정</small></div>
       </section>
 
-      <div className="admin-grid-2">
-        <section className="admin-card">
+      <div className="admin-grid-2 admin-member-charts">
+        <section className="admin-card admin-member-trend-card">
           <div className="admin-card-heading"><div><h3>가입 추이</h3><p>최근 7일 날짜별 가입 수</p></div></div>
           <ol className="admin-member-trend" aria-label="최근 7일 날짜별 가입 수">
             {summary.daily.map((day) => (
