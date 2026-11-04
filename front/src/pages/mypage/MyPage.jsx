@@ -281,14 +281,14 @@ function TasteCard({ state }) {
       <div className="my-insight-head">
         <div>
           <h2 id="my-taste-title">내 취향</h2>
-          <p>첫 차 취향 테스트 결과{state.status === 'done' && state.data ? ` · ${formatDate(state.data.savedAt?.slice(0, 10))} 저장` : ''}</p>
+          <p>차량 취향 테스트 결과{state.status === 'done' && state.data ? ` · ${formatDate(state.data.savedAt?.slice(0, 10))} 저장` : ''}</p>
         </div>
       </div>
       {state.status === 'loading' && <CardLoading />}
       {state.status === 'error' && <CardError message="취향 결과를 불러오지 못했어요." onRetry={state.reload} />}
       {state.status === 'done' && !state.data && (
         <>
-          <p className="my-empty">아직 취향 테스트를 하지 않았어요. 8가지 질문으로 내 첫 차 취향을 알아보세요.</p>
+          <p className="my-empty">아직 취향 테스트를 하지 않았어요. 8가지 질문으로 내 차량 취향을 알아보세요.</p>
           <Link className="my-plan-button my-inline-button" to="/taste-test">취향 테스트 하기</Link>
         </>
       )}
