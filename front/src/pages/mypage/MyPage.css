@@ -818,18 +818,19 @@
   margin-top: auto;
 }
 
+/* 11-04: 남색은 카드의 주 버튼 하나만 — 결과 상자는 보조 버튼과 같은 연한 파랑 */
 .my-taste-type {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 18px;
   border-radius: 12px;
-  background: #12335b;
-  color: #fff;
+  background: var(--color-blue-tint);
+  color: var(--color-primary);
 }
 
 .my-taste-type span {
-  color: #bfd0e1;
+  color: #6d7988;
   font-size: 12px;
 }
 
@@ -838,7 +839,7 @@
 }
 
 .my-taste-type p {
-  color: #dce3ec;
+  color: #44556b;
   font-size: 13px;
 }
 
