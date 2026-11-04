@@ -2,6 +2,8 @@ package com.kh.back.common.security;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -137,6 +139,32 @@ class AdminAccessTests {
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(3L, "SUPER_ADMIN")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("TARGET_MEMBER_NOT_FOUND"));
+    }
+
+    // 모델 관리: 비교 표는 관리자 200, 트래픽 비율 바꾸기는 총관리자만 (관리자 403, 총관리자는 서비스까지 가서 합계 검사 400)
+    @Test
+    void 모델_비교는_관리자_트래픽_비율_바꾸기는_총관리자만() throws Exception {
+        mvc.perform(get("/api/v1/admin/models")
+                        .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.models").isArray())
+                .andExpect(jsonPath("$.data.upstreams").isArray());
+        String body = "{\"allocations\":[{\"modelBundle\":\"model-a\",\"weightPercent\":50}]}";
+        mvc.perform(put("/api/v1/admin/model-traffic").contentType("application/json").content(body)
+                        .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
+                .andExpect(status().isForbidden());
+        mvc.perform(put("/api/v1/admin/model-traffic").contentType("application/json").content(body)
+                        .header("Authorization", "Bearer " + jwtProvider.createAccessToken(3L, "SUPER_ADMIN")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("TRAFFIC_TOTAL_INVALID"));
+    }
+
+    // 재무 진단 추천은 비회원도 받는다: 로그인 없이 보안을 통과한다 (추천 서버가 켜져 있으면 200, 꺼져 있으면 503)
+    @Test
+    void 추천_요청은_비회원도_보안을_통과한다() throws Exception {
+        int status = mvc.perform(get("/api/v1/recommendation/options").header("X-Visitor-Id", "test-visitor-0001"))
+                .andReturn().getResponse().getStatus();
+        assertThat(status).isIn(200, 503);
     }
 
     @Test

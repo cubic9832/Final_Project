@@ -78,6 +78,7 @@ export default function AdminLogsPanel() {
             <option value="CHAT_TRANSFER">상담 넘기기</option>
             <option value="MEMBER_SUSPEND">계정 정지</option>
             <option value="MEMBER_UNSUSPEND">계정 정지 풀기</option>
+            <option value="MODEL_TRAFFIC_CHANGE">모델 비율 변경</option>
             {/* 보완 13: 메일 발송 기록은 "전체" 에 섞지 않고 여기서 골라 본다 */}
             <option value="MAIL_FAILED">메일 발송 실패</option>
             <option value="MAIL_SENT">메일 발송</option>

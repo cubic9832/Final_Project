@@ -72,9 +72,23 @@ export const getAdminOverview = async (signal) => {
 
 // 모델 관리: 학습 · 평가 결과(ml 학습 결과 파일) + 모델 버전 기록(DB)
 // → { available, runName, schema, trainedAt, testPairAccuracy, metrics: [{ name, previous, current }], history, versions, ... }
-export const getModelReport = async (signal) => {
-  const res = await client.get('/admin/model-report', { signal });
+// run: 비교 표의 "계열/폴더" (비우면 기본 폴더)
+export const getModelReport = async (signal, run) => {
+  const res = await client.get('/admin/model-report', { params: { run: run || undefined }, signal });
   return res.data.data;
+};
+
+// 모델 비교: 학습 결과 폴더 전체 + 추천 서버 상태 · 트래픽 비율 · 최근 7일 요청 수 · 저장된 진단 수
+// → { models: [{ runId, runName, family, schema, trainedAt, testAccuracy, testLogLoss, baselineLabel, baselineAccuracy,
+//                compatible, servable, weightPercent, requests7Days, diagnoses, ... }], upstreams: [...], trafficConfigured }
+export const getModels = async (signal) => {
+  const res = await client.get('/admin/models', { signal });
+  return res.data.data;
+};
+
+// 총관리자만: 모델별 트래픽 비율 전체 바꾸기. allocations = [{ modelBundle, weightPercent }] (합 100)
+export const updateModelTraffic = async (allocations) => {
+  await client.put('/admin/model-traffic', { allocations });
 };
 
 // 추천 관리: 추천 서버가 쓰는 후보 차량 전체 (학습 결과 폴더의 catalog.json)

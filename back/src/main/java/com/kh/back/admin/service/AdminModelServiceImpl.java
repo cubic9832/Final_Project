@@ -1,20 +1,38 @@
 package com.kh.back.admin.service;
 
 import com.kh.back.admin.dto.AdminCandidate;
+import com.kh.back.admin.dto.AdminModelComparison;
+import com.kh.back.admin.dto.AdminModelComparison.ModelRow;
 import com.kh.back.admin.dto.AdminModelReport;
 import com.kh.back.admin.dto.AdminModelReport.Epoch;
 import com.kh.back.admin.dto.AdminModelReport.Metric;
 import com.kh.back.admin.dto.AdminModelReport.SplitProfiles;
 import com.kh.back.admin.dto.AdminModelReport.Version;
+import com.kh.back.admin.dto.ModelVersionRow;
 import com.kh.back.admin.mapper.AdminModelMapper;
+import com.kh.back.common.exception.ApiException;
+import com.kh.back.recommendation.RecommendationTrafficMapper;
+import com.kh.back.recommendation.RecommendationUpstreamRegistry;
+import com.kh.back.recommendation.RecommendationUpstreamRegistry.Upstream;
+import com.kh.back.recommendation.TrafficRow;
+import com.kh.back.recommendation.UsageRow;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -38,23 +56,116 @@ public class AdminModelServiceImpl implements AdminModelService {
     private static final String SCENARIO_REPORT = "training_report.json";
     private static final String PREFERENCE_REPORT = "report.json";
 
+    // 추천 서버(ml/vehicle_matching/api.py)가 scenarioSupported = true 로 응답하는 입력 구조 = 지금 재무 진단 화면과 맞는 모델
+    static final Set<String> SCENARIO_SCHEMAS = Set.of("scenario-ranker-v1", "ui-scenario-ranker-v1", "ui-scenario-height-ranker-v2");
+    private static final Pattern RUN_ID = Pattern.compile("^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$");
+    private static final int USAGE_DAYS = 7;
+
     private final AdminModelMapper adminModelMapper;
+    private final RecommendationTrafficMapper trafficMapper;
+    private final RecommendationUpstreamRegistry registry;
     private final ObjectMapper objectMapper;
     private final String runDir;
+    private final String modelRoot;
 
-    public AdminModelServiceImpl(AdminModelMapper adminModelMapper, ObjectMapper objectMapper,
-                                 @Value("${admin.model-run-dir}") String runDir) {
+    public AdminModelServiceImpl(AdminModelMapper adminModelMapper, RecommendationTrafficMapper trafficMapper,
+                                 RecommendationUpstreamRegistry registry, ObjectMapper objectMapper,
+                                 @Value("${admin.model-run-dir}") String runDir,
+                                 @Value("${admin.model-root}") String modelRoot) {
         this.adminModelMapper = adminModelMapper;
+        this.trafficMapper = trafficMapper;
+        this.registry = registry;
         this.objectMapper = objectMapper;
         this.runDir = runDir;
+        this.modelRoot = modelRoot;
+    }
+
+    // 비교 표 한 줄의 학습 · 평가 값. 계열마다 파일 모양이 달라 summarize 가 맞춰 읽는다
+    private record Summary(String schema, LocalDateTime trainedAt, Long profiles, Long comparisons, String metricKind,
+                           Double testAccuracy, Double testLogLoss, String baselineLabel, Double baselineAccuracy) {
     }
 
     @Override
     public AdminModelReport getReport() {
+        return report(findRunDir());
+    }
+
+    // runId = "계열/폴더" (비교 표의 한 줄). 모델 위치 밖을 가리키거나 없는 폴더면 404
+    @Override
+    public AdminModelReport getReport(String runId) {
+        if (runId == null || runId.isBlank()) {
+            return getReport();
+        }
+        Path root = findModelRoot();
+        if (root == null || !RUN_ID.matcher(runId).matches()) {
+            throw runNotFound();
+        }
+        Path dir = root.resolve(runId).normalize();
+        if (!dir.startsWith(root) || !isRunDir(dir)) {
+            throw runNotFound();
+        }
+        return report(dir);
+    }
+
+    @Override
+    public AdminModelComparison getComparison() {
+        List<Upstream> upstreams = registry.upstreams();
+        Map<String, Integer> weights = new HashMap<>();
+        for (TrafficRow row : trafficMapper.findAllocations()) {
+            weights.put(row.getModelBundle(), row.getWeightPercent());
+        }
+        Map<String, Long> requests = new HashMap<>();
+        for (UsageRow row : trafficMapper.sumUsage(USAGE_DAYS)) {
+            requests.put(row.getModelBundle(), row.getRequests());
+        }
+        Map<String, Integer> diagnoses = new HashMap<>();
+        for (ModelVersionRow row : adminModelMapper.findVersions()) {
+            diagnoses.merge(row.getVersionLabel(), row.getDiagnoses(), Integer::sum);
+        }
+        Set<String> serving = new HashSet<>();
+        for (Upstream upstream : upstreams) {
+            if (upstream.up()) {
+                serving.add(upstream.modelBundle());
+            }
+        }
+
+        List<ModelRow> rows = new ArrayList<>();
+        Set<String> listed = new HashSet<>();
+        Path root = findModelRoot();
+        for (Path dir : runDirs(root)) {
+            String runName = dir.getFileName().toString();
+            listed.add(runName);
+            Summary summary = summarize(dir);
+            rows.add(new ModelRow(root.relativize(dir).toString().replace('\\', '/'), runName,
+                    dir.getParent().getFileName().toString(), summary.schema(), summary.trainedAt(), summary.profiles(),
+                    summary.comparisons(), summary.metricKind(), summary.testAccuracy(), summary.testLogLoss(),
+                    summary.baselineLabel(), summary.baselineAccuracy(), SCENARIO_SCHEMAS.contains(summary.schema()),
+                    serving.contains(runName), weights.getOrDefault(runName, 0), requests.getOrDefault(runName, 0L),
+                    diagnoses.getOrDefault(runName, 0)));
+        }
+        // 추천 서버가 쓰지만 학습 결과 폴더를 찾지 못한 모델도 비율을 정할 수 있게 보여 준다
+        for (Upstream upstream : upstreams) {
+            if (upstream.up() && listed.add(upstream.modelBundle())) {
+                String bundle = upstream.modelBundle();
+                rows.add(new ModelRow(null, bundle, null, upstream.rankerSchema(), null, null, null, null, null, null,
+                        null, null, upstream.scenarioSupported(), true, weights.getOrDefault(bundle, 0),
+                        requests.getOrDefault(bundle, 0L), diagnoses.getOrDefault(bundle, 0)));
+            }
+        }
+        rows.sort(Comparator.comparing(ModelRow::trainedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(ModelRow::runName));
+
+        List<AdminModelComparison.Upstream> servers = upstreams.stream()
+                .map(u -> new AdminModelComparison.Upstream(u.baseUrl(), u.up(), u.modelBundle(), u.rankerSchema(),
+                        u.catalogCount(), u.modelNames()))
+                .toList();
+        return new AdminModelComparison(rows, servers, !weights.isEmpty());
+    }
+
+    private AdminModelReport report(Path dir) {
         List<Version> versions = adminModelMapper.findVersions().stream()
                 .map(row -> new Version(row.getVersionLabel(), row.getExecutionType(), row.getCreatedAt(), row.getDiagnoses()))
                 .toList();
-        Path dir = findRunDir();
         if (dir == null) {
             return new AdminModelReport(false, null, null, null, null, null, null, null, null, null, null, null,
                     List.of(), List.of(), versions);
@@ -165,6 +276,93 @@ public class AdminModelServiceImpl implements AdminModelService {
             }
         }
         return null;
+    }
+
+    private Path findModelRoot() {
+        for (Path candidate : List.of(Path.of(modelRoot), Path.of("..").resolve(modelRoot))) {
+            if (Files.isDirectory(candidate)) {
+                return candidate.toAbsolutePath().normalize();
+            }
+        }
+        return null;
+    }
+
+    // <모델 위치>/<계열>/<폴더> 중 학습 결과 파일이 있는 폴더 (이름순)
+    private List<Path> runDirs(Path root) {
+        if (root == null) {
+            return List.of();
+        }
+        List<Path> dirs = new ArrayList<>();
+        try (Stream<Path> families = Files.list(root)) {
+            for (Path family : families.filter(Files::isDirectory).sorted().toList()) {
+                try (Stream<Path> runs = Files.list(family)) {
+                    runs.filter(this::isRunDir).sorted().forEach(dirs::add);
+                }
+            }
+        } catch (IOException e) {
+            log.warn("admin model comparison: cannot list {}: {}", root, e.getMessage());
+        }
+        return dirs;
+    }
+
+    private boolean isRunDir(Path dir) {
+        return Files.isDirectory(dir) && Files.exists(dir.resolve("metadata.json"))
+                && (Files.exists(dir.resolve(SCENARIO_REPORT)) || Files.exists(dir.resolve(PREFERENCE_REPORT)));
+    }
+
+    /*
+     * 계열별 학습 결과 파일 모양:
+     *  - 화면 시나리오(ui-scenario-*): training_report.json results.mlp · results.linear, validation.profiles
+     *  - 시나리오 v1: training_report.json test.mlp · test.linear, data_validation.profiles
+     *  - 쌍 비교(새): training_report.json holdout.new · holdout.old (이전 모델)
+     *  - 쌍 비교(옛): report.json generation + holdout_report.json test_pair_accuracy
+     * 읽지 못한 값은 null (화면 "-")
+     */
+    private Summary summarize(Path dir) {
+        String schema = null;
+        LocalDateTime trainedAt = null;
+        try {
+            schema = read(dir.resolve("metadata.json")).path("schema").asString(null);
+            if (Files.exists(dir.resolve("model.pt"))) {
+                trainedAt = LocalDateTime.ofInstant(Files.getLastModifiedTime(dir.resolve("model.pt")).toInstant(), ZoneId.systemDefault());
+            }
+            if (Files.exists(dir.resolve(SCENARIO_REPORT))) {
+                JsonNode report = read(dir.resolve(SCENARIO_REPORT));
+                JsonNode results = report.path("results").path("mlp").isObject() ? report.path("results") : report.path("test");
+                if (results.path("mlp").isObject()) {
+                    JsonNode counts = report.path("validation").isObject() ? report.path("validation") : report.path("data_validation");
+                    return new Summary(schema, trainedAt, longOrNull(counts.path("profiles")), longOrNull(counts.path("comparisons")),
+                            "시나리오 선택 정확도", doubleOrNull(results.path("mlp").path("accuracy")),
+                            doubleOrNull(results.path("mlp").path("log_loss")), "선형 기준선",
+                            doubleOrNull(results.path("linear").path("accuracy")));
+                }
+                JsonNode holdout = report.path("holdout");
+                long profiles = 0;
+                for (JsonNode split : report.path("data").path("split_counts")) {
+                    profiles += split.path("profiles").asLong();
+                }
+                return new Summary(schema, trainedAt, profiles > 0 ? profiles : null, longOrNull(holdout.path("new").path("pairs")),
+                        "쌍 비교 정확도", doubleOrNull(holdout.path("new").path("accuracy")), null, "이전 모델",
+                        doubleOrNull(holdout.path("old").path("accuracy")));
+            }
+            JsonNode generation = read(dir.resolve(PREFERENCE_REPORT)).path("generation");
+            Double accuracy = Files.exists(dir.resolve("holdout_report.json"))
+                    ? doubleOrNull(read(dir.resolve("holdout_report.json")).path("test_pair_accuracy"))
+                    : null;
+            return new Summary(schema, trainedAt, longOrNull(generation.path("profiles")),
+                    longOrNull(generation.path("preference_pairs")), "쌍 비교 정확도", accuracy, null, null, null);
+        } catch (Exception e) {
+            log.warn("admin model comparison: cannot read {}: {}", dir, e.getMessage());
+            return new Summary(schema, trainedAt, null, null, null, null, null, null, null);
+        }
+    }
+
+    private static ApiException runNotFound() {
+        return new ApiException(HttpStatus.NOT_FOUND, "MODEL_RUN_NOT_FOUND", "학습 결과 폴더를 찾지 못했습니다.");
+    }
+
+    private static Double doubleOrNull(JsonNode node) {
+        return node.isNumber() ? node.asDouble() : null;
     }
 
     private JsonNode read(Path file) throws Exception {

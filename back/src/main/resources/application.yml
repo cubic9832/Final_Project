@@ -106,6 +106,13 @@ admin:
   # 7단계: 관리자 모델 관리 탭이 읽는 학습 결과 폴더 (추천 서버 ml/serve-candidates.ps1 · .sh 의 기본 폴더와 같게, 읽기만)
   # 추천 서버와 같은 환경변수 ML_CANDIDATE_RUN 을 함께 쓴다. 관리자 화면만 다른 폴더를 보려면 ML_MODEL_RUN_DIR
   model-run-dir: ${ML_MODEL_RUN_DIR:${ML_CANDIDATE_RUN:ml/outputs/models/scenario-choices/20261103-unified-managed-3m}}
+  # 모델 관리 비교 표가 훑는 학습 결과 폴더들의 위치 (아래 <계열>/<폴더> 를 모두 읽는다)
+  model-root: ${ML_MODEL_ROOT:ml/outputs/models}
+
+# 모델 관리: 추천 서버(FastAPI) 목록 — 서버 하나가 모델 하나. 쉼표로 여러 개 (첫 번째 = 비율을 정하지 않았을 때 기본)
+# dev.sh 는 ML_EXTRA_RUNS 로 추가로 띄운 서버 주소까지 넣어 준다
+recommendation:
+  upstreams: ${RECOMMENDATION_UPSTREAMS:http://127.0.0.1:8002}
 
 logging:
   level:

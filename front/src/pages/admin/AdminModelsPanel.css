@@ -1,0 +1,37 @@
+/* 모델 관리 — 트래픽 분배 카드 · 모델 비교 표 (나머지는 AdminPage.css 의 admin-* 공통 규칙) */
+.model-traffic-note { margin-bottom: var(--space-16); }
+.model-traffic-bar { display: flex; height: 16px; overflow: hidden; margin-bottom: var(--space-24); border-radius: var(--radius-pill); background: var(--color-background); }
+.model-traffic-bar > span { height: 100%; transition: width .2s ease; }
+.model-traffic-list { display: flex; flex-direction: column; gap: var(--space-16); margin: 0; padding: 0; list-style: none; }
+.model-traffic-list > li { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(120px,1fr) auto; align-items: center; gap: var(--space-16); }
+.model-traffic-name { display: flex; align-items: flex-start; gap: var(--space-12); min-width: 0; }
+.model-traffic-name > i { flex-shrink: 0; width: 12px; height: 12px; margin-top: 4px; border-radius: 50%; }
+.model-traffic-name > span { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); min-width: 0; }
+.model-traffic-name strong { color: var(--color-primary); overflow-wrap: anywhere; }
+.model-traffic-list input[type="range"] { width: 100%; accent-color: var(--color-primary); }
+.model-traffic-input { display: inline-flex; align-items: center; gap: var(--space-8); color: var(--color-text-sub); }
+.model-traffic-input input { width: 72px; min-height: 40px; padding: 0 var(--space-8); border: 1px solid var(--color-border-input); border-radius: var(--radius-sm); font-size: var(--font-body); text-align: right; color: var(--color-primary); background: var(--color-surface); }
+.model-traffic-input input:disabled { background: var(--color-background); }
+.model-traffic-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-16); margin-top: var(--space-24); padding-top: var(--space-16); border-top: 1px solid var(--color-border); }
+.model-traffic-total { color: var(--color-text-sub); }
+.model-traffic-total strong { font-size: var(--font-figure-md); color: var(--color-primary); }
+.model-traffic-total.is-invalid strong { color: var(--color-danger); }
+.model-traffic-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.model-traffic-error { margin-top: var(--space-12); color: var(--color-danger); font-size: var(--font-caption); }
+
+.model-comparison-table th[scope="row"] { background: transparent; color: var(--color-primary); }
+.model-comparison-table th[scope="row"] small { display: block; margin-top: var(--space-4); color: var(--color-muted); font-weight: 400; }
+.model-comparison-name { display: inline; padding: 0; border: 0; background: transparent; color: var(--color-blue-strong); font-size: var(--font-body); font-weight: 700; text-align: left; cursor: pointer; }
+.model-comparison-name:hover { text-decoration: underline; }
+strong.model-comparison-name { color: var(--color-primary); cursor: default; }
+.model-comparison-table tr.is-selected > * { background: var(--color-blue-tint); }
+.model-comparison-table tr.is-selected .model-comparison-name { color: var(--color-primary); }
+.model-comparison-badges { display: inline-flex; flex-wrap: wrap; gap: var(--space-4); }
+.model-retry { margin-top: var(--space-16); }
+
+@media(max-width:768px) {
+  .model-traffic-list > li { grid-template-columns: minmax(0,1fr) auto; }
+  .model-traffic-list input[type="range"] { grid-column: 1 / -1; grid-row: 2; }
+  .model-traffic-footer { align-items: stretch; flex-direction: column; }
+  .model-traffic-actions > button { flex: 1; }
+}

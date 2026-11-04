@@ -53,6 +53,10 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/vehicles/**").permitAll() // 차량 조회는 누구나 (비회원 차량 찾기)
                         .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll() // 종목 조회 예제
+                        // 모델 관리: 추천 요청은 누구나 (비회원 재무 진단도 추천을 받는다). 비율대로 여러 추천 서버 중 하나로 넘긴다
+                        .requestMatchers("/api/v1/recommendation/**").permitAll()
+                        // 모델 관리: 모델별 트래픽 비율 바꾸기는 모든 사용자에게 영향 → 총관리자만 (아래 관리자 규칙보다 먼저)
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/admin/model-traffic").hasRole("SUPER_ADMIN")
                         // 7단계: 관리자 권한 주기 · 빼기는 총관리자(SUPER_ADMIN)만 — 아래 관리자 규칙보다 먼저 적는다
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/members/*/role").hasRole("SUPER_ADMIN")
                         // 7단계: 관리자 API 는 관리자(ADMIN) · 총관리자(SUPER_ADMIN)만 (토큰의 role → ROLE_…). 일반 회원 404(보완 11, 숨김), 비회원 401
