@@ -20,4 +20,5 @@ public class DiagnosisRow {
     private Long monthlyAvailable;
     private Long purchaseFunds;
     private Long priceUpper;
+    private Long otherIncome;       // 기타 월 정기소득 (11-04, 없으면 null)
 }

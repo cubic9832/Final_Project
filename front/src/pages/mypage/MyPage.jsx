@@ -4,7 +4,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getSessions } from '../../features/auth/authApi';
-import { getMe, getRecentDiagnoses } from '../../features/auth/memberApi';
+import AuthModal from '../../features/auth/components/AuthModal';
+import { getDiagnosisDetail, getMe, getRecentDiagnoses } from '../../features/auth/memberApi';
 import { isAdminRole, ROLE_LABELS } from '../../features/auth/roles';
 import { getCurrentTaste, getTasteCatalog } from '../../features/taste-test/tasteApi';
 import { savedTasteAnswers } from '../../features/taste-test/serverTasteFlow';
@@ -241,6 +242,7 @@ function FavoritesCard({ state }) {
 function DiagnosisCard({ state }) {
   const records = state.status === 'done' ? state.data : [];
   const [selectedId, setSelectedId] = useState(null);
+  const [detailId, setDetailId] = useState(null); // [자세히 보기] 팝업으로 연 진단 번호 (null = 닫힘)
   // 고른 기록이 없거나 목록에서 사라졌으면 가장 최근 진단을 보여 준다
   const shown = records.find((record) => record.analysisId === selectedId) ?? records[0];
 
@@ -266,7 +268,7 @@ function DiagnosisCard({ state }) {
             <div><span>사용 가능 예금</span><strong>{formatManwon(shown.purchaseFunds)}</strong></div>
             <div><span>구매 가격 상한</span><strong>{shown.priceUpper != null ? formatManwon(shown.priceUpper) : '산정 정보 없음'}</strong></div>
           </div>
-          {/* 진단 기록 전체 (최대 20건), 3줄을 넘으면 목록 안에서 스크롤 — 높이는 MyPage.css .my-mini-history */}
+          {/* 진단 기록 전체 (최대 20건), 2줄을 넘으면 목록 안에서 스크롤 — 높이는 MyPage.css .my-mini-history */}
           {records.length > 1 && (
             <ul className="my-mini-history" aria-label="재무 진단 기록">
               {records.map((record) => (
@@ -284,8 +286,61 @@ function DiagnosisCard({ state }) {
       )}
       <div className="my-insight-actions">
         <Link className="my-plan-button my-inline-button" to="/financial">{shown ? '새로 진단하기' : '재무 진단 하기'}</Link>
+        {shown && (
+          <button type="button" className="my-outline-button my-soft-button" onClick={() => setDetailId(shown.analysisId)}>
+            자세히 보기
+          </button>
+        )}
       </div>
+      {detailId && <DiagnosisDetailModal analysisId={detailId} onClose={() => setDetailId(null)} />}
     </section>
+  );
+}
+
+// 재무 진단 한 건 자세히 (팝업) — GET /members/me/diagnoses/{analysisId}
+// 11-04 부터 저장한 진단은 기타 소득 · 생활지출 · 대출까지, 그 전 기록은 요약만 있다 (otherIncome === null)
+function DiagnosisDetailModal({ analysisId, onClose }) {
+  const loadDetail = useCallback(() => getDiagnosisDetail(analysisId), [analysisId]);
+  const state = useCardData(loadDetail);
+  const detail = state.status === 'done' ? state.data : null;
+  const isOld = detail && detail.otherIncome == null;
+  const loanTotal = detail?.loans?.reduce((sum, loan) => sum + loan.payment, 0) ?? 0;
+
+  return (
+    <AuthModal title="재무 진단 자세히" subtitle={detail ? `${formatDateTime(detail.completedAt)} 진단` : undefined} onClose={onClose}>
+      {state.status === 'loading' && <CardLoading label="진단 기록을 불러오는 중…" />}
+      {state.status === 'error' && <CardError message="진단 기록을 불러오지 못했어요." onRetry={state.reload} />}
+      {detail && (
+        <>
+          <dl className="my-detail-list">
+            <div><dt>월 실수령액</dt><dd>{formatManwon(detail.monthlyIncome)}</dd></div>
+            {!isOld && <div className="is-sub"><dt>그중 기타 소득</dt><dd>{formatManwon(detail.otherIncome)}</dd></div>}
+            <div><dt>월 생활지출</dt><dd>{detail.monthlyExpense != null ? formatManwon(detail.monthlyExpense) : '기록 없음'}</dd></div>
+            {!isOld && <div><dt>대출 월 상환</dt><dd>{formatManwon(loanTotal)}</dd></div>}
+            <div className="is-total"><dt>구매 전 월 여유금</dt><dd>{formatManwon(detail.monthlyAvailable)}</dd></div>
+            <div><dt>사용 가능 예금</dt><dd>{formatManwon(detail.purchaseFunds)}</dd></div>
+            <div><dt>구매 가격 상한</dt><dd>{detail.priceUpper != null ? formatManwon(detail.priceUpper) : '산정 정보 없음'}</dd></div>
+          </dl>
+          {!isOld && (
+            <>
+              <h3 className="my-detail-title">기존 대출</h3>
+              {detail.loans.length === 0 ? <p className="my-empty">입력한 대출이 없어요.</p> : (
+                <ul className="my-detail-loans">
+                  {detail.loans.map((loan, index) => (
+                    <li key={index}>
+                      <strong>{loan.type ?? '대출'}</strong>
+                      <span>월 {formatManwon(loan.payment)}{loan.balance != null ? ` · 잔액 ${formatManwon(loan.balance)}` : ''}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+          {isOld && <p className="my-empty">이 진단은 요약만 저장된 예전 기록이라 기타 소득 · 대출 내역이 없어요.</p>}
+          <p className="my-empty">추천받은 차량은 저장하지 않아요. 다시 보려면 새로 진단해 주세요.</p>
+        </>
+      )}
+    </AuthModal>
   );
 }
 

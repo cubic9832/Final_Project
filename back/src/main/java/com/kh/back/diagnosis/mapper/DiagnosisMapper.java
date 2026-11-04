@@ -1,5 +1,6 @@
 package com.kh.back.diagnosis.mapper;
 
+import com.kh.back.diagnosis.dto.DiagnosisLoan;
 import com.kh.back.diagnosis.dto.DiagnosisRow;
 import com.kh.back.diagnosis.dto.DiagnosisSummary;
 import java.util.List;
@@ -21,6 +22,14 @@ public interface DiagnosisMapper {
 
     void insertAnalysisRun(DiagnosisRow row);
 
+    // 기존 대출 여러 건 (loan_inputs, 11-04)
+    void insertLoans(@Param("snapshotId") Long snapshotId, @Param("loans") List<DiagnosisLoan> loans);
+
     // 회원의 최근 진단 (최신 순)
     List<DiagnosisSummary> findRecent(@Param("userId") Long userId, @Param("size") int size);
+
+    // 진단 한 건 자세히 — 본인 기록이 아니면 null (11-04)
+    DiagnosisSummary findDetail(@Param("userId") Long userId, @Param("analysisId") Long analysisId);
+
+    List<DiagnosisLoan> findLoans(@Param("snapshotId") Long snapshotId);
 }

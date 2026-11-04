@@ -702,10 +702,80 @@
   border-top: 1px solid #dce3ec;
 }
 
-/* 11-04: 기록이 3줄을 넘으면 목록 안에서 스크롤 (한 줄 약 41px) */
+/* 11-04: 기록이 2줄을 넘으면 목록 안에서 스크롤 (한 줄 약 41px) — 카드 높이는 예전(2줄)과 같게 */
 .my-mini-history {
-  max-height: 124px;
+  max-height: 83px;
   overflow-y: auto;
+}
+
+/* 재무 진단 자세히 (팝업) */
+.my-detail-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-size: 14px;
+}
+
+.my-detail-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.my-detail-list dt {
+  color: #6d7988;
+}
+
+.my-detail-list dd {
+  margin: 0;
+  color: #152238;
+  font-weight: 700;
+}
+
+/* "그중 기타 소득" 처럼 위 항목에 포함된 값은 들여 쓰고 작게 */
+.my-detail-list .is-sub {
+  padding-left: 12px;
+  font-size: 13px;
+}
+
+.my-detail-list .is-sub dd {
+  font-weight: 400;
+}
+
+/* 소득 - 지출 - 상환 = 여유금 */
+.my-detail-list .is-total dd {
+  color: #0c766d;
+}
+
+.my-detail-title {
+  margin-top: 4px;
+  color: #12335b;
+  font-size: 15px;
+}
+
+.my-detail-loans {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-detail-loans li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f6f8fb;
+  font-size: 13px;
+}
+
+.my-detail-loans span {
+  color: #6d7988;
 }
 
 .my-mini-history li {

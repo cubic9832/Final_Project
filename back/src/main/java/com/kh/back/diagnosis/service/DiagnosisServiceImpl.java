@@ -36,9 +36,14 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         row.setMonthlyAvailable(request.getMonthlyAvailable());
         row.setPurchaseFunds(request.getPurchaseFunds());
         row.setPriceUpper(request.getPriceUpper());
+        row.setOtherIncome(request.getOtherIncome());
 
         diagnosisMapper.insertSnapshot(row);          // snapshotId 가 채워진다
         diagnosisMapper.insertFinancialProfile(row);
+        // 11-04: 대출이 있을 때만 (빈 목록이면 INSERT 문이 만들어지지 않아 건너뛴다)
+        if (request.getLoans() != null && !request.getLoans().isEmpty()) {
+            diagnosisMapper.insertLoans(row.getSnapshotId(), request.getLoans());
+        }
         diagnosisMapper.insertAnalysisRun(row);       // analysisId 가 채워진다
 
         DiagnosisSummary saved = new DiagnosisSummary();
@@ -55,6 +60,18 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     @Transactional(readOnly = true)
     public List<DiagnosisSummary> getRecent(Long userId, int size) {
         return diagnosisMapper.findRecent(userId, size);
+    }
+
+    // 자세히 보기: 회원 번호 조건으로 찾으므로 남의 번호를 넣어도 null → 있는지조차 알려 주지 않고 404
+    @Override
+    @Transactional(readOnly = true)
+    public DiagnosisSummary getDetail(Long userId, Long analysisId) {
+        DiagnosisSummary detail = diagnosisMapper.findDetail(userId, analysisId);
+        if (detail == null) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "DIAGNOSIS_NOT_FOUND", "재무 진단 기록을 찾을 수 없습니다.");
+        }
+        detail.setLoans(diagnosisMapper.findLoans(detail.getSnapshotId()));
+        return detail;
     }
 
     // 모델 버전 번호: 처음 보는 버전이면 등록한다 (DB 변경 파일 없이 — 같은 버전이 동시에 와도 INSERT IGNORE)

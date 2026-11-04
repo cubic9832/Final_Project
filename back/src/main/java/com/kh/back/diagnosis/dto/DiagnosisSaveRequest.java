@@ -1,9 +1,12 @@
 package com.kh.back.diagnosis.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -39,4 +42,12 @@ public class DiagnosisSaveRequest {
 
     @PositiveOrZero
     private Long priceUpper;           // 구매 가격 상한 (산정 정보가 없으면 null)
+
+    // 11-04: 마이페이지 "자세히 보기" 용 — 이전 화면 버전이 보내지 않으면 null (요약만 저장)
+    @PositiveOrZero
+    private Long otherIncome;          // 기타 월 정기소득 (monthlyIncome 에 이미 포함된 값)
+
+    @Valid
+    @Size(max = 10, message = "대출은 10건까지 저장합니다.")
+    private List<DiagnosisLoan> loans; // 기존 대출 (없으면 빈 목록)
 }
