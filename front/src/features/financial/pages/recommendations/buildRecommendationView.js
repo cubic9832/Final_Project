@@ -71,6 +71,7 @@ export function buildRecommendationView(result) {
       seats: candidate.vehicle.seats ? `${candidate.vehicle.seats}명 (등록 기본 정원)` : candidate.vehicle.seat_options?.length ? `${Math.min(...candidate.vehicle.seat_options)}명부터 (좌석 사양 확인)` : '미확인',
       purchasePrice: candidateMoney(candidate.cost.total_purchase_cost ?? candidate.vehicle.price),
       monthlyCost: candidateMoney(candidate.cost.monthly_running_cost),
+      monthlyPayment: candidate.cost.monthly_payment ? `${candidateMoney(candidate.cost.monthly_payment)} (${candidate.cost.financing_months}개월)` : '없음 (일시불)',
       cashRemaining: financial ? candidateMoney(financial.cashAfterPurchase) : '근거 미제공',
       monthlyRemaining: candidateMoney(candidate.cost.remaining_monthly),
     };

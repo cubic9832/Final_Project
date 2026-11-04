@@ -9,6 +9,7 @@ export default function FinancialAnalysis({ totals, result, compact = false }) {
   const first = result.recommendations[0];
   const financial = first?.decisionEvidence?.financial;
   const budget = result.budgetPolicy;
+  const financed = budget?.policy === 'income-ratio-financing-band-v1' && budget.financingMonths > 0;
   const money = value => candidateMoney(value * 10000);
   const spending = [
     { label: '생활비', value: totals.expenses - totals.loanPayment, tone: 'living' },
@@ -22,8 +23,8 @@ export default function FinancialAnalysis({ totals, result, compact = false }) {
       <span className="analysis-icon"><Wallet size={theme.iconSize.lg} aria-hidden /></span>
       <p className="analysis-label">내 차량 구매 예산</p>
       <h2>{budget ? <>{candidateMoney(budget.financialUpper)}<small>까지</small></> : '예산 정보를 확인해 주세요'}</h2>
-      <p>차량 구매·유지에 쓰기로 한 예금 기준이에요.</p>
-      {budget?.policy === 'cash-importance-band-v1' && <div className="analysis-price-band"><span>선택한 가성비로 찾을 가격대</span><strong>{candidateMoney(budget.lower)} ~ {candidateMoney(budget.upper)}</strong></div>}
+      <p>{financed ? `예금 ${candidateMoney(budget.availablePurchaseFunds)}에 월 ${candidateMoney(budget.monthlyVehicleCap)} 한도로 ${budget.financingMonths}개월 할부를 더한 기준이에요.` : '차량 구매·유지에 쓰기로 한 예금 기준이에요.'}</p>
+      {['cash-importance-band-v1', 'income-ratio-financing-band-v1'].includes(budget?.policy) && <div className="analysis-price-band"><span>선택한 가성비로 찾을 가격대</span><strong>{candidateMoney(budget.lower)} ~ {candidateMoney(budget.upper)}</strong></div>}
     </article>
     <article className="analysis-panel" id={compact ? 'analysis-monthly-panel' : undefined} role={compact ? 'tabpanel' : undefined} aria-labelledby={compact ? 'analysis-monthly-tab' : undefined} hidden={compact && activePanel !== 'monthly'}>
       <div className="analysis-card-title"><h2>매달 이만큼 쓸 수 있어요</h2><span>월 기준</span></div>
