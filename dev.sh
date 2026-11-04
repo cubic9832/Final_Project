@@ -148,9 +148,11 @@ ML_EXTRA_RUNS="${ML_EXTRA_RUNS:-}"
 # Spring 이 비율대로 나눠 보낼 추천 서버 주소 목록 (첫 번째 = 기본). RECOMMENDATION_UPSTREAMS 를 직접 주면 그대로 쓴다
 recommendation_upstreams() {
   local urls="http://127.0.0.1:$ML_PORT" entry
+  # mac 기본 bash 3.2 는 set -u 에서 빈 배열을 펼치면 unbound variable 오류 → 비어 있으면 배열을 만들지 않는다
+  [ -n "$ML_EXTRA_RUNS" ] || { echo "$urls"; return; }
   IFS=',' read -ra entries <<< "$ML_EXTRA_RUNS"
   for entry in "${entries[@]}"; do
-    [ -n "$entry" ] && urls="$urls,http://127.0.0.1:${entry##*@}"
+    if [ -n "$entry" ]; then urls="$urls,http://127.0.0.1:${entry##*@}"; fi
   done
   echo "$urls"
 }
@@ -174,9 +176,10 @@ start_ml_server() {
 start_ml() {
   local entry
   start_ml_server "$ML_PORT"
+  [ -n "$ML_EXTRA_RUNS" ] || return 0 # 비어 있으면 끝 (위와 같은 bash 3.2 빈 배열 문제)
   IFS=',' read -ra entries <<< "$ML_EXTRA_RUNS"
   for entry in "${entries[@]}"; do
-    [ -n "$entry" ] && start_ml_server "${entry##*@}" "${entry%@*}"
+    if [ -n "$entry" ]; then start_ml_server "${entry##*@}" "${entry%@*}"; fi
   done
 }
 
