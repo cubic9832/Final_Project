@@ -356,3 +356,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* 11-04: 상담을 맡자마자 스크롤 없이 입력칸까지 보이게 — 대화창 높이 = 화면 높이 − (헤더 · 만족도 줄 · 상담 머리 · 입력칸)
+   회원 상담 화면은 ConsultationPage.css 에서 따로 맞춘다 */
+.admin-chat-detail .chat-thread .chat-board {
+  height: calc(100vh - 490px);
+  min-height: 240px;
+}
