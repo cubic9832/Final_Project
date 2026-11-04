@@ -358,26 +358,22 @@
 }
 
 /* 11-04: 오른쪽 대화 카드 높이 = 왼쪽 목록 카드 높이 (목록은 4개까지 보이고 그 이상은 스크롤)
-   대화창이 남는 높이를 채워서, 상담을 맡자마자 스크롤 없이 입력칸까지 보인다 */
-.admin-chat {
-  align-items: stretch;
-}
-
+   대화창 높이는 고정 — 넘기기 · 경고 · 상담 제한 입력칸을 펼치면 대화창은 그대로 두고 카드만 아래로 늘어난다
+   321px = 목록 카드 높이 − (이름 · 버튼 줄 + 여백). 총관리자의 "이 회원이 남긴 평가" 줄도 입력칸처럼 아래에 붙는다 */
 .admin-chat .admin-chat-list ul {
-  height: 404px; /* 상담 4개(95px × 4 + 간격 8px × 3) — 목록이 적어도 대화 카드 높이가 그대로 */
+  height: 404px; /* 상담 4개(95px × 4 + 간격 8px × 3) — 목록이 적어도 카드 높이가 그대로 */
   max-height: none;
 }
 
 .admin-chat-detail .chat-thread {
-  flex: 1;
-  contain: size; /* 대화 길이가 카드 높이를 정하지 않게 (높이는 목록 카드 기준) */
-  min-height: 300px; /* 대화창 최소 240px + 입력칸 */
+  flex: none;
+  height: 321px;
 }
 
 .admin-chat-detail .chat-thread .chat-board {
   flex: 1;
   height: 0; /* 대화창은 입력칸을 뺀 남는 높이를 채운다 */
-  min-height: 240px;
+  min-height: 0;
 }
 
 /* 이름 줄: 왼쪽 닉네임, 오른쪽 수신 상태 (버튼은 다음 줄) */

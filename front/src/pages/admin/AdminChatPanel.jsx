@@ -202,6 +202,21 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
         </div>
       </div>
 
+      {confirm && <ChatConfirmModal {...confirm} onClose={() => setConfirm(null)} />}
+
+      <ChatThread
+        messages={chat.messages}
+        viewer="admin"
+        memberName={room.userNickName}
+        connected={chat.connected}
+        error={chat.error}
+        canSend={room.status === 'ACTIVE' && mine}
+        disabledText={disabledText}
+        onSend={chat.send}
+        quickReplies
+        showConnection={false}
+      />
+      {/* 11-04: 넘기기 · 경고 · 상담 제한 입력칸은 대화창 아래 — 펼쳐도 대화창 크기 · 입력칸 위치가 그대로 (카드가 아래로 늘어난다) */}
       {openForm === 'transfer' && (
         <TransferForm
           room={room}
@@ -232,20 +247,6 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
           })}
         />
       )}
-      {confirm && <ChatConfirmModal {...confirm} onClose={() => setConfirm(null)} />}
-
-      <ChatThread
-        messages={chat.messages}
-        viewer="admin"
-        memberName={room.userNickName}
-        connected={chat.connected}
-        error={chat.error}
-        canSend={room.status === 'ACTIVE' && mine}
-        disabledText={disabledText}
-        onSend={chat.send}
-        quickReplies
-        showConnection={false}
-      />
       {isSuper && <RoomFeedback roomId={room.id} reportCount={room.reportCount} />}
     </>
   );
