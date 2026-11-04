@@ -37,6 +37,8 @@ public interface AdminMemberMapper {
 
     int countGoogle();
 
+    int countEmail();
+
     // 날짜(yyyy-MM-dd)별 가입 수 — since 이후만
     List<GroupCountRow> countDailyJoins(LocalDateTime since);
 

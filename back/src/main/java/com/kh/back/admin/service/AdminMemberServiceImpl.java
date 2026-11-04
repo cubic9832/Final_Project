@@ -74,6 +74,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
                 adminMemberMapper.countAdmins(),
                 newLast7Days,
                 adminMemberMapper.countGoogle(),
+                adminMemberMapper.countEmail(),
                 daily,
                 ordered(AGE_BANDS, toMap(adminMemberMapper.countAgeBands())),
                 ordered(GENDERS, toMap(adminMemberMapper.countGenders())));

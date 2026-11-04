@@ -104,6 +104,7 @@ export default function AdminOverviewPanel() {
   const stats = overview?.diagnoses;
   const maxDaily = Math.max(1, ...(stats?.daily ?? []).map((day) => day.count));
   const services = serviceRows(data);
+  const maxDailyJoins = Math.max(1, ...(members?.daily ?? []).map(day => day.count));
 
   return <div className="admin-panel-stack">
     <section className="admin-summary" aria-label="운영 요약">{cards.map(card => <Link className="admin-stat" to={`/console?tab=${card.tab}`} key={card.label}><span>{card.label}</span><strong>{card.value}</strong><small>{card.note}</small></Link>)}</section>
@@ -115,6 +116,16 @@ export default function AdminOverviewPanel() {
         <div className="admin-service-list" aria-live="polite">{services.map(service => { const Icon = serviceIcons[service.id]; const view = STATUS_VIEW[service.status]; return <div className="admin-service-row" key={service.id}><Icon size={theme.iconSize.md} aria-hidden="true" /><div><strong>{service.name}</strong><p>{service.detail}</p></div><span className={`admin-status ${view.className}`}>{view.label}</span></div>; })}</div>
       </section>
     </div>
+    <section className="admin-card" aria-label="최근 7일 회원 가입 추이">
+      <div className="admin-card-heading"><div><h3>가입 추이</h3><p>최근 7일 날짜별 가입 수</p></div>{members && <span className="admin-count-badge">최근 7일 {members.newLast7Days.toLocaleString()}명</span>}</div>
+      {members === undefined && <p className="admin-empty" role="status">가입 추이를 불러오는 중…</p>}
+      {members === null && <p className="admin-empty" role="alert">가입 추이를 불러오지 못했습니다.</p>}
+      {members && <ol className="admin-member-trend" aria-label="최근 7일 날짜별 가입 수">{members.daily.map(day => <li key={day.date}>
+        <span className="admin-member-trend-count">{day.count}</span>
+        <span className="admin-member-trend-bar" style={{ height: `${(day.count / maxDailyJoins) * 100}%` }} />
+        <span className="admin-member-trend-date">{day.date.slice(5).replace('-', '.')}</span>
+      </li>)}</ol>}
+    </section>
     {/* 재무 진단 이용 현황 — 회원이 재무 진단 결과 화면에서 저장한 기록 (탈퇴 회원 제외) */}
     <section className="admin-card"><div className="admin-card-heading"><div><h3>재무 진단 이용 현황</h3><p>회원이 재무 진단을 마칠 때 저장되는 기록입니다.</p></div></div>
       {overview === null && <p className="admin-empty" role="alert">재무 진단 현황을 불러오지 못했습니다.</p>}

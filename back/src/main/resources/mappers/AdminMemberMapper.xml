@@ -85,7 +85,14 @@
     </select>
 
     <select id="countGoogle" resultType="int">
-        SELECT COUNT(DISTINCT user_id) FROM social_accounts WHERE provider = 'GOOGLE'
+        SELECT COUNT(*) FROM users u
+        WHERE u.role &lt;&gt; 'WITHDRAWN'
+          AND EXISTS (SELECT 1 FROM social_accounts s WHERE s.user_id=u.id AND s.provider='GOOGLE')
+    </select>
+
+    <select id="countEmail" resultType="int">
+        SELECT COUNT(*) FROM users
+        WHERE role &lt;&gt; 'WITHDRAWN' AND password_hash &lt;&gt; 'SOCIAL_ONLY'
     </select>
 
     <select id="countDailyJoins" resultType="com.kh.back.admin.dto.GroupCountRow">
