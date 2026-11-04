@@ -832,6 +832,12 @@
   color: var(--color-primary);
 }
 
+/* 누르면 자세한 결과로 — 관심차량 줄(.my-fav-line)처럼 올리면 살짝 파랗게 */
+.my-taste-type:hover {
+  border-color: #b8c7d9;
+  background: #edf3fa;
+}
+
 .my-taste-type span {
   color: #6d7988;
   font-size: 12px;

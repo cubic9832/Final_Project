@@ -7,6 +7,9 @@ import { getSessions } from '../../features/auth/authApi';
 import { getMe, getRecentDiagnoses } from '../../features/auth/memberApi';
 import { isAdminRole, ROLE_LABELS } from '../../features/auth/roles';
 import { getCurrentTaste, getTasteCatalog } from '../../features/taste-test/tasteApi';
+import { savedTasteAnswers } from '../../features/taste-test/serverTasteFlow';
+import { writeMemberTasteDraft } from '../../features/taste-test/tasteDraftStorage';
+import useAuthStore from '../../stores/useAuthStore';
 import { getVehicles } from '../../features/vehicle/vehicleApi';
 import { useVehicle } from '../../features/vehicle/useVehicle';
 import { CardError, CardLoading } from './CardStatus';
@@ -60,8 +63,19 @@ const loadTaste = async () => {
   const current = await getCurrentTaste();
   if (!current) return null; // 아직 테스트 안 함 (204)
   const catalog = await getTasteCatalog();
-  return { type: catalog.types[current.primary], savedAt: current.savedAt };
+  // savedAnswers: 저장된 답을 취향 테스트 화면이 쓰는 모양(질문별 선택 번호)으로 — 이전 버전 취향이면 null
+  return { type: catalog.types[current.primary], savedAt: current.savedAt,
+    version: catalog.version, questionCount: catalog.questionCount, savedAnswers: savedTasteAnswers(catalog, current) };
 };
+
+// 취향 상자를 누를 때: 취향 테스트 화면은 이 탭의 임시 기록을 먼저 보여 주므로,
+// 저장된 취향을 "결과" 단계로 임시 기록에 넣어 두고 이동한다 → 들어가자마자 저장된 결과가 보인다
+// (원준님 화면 파일은 그대로, 그 기능이 내보내는 함수만 사용)
+function openSavedTaste(memberId, data) {
+  if (!memberId || !data.savedAnswers) return; // 이전 버전 취향이면 그냥 테스트 첫 화면으로
+  writeMemberTasteDraft(memberId, data.version,
+    { phase: 'result', step: data.questionCount - 1, answers: data.savedAnswers });
+}
 
 // 최근 재무 진단 3건 (재무 진단 결과 화면에서 저장한 기록, 최신 순). 없으면 []
 const loadDiagnoses = () => getRecentDiagnoses(3);
@@ -260,6 +274,8 @@ function DiagnosisCard({ state }) {
 }
 
 function TasteCard({ state }) {
+  const memberId = useAuthStore((store) => store.member?.id);
+
   return (
     <section className="my-card my-card-fill" aria-labelledby="my-taste-title">
       <div className="my-insight-head">
@@ -278,13 +294,12 @@ function TasteCard({ state }) {
       )}
       {state.status === 'done' && state.data && (
         <>
-          {/* 11-04: 링크 아님 — 취향 테스트 화면은 이 탭의 임시 기록(미저장 결과)을 먼저 보여 줘서,
-              누르면 저장된 취향이 아닌 화면이 뜰 수 있다. 저장된 결과는 여기서 바로 보여 준다 */}
-          <div className="my-taste-type">
-            <span>저장된 취향</span>
+          {/* 11-04: 누르면 저장된 취향의 자세한 결과 화면으로 (openSavedTaste 참고) */}
+          <Link className="my-taste-type" to="/taste-test" onClick={() => openSavedTaste(memberId, state.data)}>
+            <span>저장된 취향 · 자세히 보기 →</span>
             <strong>{state.data.type?.name ?? '알 수 없는 유형'}</strong>
             {state.data.type?.description && <p>{state.data.type.description}</p>}
-          </div>
+          </Link>
           <p className="my-taste-how">
             취향이 바뀌었다면 테스트를 다시 하세요. 결과 화면에서 &quot;현재 취향을 바꿀까요?&quot;를 확인하면 새 결과로 바뀝니다.
           </p>
