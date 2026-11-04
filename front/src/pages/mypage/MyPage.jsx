@@ -1,7 +1,7 @@
 // 마이페이지 (/mypage) — 6단계: 요약 + 바로가기. 자세한 내용은 각 기능 화면에서 본다
 // 카드마다 따로 불러오고(불러오는 중 · 실패 · 비어 있음), 한 카드가 실패해도 나머지는 보인다
 // 개인정보 수정 · 비밀번호 · 탈퇴 등 계정 관리는 /mypage/profile (ProfilePage) 로 옮겼다
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getSessions } from '../../features/auth/authApi';
 import AuthModal from '../../features/auth/components/AuthModal';
@@ -13,6 +13,10 @@ import { writeMemberTasteDraft } from '../../features/taste-test/tasteDraftStora
 import useAuthStore from '../../stores/useAuthStore';
 import { getVehicles } from '../../features/vehicle/vehicleApi';
 import { useVehicle } from '../../features/vehicle/useVehicle';
+import { calculatePurchasePlan } from '../../features/dream-car/purchasePlan';
+import {
+  calculateSavingsProgress, currentMonth, formatMoney, isProgressPlan, planStorageKey, progressStorageKey,
+} from '../../features/dream-car/savingsProgress';
 import { CardError, CardLoading } from './CardStatus';
 import { deviceName, drivingTag, formatDate, formatDateTime, genderLabel, purchaseTag } from './profileOptions';
 import './MyPage.css';
@@ -120,18 +124,7 @@ export default function MyPage() {
       <div className="my-row-three">
         <FavoritesCard state={favorites} />
 
-        {/* 구매계획: 저장 기능이 아직 없어 계획 전(빈 상태)으로 보여 준다 — 기능이 생기면 저장한 계획으로 */}
-        {/* 제목 줄은 관심차량 · 내 취향 카드와 같은 모양 (my-insight-head) */}
-        <section className="my-plan my-card-fill" aria-labelledby="my-plan-title">
-          <div className="my-insight-head">
-            <div>
-              <h2 id="my-plan-title">구매계획</h2>
-              <p>드림카 플래너에서 저장한 계획</p>
-            </div>
-          </div>
-          <p className="my-empty">아직 저장한 구매계획이 없어요. 재무 진단으로 구매 여력과 추천 차량을 먼저 확인해 보세요.</p>
-          <Link className="my-plan-button my-inline-button" to="/financial">재무 진단 하러 가기</Link>
-        </section>
+        <PlanCard />
 
         <TasteCard state={taste} />
       </div>
@@ -293,6 +286,89 @@ function DiagnosisCard({ state }) {
         )}
       </div>
       {detailId && <DiagnosisDetailModal analysisId={detailId} onClose={() => setDetailId(null)} />}
+    </section>
+  );
+}
+
+// 구매계획 — 드림카 플래너(형철님 기능)가 이 브라우저에 저장한 계획을 읽기만 한다 (11-04)
+// 1) 저축을 시작했으면 저축 기록(dream-car-progress-v1)의 마지막 계획: 모은 금액 · 진행률
+// 2) 계획만 저장했으면 구매 계획(dream-car-plan-v3): 차량 · 목표 금액 · 월 저축
+// 계산은 플래너가 내보내는 함수를 그대로 써서 플래너 화면과 같은 숫자가 나온다. 회원별 DB 저장이 생기면 그쪽으로 바꾼다
+function readPlan(catalog) {
+  try {
+    const plans = JSON.parse(localStorage.getItem(progressStorageKey) || '[]');
+    const active = Array.isArray(plans) ? plans.filter(isProgressPlan).at(-1) : null;
+    if (active) {
+      return { kind: 'progress', name: active.name, trim: active.trim, target: active.target,
+        ...calculateSavingsProgress(active, currentMonth()) };
+    }
+    const saved = JSON.parse(localStorage.getItem(planStorageKey));
+    const vehicle = catalog.find((car) => car.id === saved?.vehicleId);
+    const result = vehicle && saved?.inputs && calculatePurchasePlan(vehicle.price / 10000, saved.inputs);
+    if (result) {
+      return { kind: 'plan', name: `${vehicle.brand} ${vehicle.model}`, trim: vehicle.trim, target: result.target,
+        monthlySaving: saved.inputs.monthlySaving, targetMonths: saved.inputs.targetMonths };
+    }
+  } catch { /* 저장소를 못 쓰거나 형식이 다르면 계획 없음으로 */ }
+  return null;
+}
+
+function PlanCard() {
+  // 구매 계획의 차량 정보는 차량 목록에서 찾는다 (조원 VehicleContext, 읽기만)
+  const { planningVehicles = [] } = useVehicle();
+  const plan = useMemo(() => readPlan(planningVehicles), [planningVehicles]);
+
+  return (
+    <section className="my-plan my-card-fill" aria-labelledby="my-plan-title">
+      <div className="my-insight-head">
+        <div>
+          <h2 id="my-plan-title">구매계획</h2>
+          <p>드림카 플래너에서 이 브라우저에 저장한 계획</p>
+        </div>
+      </div>
+      {!plan && (
+        <>
+          <p className="my-empty">아직 저장한 구매계획이 없어요. 드림카 플래너에서 차량과 저축 계획을 세워 보세요.</p>
+          <Link className="my-plan-button my-inline-button" to="/dream-car">드림카 플래너 가기</Link>
+        </>
+      )}
+      {plan && (
+        <>
+          {/* 차량 아래 한 줄에 트림 · 목표 달성 월 (줄을 따로 두면 카드 높이가 늘어나서) */}
+          <div className="my-plan-car">
+            <strong>{plan.name}</strong>
+            <span>{[plan.trim, plan.targetMonth && `${plan.targetMonth.replace('-', '.')} 목표`].filter(Boolean).join(' · ')}</span>
+          </div>
+          {plan.kind === 'progress' ? (
+            <>
+              <div>
+                <div className="my-plan-progress-labels">
+                  <span>모은 금액 {formatMoney(plan.total)}</span>
+                  <strong>{Math.floor(plan.progress)}%</strong>
+                </div>
+                <div className="my-plan-track" role="progressbar" aria-valuemin={0} aria-valuemax={100}
+                  aria-valuenow={Math.floor(plan.progress)} aria-label="목표 금액 대비 모은 금액">
+                  <span style={{ width: `${plan.progress}%` }} />
+                </div>
+              </div>
+              <div className="my-plan-summary">
+                <div><span>목표 금액</span><strong>{formatMoney(plan.target)}</strong></div>
+                <div><span>남은 금액</span><strong>{formatMoney(plan.remaining)}</strong></div>
+              </div>
+              <Link className="my-plan-button my-inline-button" to="/dream-car/progress">저축 기록 보기</Link>
+            </>
+          ) : (
+            <>
+              <div className="my-plan-summary">
+                <div><span>목표 금액</span><strong>{formatMoney(plan.target)}</strong></div>
+                <div><span>월 저축</span><strong>{formatMoney(plan.monthlySaving)} · {plan.targetMonths}개월</strong></div>
+              </div>
+              <p className="my-empty">아직 저축 기록을 시작하지 않았어요.</p>
+              <Link className="my-plan-button my-inline-button" to="/dream-car">드림카 플래너에서 보기</Link>
+            </>
+          )}
+        </>
+      )}
     </section>
   );
 }

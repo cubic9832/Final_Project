@@ -598,6 +598,52 @@
   color: #0c766d;
 }
 
+/* 11-04: 구매계획 카드 내용 (흰 카드용 색 — 예전 남색 카드의 흰 글자 색을 덮어쓴다) */
+.my-plan-car {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.my-plan-car strong {
+  color: #12335b;
+  font-size: 17px;
+}
+
+.my-plan-car span {
+  color: #6d7988;
+  font-size: 12px;
+}
+
+.my-plan .my-plan-progress-labels span {
+  color: #44556b;
+}
+
+.my-plan .my-plan-progress-labels strong {
+  color: #0c766d;
+}
+
+.my-plan .my-plan-track {
+  background: #edf1f6;
+}
+
+.my-plan .my-plan-track span {
+  background: #0c766d;
+}
+
+.my-plan .my-plan-summary div {
+  border: 1px solid #dce3ec;
+  background: #f6f8fb;
+}
+
+.my-plan .my-plan-summary span {
+  color: #6d7988;
+}
+
+.my-plan .my-plan-summary strong {
+  color: #12335b;
+}
+
 .my-plan-heading h2 {
   color: #12335b;
 }
