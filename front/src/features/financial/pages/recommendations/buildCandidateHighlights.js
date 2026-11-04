@@ -25,7 +25,9 @@ export function buildCandidateHighlights(candidate, preferences = {}) {
   if (match('seating') && !candidate.seatingVerificationRequired && seats && Number(preferences.minimumSeats) > 0 && seats >= Number(preferences.minimumSeats)) {
     add('seating', `등록된 승차 정원은 ${seats}명으로, 원하신 ${preferences.minimumSeats}명 이상 탑승 조건에 맞아요.`);
   }
-  const remaining = `예상 월 유지비는 ${candidateMoney(cost.monthly_running_cost)}이고, 지출 후 매달 ${candidateMoney(cost.remaining_monthly)}이 남아요.`;
+  const remaining = cost.monthly_payment
+    ? `월 할부금 ${candidateMoney(cost.monthly_payment)}(${cost.financing_months}개월)과 유지비 ${candidateMoney(cost.monthly_running_cost)}를 내고도 매달 ${candidateMoney(cost.remaining_monthly)}이 남아요.`
+    : `예상 월 유지비는 ${candidateMoney(cost.monthly_running_cost)}이고, 지출 후 매달 ${candidateMoney(cost.remaining_monthly)}이 남아요.`;
   add('cost', remaining);
   if (preferences.purpose) add('purpose', `${preferences.purpose} 용도를 중요하게 선택하신 조건을 반영해 비교한 후보예요.`);
 
@@ -35,6 +37,6 @@ export function buildCandidateHighlights(candidate, preferences = {}) {
   const chosen = important.length ? important : descriptions.filter(item => !['cost', 'purpose'].includes(item.key)).sort((a, b) => b.weight - a.weight).slice(0, 2);
   const result = chosen.map(item => item.text);
   if (!chosen.some(item => item.key === 'cost')) result.push(remaining);
-  if (result.length < 2) result.push('현재 사용 가능한 예금으로 구매할 수 있어요.');
+  if (result.length < 2) result.push(cost.monthly_payment ? '예금과 정한 소득 비율 안의 할부로 구매할 수 있어요.' : '현재 사용 가능한 예금으로 구매할 수 있어요.');
   return result;
 }

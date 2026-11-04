@@ -28,7 +28,7 @@ export default function FinancialVehiclePage() {
   const { notice, recommending, showRecommendations } = useCandidateRecommendations(diagnosis);
   useEffect(() => { saveFinancialSession({ vehicle }); }, [vehicle]);
   if (!state?.values) return <Navigate to="/financial" replace />;
-  const conditions = environmentQuestions(scenarioMode);
+  const conditions = environmentQuestions(scenarioMode, vehicle);
   const editSummary = id => {
     if (id in financialSummarySteps) { navigate('/financial', { state: { ...diagnosis, financialStep: financialSummarySteps[id] } }); return; }
     const conditionIndex = conditions.findIndex(item => item.id === id);

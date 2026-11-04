@@ -3,6 +3,7 @@ const fuels = { 가솔린: 'GASOLINE', 하이브리드: 'HYBRID', 디젤: 'DIESE
 import { createVehiclePreferences } from './createVehiclePreferences.js';
 import { buildLifestylePreferences } from './lifestylePreferences.js';
 import { buildScenarioPreferences } from './scenarioPreferences.js';
+import { incomeRatioValues, paymentMonthValues } from './surveyQuestions.js';
 
 // UI 금액(만 원)을 v2 계약(원)으로 변환한다. 미입력 필수값을 임의로 만들지 않는다.
 export function buildCandidateRecommendation({ values = {}, assets = {}, loans, vehicle = {} } = {}) {
@@ -42,6 +43,9 @@ export function buildCandidateRecommendation({ values = {}, assets = {}, loans, 
     preferred_height: vehicle.preferredHeight ?? 'any',
     preferred_body_type: 'any', // Retired body selection must not affect recommendations.
     body_importance: 3,
+    vehicle_income_ratio: Number(vehicle.incomeRatio ?? 0),
+    // Months only apply when part of income is allowed for the car.
+    vehicle_payment_months: Number(vehicle.incomeRatio ?? 0) ? Number(vehicle.paymentMonths ?? 0) : 0,
   };
   if (!Array.isArray(loans)) errors.push('대출 내역');
   else for (const loan of loans) {
@@ -55,6 +59,8 @@ export function buildCandidateRecommendation({ values = {}, assets = {}, loans, 
   if (!['any', 'small', 'medium', 'large'].includes(profile.preferred_size)) errors.push('선호 크기');
   if (!['any', 'low', 'medium', 'high'].includes(profile.preferred_height)) errors.push('선호 높이');
   if (!(vehicle.fuel in fuels)) errors.push('선호 연료');
+  if (!incomeRatioValues.includes(String(profile.vehicle_income_ratio))) errors.push('소득 대비 차량비');
+  if (!paymentMonthValues.includes(String(profile.vehicle_payment_months))) errors.push('할부 기간');
   const preferences = vehicle.scenarioMode
     ? { scenario: buildScenarioPreferences(vehicle, profile, errors) }
     : { lifestyle: buildLifestylePreferences(vehicle, errors) };

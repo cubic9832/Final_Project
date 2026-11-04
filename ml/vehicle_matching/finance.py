@@ -5,6 +5,9 @@ from dataclasses import asdict, dataclass, replace
 from vehicle_matching.catalog import FUELS, Vehicle
 
 PURPOSES = ('commute', 'leisure', 'family', 'business')
+VEHICLE_PAYMENT_MONTHS = (0, 6, 12, 18, 24, 36, 48, 60, 72)
+# Screen simulation rate for the user-chosen installment, not a lender quote.
+INCOME_RATIO_ANNUAL_RATE = 0.06
 
 
 @dataclass(frozen=True)
@@ -35,6 +38,9 @@ class Profile:
     preferred_body_type: str = 'any'
     body_importance: int = 3
     preferred_height: str = 'any'
+    # Share of monthly income the user allows for installment + running costs.
+    vehicle_income_ratio: int = 0
+    vehicle_payment_months: int = 0
 
     def __post_init__(self):
         if self.financing_mode not in ('fixed', 'automatic', 'recommendation'):
@@ -65,6 +71,12 @@ class Profile:
             raise ValueError('Unknown preferred size')
         if self.preferred_height not in ('any', 'low', 'medium', 'high'):
             raise ValueError('Unknown preferred height')
+        if type(self.vehicle_income_ratio) is not int or not 0 <= self.vehicle_income_ratio <= 100:
+            raise ValueError('vehicle_income_ratio: integer percent from 0 to 100 required')
+        if type(self.vehicle_payment_months) is not int or self.vehicle_payment_months not in VEHICLE_PAYMENT_MONTHS:
+            raise ValueError('vehicle_payment_months: choose 0, 6, 12, 18, 24, 36, 48, 60 or 72')
+        if self.vehicle_income_ratio == 0 and self.vehicle_payment_months:
+            raise ValueError('vehicle_payment_months requires vehicle_income_ratio')
         if self.preferred_body_type not in ('any', 'SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'COUPE', 'CONVERTIBLE', 'ROADSTER', 'OTHER'):
             raise ValueError('Unknown preferred body type')
 
@@ -109,13 +121,26 @@ def installment(principal, rate, months):
     return principal * monthly / (1 - (1 + monthly) ** -months)
 
 
+def monthly_available(profile):
+    return profile.monthly_income - profile.monthly_expenses - profile.existing_monthly_payment - profile.monthly_savings
+
+
+def monthly_vehicle_cap(profile):
+    """User-chosen share of income, never above what is actually left each month."""
+    if not profile.vehicle_income_ratio:
+        return None
+    return max(0, min(monthly_available(profile), profile.monthly_income * profile.vehicle_income_ratio / 100))
+
+
 def assess(profile: Profile, vehicle: Vehicle, assumptions=Assumptions()):
     recommendation = profile.financing_mode == 'recommendation'
+    income_ratio = recommendation and profile.vehicle_income_ratio > 0
     if profile.financing_mode == 'recommendation':
-        # Recommendation never creates a loan. Only currently spendable cash
-        # may pay the purchase price; income is checked against running costs.
+        # Cash pays first. Without an income ratio no loan is created and income
+        # covers only running costs; with one, the rest is a user-chosen installment.
+        months, rate = (profile.vehicle_payment_months, INCOME_RATIO_ANNUAL_RATE) if income_ratio else (0, 0)
         profile = replace(profile, down_payment=min(vehicle.price, profile.liquid_assets-profile.emergency_reserve),
-                          months=0, annual_rate=0, financing_mode='automatic')
+                          months=months, annual_rate=rate if months else 0, financing_mode='automatic')
     if vehicle.fuel == 'HYDROGEN':
         low, high = 80, 120  # km/kg interval when the official efficiency is unavailable.
         energy = assumptions.hydrogen_price_per_kg
@@ -128,12 +153,15 @@ def assess(profile: Profile, vehicle: Vehicle, assumptions=Assumptions()):
     fixed = sum(getattr(vehicle, key) if getattr(vehicle, key) is not None else getattr(assumptions, key) for key in ("monthly_insurance", "monthly_maintenance", "monthly_tax"))
     total_price = round(vehicle.price, 2)
     principal = max(0, round(total_price - profile.down_payment, 2))
-    payment = 0.0 if recommendation else installment(principal, profile.annual_rate, profile.months)
+    # Recommendation without installment months reports the cash shortfall as its own exclusion.
+    financed = not recommendation or (income_ratio and profile.months > 0)
+    payment = installment(principal, profile.annual_rate, profile.months) if financed else 0.0
     if recommendation:
         payment = math.ceil(round(payment,2))
         running = math.ceil(round(running+fixed,2))-fixed
     monthly_cost = payment + running + fixed
-    available = profile.monthly_income - profile.monthly_expenses - profile.existing_monthly_payment - profile.monthly_savings
+    available = monthly_available(profile)
+    cap = monthly_vehicle_cap(profile) if income_ratio else None
     reasons = [] if vehicle.recommendation_enabled else ['catalog-not-published']
     if profile.purchase_price_ceiling and total_price>profile.purchase_price_ceiling:
         reasons.append('purchase-price-ceiling')
@@ -143,7 +171,10 @@ def assess(profile: Profile, vehicle: Vehicle, assumptions=Assumptions()):
     monthly_drawdown = max(0, monthly_cost - available)
     required_drawdown = max(0, monthly_cost + profile.minimum_buffer - available)
     reserve_months = 12
-    asset_supported = recommendation and required_drawdown > 0 and cash_after_purchase >= required_drawdown * reserve_months
+    # A user-chosen income limit is not bypassed by drawing down remaining savings.
+    asset_supported = recommendation and not income_ratio and required_drawdown > 0 and cash_after_purchase >= required_drawdown * reserve_months
+    if cap is not None and math.isfinite(monthly_cost) and monthly_cost > cap:
+        reasons.append('exceeds-income-ratio')
     if available - monthly_cost < profile.minimum_buffer and not asset_supported:
         reasons.append('insufficient-monthly-buffer')
     # JSON does not support Infinity. Infeasible cash purchases have no installment estimate.
@@ -159,4 +190,5 @@ def assess(profile: Profile, vehicle: Vehicle, assumptions=Assumptions()):
             # Historical feature slots reuse the base values, without a second scenario.
             'monthly_total': finite(monthly_cost), 'stress_monthly_total': finite(monthly_cost),
             'remaining_monthly': finite(available - monthly_cost), 'stress_remaining_monthly': finite(available - monthly_cost),
+            'monthly_vehicle_cap': round(cap, 2) if cap is not None else None,
             'efficiency_estimated': vehicle.efficiency is None or vehicle.efficiency_reference_only}

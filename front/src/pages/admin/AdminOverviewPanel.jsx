@@ -70,7 +70,7 @@ function serviceRows({ system, model, mail }) {
       // 관리자 API 자체가 실패하면 권한 확인에 쓰는 DB 도 확인할 수 없다
       : { status: 'down', detail: system ? 'DB 에 연결할 수 없습니다.' : '서버를 거쳐 확인하므로 지금은 확인할 수 없습니다.' };
   const modelRow = model === undefined ? { status: 'checking', detail: '확인 중…' }
-    : model ? { status: 'up', detail: `차량 추천 추론 · ${model.info.modelVersion} · 응답 ${model.ms}ms` }
+    : model ? { status: 'up', detail: `차량 추천 추론 · ${model.info.modelBundle ?? model.info.modelVersion} · 응답 ${model.ms}ms` }
       : { status: 'down', detail: '추천 서버가 켜져 있지 않거나 3초 안에 응답하지 않습니다.' };
   return [
     { id: 'api', name: 'Spring API', ...apiRow },
@@ -88,14 +88,14 @@ export default function AdminOverviewPanel() {
     { label: '차량 데이터', value: show(vehicles, (list) => `${list.length}건`), note: '차량·트림 정보 관리', tab: 'vehicles' },
     { label: '추천 후보 차량', value: show(model, (m) => `${m.info.catalogCount}건`), note: model ? `차종 ${model.info.modelNames}개 · 추천 서버 기준` : '추천 서버 기준', tab: 'recommendations' },
     { label: '회원 현황', value: show(members, (s) => `${s.total}명`), note: members ? `최근 7일 가입 ${members.newLast7Days}명` : '가입·상태·권한 확인', tab: 'members' },
-    { label: '적용 모델', value: show(model, (m) => m.info.modelVersion), note: model ? `학습 구조 ${model.info.rankerSchema}` : '차량 추천 모델', tab: 'models' },
+    { label: '적용 모델', value: show(model, (m) => m.info.modelBundle ?? m.info.modelVersion), note: model ? `학습 구조 ${model.info.rankerSchema}` : '차량 추천 모델', tab: 'models' },
   ];
 
   // 먼저 확인할 작업: 실제 개수. 0 이면 "없음" 으로 흐리게
   const tasks = [
     { title: '생년월일 · 성별 미입력 회원', count: overview?.profileMissing, note: '연령대 통계와 추천에 쓰이는 정보 — 구글 가입 직후 등', tab: 'members', icon: UserRoundPen },
     { title: '로그인이 잠긴 회원', count: overview?.lockedMembers, note: '비밀번호 5번 실패로 10분 잠금 — 회원 상세에서 잠금 해제', tab: 'members', icon: Lock },
-    { title: '추천 서버 연결', count: model === null ? 1 : model ? 0 : undefined, note: model === null ? '추천 서버가 응답하지 않습니다 (ml/serve-candidates.ps1)' : '추천 서버가 정상 응답합니다', tab: 'models', icon: Cpu },
+    { title: '추천 서버 연결', count: model === null ? 1 : model ? 0 : undefined, note: model === null ? '추천 서버가 응답하지 않습니다 (ml/serve-candidates.ps1 · .sh)' : '추천 서버가 정상 응답합니다', tab: 'models', icon: Cpu },
     // 보완 13: 인증 메일 실패 — 메일 계정 · 앱 비밀번호 · 하루 발송 한도를 확인 (사유는 서비스 연결 상태의 "메일 발송" 줄)
     { title: '인증 메일 발송 실패 (24시간)', count: mail?.failed, unit: '건', note: '메일 계정 · 앱 비밀번호 · 하루 발송 한도 확인 — 사유는 서비스 연결 상태에', tab: 'overview', icon: Mail },
   ];

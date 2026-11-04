@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ShieldCheck, X } from 'lucide-react';
 import theme from '../../../styles/theme';
 import { changeMemberRole, unlockMemberLogin } from '../../../features/admin/adminApi';
+import useActionLock from '../../../features/admin/useActionLock';
 import { ROLE_LABELS } from '../../../features/auth/roles';
 import useAuthStore from '../../../stores/useAuthStore';
 import { showToast } from '../../../stores/useToastStore';
@@ -56,19 +57,17 @@ export default function MemberDetail({ member, onClose, onChanged }) {
 
 // 로그인 잠금 해제 (관리자 · 총관리자) — 5번 실패로 잠긴 회원이 문의했을 때. 운영 로그에 남는다
 function UnlockButton({ member, onChanged }) {
-  const [busy, setBusy] = useState(false);
+  const lock = useActionLock(member); // 성공 뒤 목록이 다시 올 때까지 잠근다 (같은 요청이 다시 가지 않게)
+  const busy = lock.locked;
 
   async function handleUnlock() {
-    setBusy(true);
     try {
-      await unlockMemberLogin(member.id);
+      if (!(await lock.run(() => unlockMemberLogin(member.id)))) return;
       showToast(`${member.nickName} 님의 로그인 잠금을 풀었어요.`);
       onChanged();
     } catch (err) {
       showToast(errorMessage(err, '잠금을 풀지 못했습니다.'));
       if (err.response?.data?.error?.code === 'TARGET_MEMBER_NOT_FOUND') onChanged(); // 그사이 탈퇴한 회원 → 목록 새로고침
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -84,7 +83,9 @@ function UnlockButton({ member, onChanged }) {
 function RoleActions({ member, onChanged }) {
   const me = useAuthStore((state) => state.member);
   const [confirming, setConfirming] = useState(false);
-  const [busy, setBusy] = useState(false);
+  // 한 번만 보내고, 성공하면 목록을 다시 불러와 이 회원 정보(member)가 바뀔 때까지 잠근다 (같은 요청이 다시 가지 않게)
+  const lock = useActionLock(member);
+  const busy = lock.locked;
   const [error, setError] = useState('');
 
   const canChange = me?.role === 'SUPER_ADMIN' && me.id !== member.id && member.role !== 'SUPER_ADMIN';
@@ -104,10 +105,9 @@ function RoleActions({ member, onChanged }) {
   const actionLabel = nextRole === 'ADMIN' ? '관리자로 지정' : '관리자 해제';
 
   async function handleConfirm() {
-    setBusy(true);
     setError('');
     try {
-      await changeMemberRole(member.id, nextRole);
+      if (!(await lock.run(() => changeMemberRole(member.id, nextRole)))) return;
       showToast(`${member.nickName} 님을 ${nextRole === 'ADMIN' ? '관리자로 지정했어요' : '관리자에서 해제했어요'}. 다시 로그인하면 적용됩니다.`);
       setConfirming(false);
       onChanged(); // 현황 · 목록 다시 불러오기
@@ -119,8 +119,6 @@ function RoleActions({ member, onChanged }) {
         return;
       }
       setError(errorMessage(err, '권한을 바꾸지 못했습니다.'));
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -141,7 +139,9 @@ function RoleActions({ member, onChanged }) {
       ) : (
         <div className="admin-member-role-buttons">
           <span>총관리자 권한: 관리자 권한을 주거나 뺄 수 있습니다.</span>
-          <button type="button" className="admin-outline-button" onClick={() => setConfirming(true)}>{actionLabel}</button>
+          <button type="button" className="admin-outline-button" onClick={() => setConfirming(true)} disabled={busy}>
+            {busy ? '반영 중…' : actionLabel}
+          </button>
         </div>
       )}
       {error && <p className="admin-member-role-error" role="alert">{error}</p>}

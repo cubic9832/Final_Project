@@ -8,7 +8,10 @@
 .financial-recommendations-page .candidate-decision-summary { margin-top: var(--space-12); padding: var(--space-12) var(--space-24); }
 .financial-recommendations-page .financial-recommendation-card { min-height: 440px; height: auto; }
 .financial-recommendations-page .financial-recommendation-media { height: 112px; min-height: 112px; }
-.financial-recommendations-page .financial-recommendation-media img { width: 100%; height: 100%; object-fit: contain; }
+.financial-recommendations-page .financial-recommendation-photo { height: 100%; }
+.financial-recommendations-page .financial-recommendation-photo img { width: 100%; height: 100%; object-fit: contain; }
+/* 컷아웃 위치값은 3:2 프레임 기준이므로 낮은 미디어 영역에서도 3:2 프레임을 유지하고, 차체가 놓인 영역(프레임 높이 15~80%)을 가운데에 맞춘다. */
+.financial-recommendations-page .financial-recommendation-frame { position: absolute; top: 50%; left: 50%; height: 140%; aspect-ratio: 3 / 2; transform: translate(-50%, -47.5%); }
 .financial-recommendations-page .financial-recommendation-card-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: var(--space-24); }
 .financial-recommendations-page .financial-recommendation-aligned-summary { min-height: 0; }
 .financial-recommendations-page .financial-recommendation-card-body h2 { font-size: var(--font-card-title); }
@@ -36,6 +39,8 @@
 .candidate-cost-section { margin-top: var(--space-24); padding-top: var(--space-24); border-top: 1px solid var(--color-border); }
 @media(max-width:768px) { .financial-recommendation-aligned-conditions { min-height:0; } }
 .candidate-additional-rows { display: grid; gap: var(--space-24); margin-top: var(--space-24); }
+.candidate-additional-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-24); margin-top: var(--space-16); }
+.candidate-additional-actions > .candidate-open-comparison, .candidate-additional-actions > p { margin: 0; }
 .financial-recommendations-back { display: inline-flex; align-items: center; gap: var(--space-8); min-height: var(--layout-control-height); padding: 0; border: 0; background: transparent; color: var(--color-text-sub); font-weight: 700; }
 .financial-recommendations-back:hover { color: var(--color-blue-strong); }
 .financial-recommendations-heading { margin: var(--space-24) 0; }

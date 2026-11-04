@@ -8,6 +8,8 @@ export function buildDiagnosisSummary(diagnosis = {}, result = {}) {
   const upper = result.budgetPolicy?.financialUpper;
   return {
     modelVersion: result.modelVersion,
+    // 추천한 모델(학습 결과 폴더) — 여러 모델에 트래픽을 나눠도 모델 관리에서 모델별 진단 수를 센다
+    ...(result.modelBundle ? { modelBundle: result.modelBundle } : {}),
     monthlyIncome: won(totals.income),
     monthlyExpense: Math.max(0, won(totals.expenses - totals.loanPayment)),
     monthlyAvailable: won(totals.available),

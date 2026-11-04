@@ -15,7 +15,7 @@ export default function RecommendationCard({ candidate, rank, view, comparisonSe
 
   return <li className="financial-recommendation-card">
     <div className="financial-recommendation-media"><span className="financial-recommendation-rank">{candidate.seatingVerificationRequired || candidate.lengthVerificationRequired ? '확인 후보' : '추천'} {rank}</span>
-      {image && failedSrc !== image.src ? <img key={image.src} src={image.src} alt={image.alt} style={image.style} loading="lazy" onError={() => setFailedSrc(image.src)} /> : <div className="financial-recommendation-image-placeholder"><Car size={theme.iconSize.lg} aria-hidden="true" /><span>차량 이미지 준비 중</span></div>}
+      {image && failedSrc !== image.src ? <div className={image.style ? 'financial-recommendation-frame' : 'financial-recommendation-photo'}><img key={image.src} src={image.src} alt={image.alt} style={image.style} loading="lazy" onError={() => setFailedSrc(image.src)} /></div> : <div className="financial-recommendation-image-placeholder"><Car size={theme.iconSize.lg} aria-hidden="true" /><span>차량 이미지 준비 중</span></div>}
     </div>
     <div className="financial-recommendation-card-body">
       <div className="financial-recommendation-aligned-summary"><div data-recommendation-measure="summary">
@@ -26,12 +26,12 @@ export default function RecommendationCard({ candidate, rank, view, comparisonSe
       {candidate.seatingVerificationRequired && <p className="financial-candidate-alert">희망 인원 탑승 가능 여부를 확인해 주세요.</p>}
       {candidate.lengthVerificationRequired && <p className="financial-candidate-alert">차량 크기 확인이 필요한 후보입니다.</p>}
       <dl className="financial-recommendation-specs" aria-label={`${vehicle.model} 비용 정보`}>
-        {[['차량 가격', vehicle.price], ['예상 월 유지비', cost.monthly_running_cost]].map(([label, value]) => <div key={label}><dt><ExplainTerm term={label} context={`추천 차량 ${vehicle.brand} ${vehicle.model}의 비용 항목`} /></dt><dd>{candidateMoney(value)}</dd></div>)}
+        {[['차량 가격', vehicle.price], ...(cost.monthly_payment ? [[`월 할부금 (${cost.financing_months}개월)`, cost.monthly_payment]] : []), ['예상 월 유지비', cost.monthly_running_cost]].map(([label, value]) => <div key={label}><dt><ExplainTerm term={label} context={`추천 차량 ${vehicle.brand} ${vehicle.model}의 비용 항목`} /></dt><dd>{candidateMoney(value)}</dd></div>)}
       </dl>
       </div></div>
       <button type="button" className="recommendation-detail-button" onClick={() => setDetailsOpen(true)}>추천 근거·차량 상세 보기</button>
       {detailsOpen && <SurveyDialog title={`${vehicle.brand} ${vehicle.model}`} onClose={() => setDetailsOpen(false)}>
-      <dl className="financial-recommendation-specs">{[['구매 후 남는 예금', view.financial?.cashAfterPurchase], ['유지비 지출 후 월 잔여금', cost.remaining_monthly]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{candidateMoney(value)}</dd></div>)}</dl>
+      <dl className="financial-recommendation-specs">{[['구매 후 남는 예금', view.financial?.cashAfterPurchase], [cost.monthly_payment ? '할부·유지비 지출 후 월 잔여금' : '유지비 지출 후 월 잔여금', cost.remaining_monthly]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{candidateMoney(value)}</dd></div>)}</dl>
       {view?.financial?.fundingSource === 'assets' && <p className="financial-candidate-alert">예금에서 매월 {candidateMoney(view.financial.monthlyAssetDrawdown)}을 사용해요. 구매 후 예금으로 약 {view.financial.assetRunwayMonths}개월 유지할 수 있어요.</p>}
       <section className="financial-recommendation-reasons" aria-label={`${vehicle.model} 맞는 조건`}>
         <h3>맞는 조건</h3>

@@ -3,14 +3,23 @@ const importanceOptions = (low, middle, high) => [
 ];
 const importance = (id, title, description, labels, category = '나의 우선순위') => ({ id, title, description, category, options: importanceOptions(...labels) });
 
-export function environmentQuestions(scenarioMode) {
+export const incomeRatioValues = ['0', '5', '10', '15', '20', '25', '30', '35', '40'];
+export const paymentMonthValues = ['0', '6', '12', '18', '24', '36', '48', '60', '72'];
+
+export function environmentQuestions(scenarioMode, vehicle = {}) {
   const questions = [
     { id: 'minimumSeats', category: '함께 탈 사람', title: '몇 명이 함께 탈 차를 찾으세요?', description: '운전자도 포함해 주세요. 이 인원보다 좌석이 적은 차는 추천하지 않아요.', compact: true,
       options: [{value:'0',label:'상관없어요'}, ...[2,3,4,5,6,7,8,9].map(n => ({value:String(n),label:`${n}명 이상`}))] },
     importance('costImportance', '차량 비용을 얼마나 아끼고 싶으세요?', '구매 가능한 예산 안에서 추천 가격대를 정해요.', [
       '취향이 더 중요해요', '비용과 취향을 함께 봐요', '비용을 아끼고 싶어요',
     ]),
+    { id: 'incomeRatio', category: '매달 차에 쓸 돈', title: '월 소득의 몇 %까지 차에 쓸 수 있나요?', description: '할부금과 보험료·세금·정비비·연료비 같은 유지비를 합친 금액이에요. 예금만 고르면 매달 소득은 유지비에만 쓰고, 일시불로 살 수 있는 차만 추천해요.', compact: true,
+      options: incomeRatioValues.map(value => value === '0' ? { value, label: '예금만' } : { value, label: `${value}%까지` }) },
   ];
+  if (vehicle.incomeRatio && vehicle.incomeRatio !== '0') questions.push(
+    { id: 'paymentMonths', category: '할부 기간', title: '몇 개월 동안 나눠 낼까요?', description: '예금을 먼저 쓰고 남은 금액을 연 6% 할부로 나눠 내는 기준이에요. 실제 대출 금리·심사와는 달라요.', compact: true,
+      options: paymentMonthValues.map(value => value === '0' ? { value, label: '일시불' } : { value, label: `${value}개월` }) },
+  );
   if (scenarioMode) questions.push(
     importance('assetRetentionImportance', '차를 산 뒤, 예금을 얼마나 남길까요?', '예금을 남기는 것과 마음에 드는 차 사이의 우선순위예요.', ['마음에 들면 써도 괜찮아요','어느 정도 남기고 싶어요','최대한 남기고 싶어요']),
     importance('runningCostImportance', '매달 유지비는 얼마나 중요하세요?', '연료비, 보험료, 세금, 정비비를 함께 비교해요.', ['취향이 더 중요해요','유지비와 취향을 함께 봐요','유지비를 아끼고 싶어요']),
