@@ -37,9 +37,11 @@ export default function FinancialRecommendationsPage() {
     {candidates.length > 3 && <section aria-labelledby="additional-candidates-title">
       <div className="financial-recommendations-list-heading"><h2 id="additional-candidates-title">다른 추천 후보</h2><span>4위부터 최대 9위까지</span></div>
       <div id="additional-candidates" className="candidate-additional-rows">{additionalRows.map(row => <RecommendationGrid key={row.start} candidates={row.candidates} rankOffset={row.start} preferences={diagnosis.vehicle} views={views} comparisonIds={comparisonIds} onToggleComparison={toggleComparison} />)}</div>
+      <div className="candidate-additional-actions">
       {visibleCount < candidates.length && <button type="button" className="candidate-open-comparison" aria-controls="additional-candidates" aria-expanded={visibleCount > 3} onClick={() => setVisibleCount(count => Math.min(9, count + 3))}>다른 추천 후보 {Math.min(3, candidates.length - visibleCount)}대 더 보기 ({Math.min(visibleCount, candidates.length)}/{candidates.length})</button>}
       {visibleCount >= candidates.length && <p role="status">추천 후보 {candidates.length}대를 모두 표시했어요.{candidates.length === 9 ? ' 화면에는 최대 9대까지 제공합니다.' : ' 현재 재무 조건과 최소 인원을 충족하는 다른 모델은 없어요.'}</p>}
       {visibleCount > 3 && <button type="button" className="financial-recommendations-back" onClick={() => setVisibleCount(3)}>추가 후보 접기</button>}
+      </div>
     </section>}
 
   </div>;

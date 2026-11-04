@@ -15,7 +15,7 @@ export default function RecommendationCard({ candidate, rank, view, comparisonSe
 
   return <li className="financial-recommendation-card">
     <div className="financial-recommendation-media"><span className="financial-recommendation-rank">{candidate.seatingVerificationRequired || candidate.lengthVerificationRequired ? '확인 후보' : '추천'} {rank}</span>
-      {image && failedSrc !== image.src ? <img key={image.src} src={image.src} alt={image.alt} style={image.style} loading="lazy" onError={() => setFailedSrc(image.src)} /> : <div className="financial-recommendation-image-placeholder"><Car size={theme.iconSize.lg} aria-hidden="true" /><span>차량 이미지 준비 중</span></div>}
+      {image && failedSrc !== image.src ? <div className={image.style ? 'financial-recommendation-frame' : 'financial-recommendation-photo'}><img key={image.src} src={image.src} alt={image.alt} style={image.style} loading="lazy" onError={() => setFailedSrc(image.src)} /></div> : <div className="financial-recommendation-image-placeholder"><Car size={theme.iconSize.lg} aria-hidden="true" /><span>차량 이미지 준비 중</span></div>}
     </div>
     <div className="financial-recommendation-card-body">
       <div className="financial-recommendation-aligned-summary"><div data-recommendation-measure="summary">
