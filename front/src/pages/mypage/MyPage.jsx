@@ -8,6 +8,7 @@ import { getMe, getRecentDiagnoses } from '../../features/auth/memberApi';
 import { isAdminRole, ROLE_LABELS } from '../../features/auth/roles';
 import { getCurrentTaste, getTasteCatalog } from '../../features/taste-test/tasteApi';
 import { getVehicles } from '../../features/vehicle/vehicleApi';
+import { useVehicle } from '../../features/vehicle/useVehicle';
 import { CardError, CardLoading } from './CardStatus';
 import { deviceName, drivingTag, formatDate, formatDateTime, genderLabel, purchaseTag } from './profileOptions';
 import './MyPage.css';
@@ -168,6 +169,9 @@ function ProfileCard({ state }) {
 
 // 관심차량 — 차량 화면에서 [관심차량 저장] 한 차량 (이 브라우저에 저장된 목록, 조원 기능)
 function FavoritesCard({ state }) {
+  // 비교 화면에 담긴 차 수 (조원 VehicleContext, 읽기만) — 차량 상세의 "비교에 추가 (n/3)" 와 같은 표기
+  const { comparison } = useVehicle();
+
   return (
     <section className="my-card my-card-fill" aria-labelledby="my-favorites-title">
       <div className="my-insight-head">
@@ -203,7 +207,7 @@ function FavoritesCard({ state }) {
       {state.status === 'done' && (
         <div className="my-fav-actions">
           <Link className="my-outline-button" to="/search">차량 찾기</Link>
-          <Link className="my-outline-button my-soft-button" to="/vehicles/compare">비교하기</Link>
+          <Link className="my-outline-button my-soft-button" to="/vehicles/compare">비교하기 ({comparison.length}/3)</Link>
         </div>
       )}
     </section>
