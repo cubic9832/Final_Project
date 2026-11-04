@@ -120,6 +120,24 @@ class RecommendationServerLauncherTests {
     }
 
     @Test
+    void 끄기는_프로세스가_끝난_뒤_상태를_다시_보고_안_끝나면_강제로_끈다() throws Exception {
+        RecommendationServerLauncher launcher = launcher(true);
+        Server server = launcher.start(run("model-a"), mlDir);
+        FakeProcess process = processes.get(0);
+        process.ignoresTerm = true;
+        List<Boolean> aliveAtRefresh = new ArrayList<>();
+        when(registry.refresh()).thenAnswer(invocation -> {
+            aliveAtRefresh.add(process.alive);
+            return List.of();
+        });
+
+        launcher.stop(server.port());
+
+        assertThat(process.forced).isTrue();
+        assertThat(aliveAtRefresh).containsExactly(false); // 상태를 다시 볼 때 이미 꺼져 있다
+    }
+
+    @Test
     void 켜는_포트가_아닌_고정_서버는_끌_수_없고_꺼진_설정이면_막는다() throws Exception {
         assertCode(() -> launcher(true).stop(8002), "SERVER_NOT_MANAGED");
         assertCode(() -> launcher(false).start(run("model-a"), mlDir), "LAUNCHER_DISABLED");
@@ -144,8 +162,13 @@ class RecommendationServerLauncherTests {
             this.log = log;
         }
 
+        private volatile boolean ignoresTerm; // 종료 신호를 받아도 안 끝나는 프로세스 (강제 종료만 받는다)
+        private volatile boolean forced;
+
         @Override public boolean isAlive() { return alive; }
-        @Override public void destroy() { alive = false; }
+        @Override public void destroy() { if (!ignoresTerm) alive = false; }
+        @Override public Process destroyForcibly() { forced = true; alive = false; return this; }
+        @Override public boolean waitFor(long timeout, java.util.concurrent.TimeUnit unit) { return !alive; }
         @Override public int exitValue() { if (alive) throw new IllegalThreadStateException(); return 1; }
         @Override public int waitFor() { return 1; }
         @Override public OutputStream getOutputStream() { return OutputStream.nullOutputStream(); }

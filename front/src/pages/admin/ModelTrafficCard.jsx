@@ -4,6 +4,7 @@ import theme from '../../styles/theme';
 import { startModelServer, stopModelServer, updateModelTraffic } from '../../features/admin/adminApi';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
+import useActionLock from '../../features/admin/useActionLock';
 import { formatLogTime } from './adminLogFormat';
 import { baselineGap, count, logLoss, percent } from './modelMetricFormat';
 
@@ -28,30 +29,45 @@ function ModelMetrics({ row }) {
   );
 }
 
+// 저장된 비율 지문 (비율이 있는 모델만) — 입력 중인 값이 어떤 저장 상태를 기준으로 고친 것인지 표시한다.
+// 저장 뒤 새 비율이 오면 지문이 달라져 입력값 대신 저장된 값이 보인다 (새 값이 오기 전 예전 비율로 잠깐 돌아가지 않는다)
+// 비율이 0인 모델이 켜지거나 꺼져도 지문은 그대로라 입력 중인 값이 남는다
+const weightFingerprint = (models) => models.filter((row) => row.weightPercent > 0)
+  .map((row) => `${row.runName}:${row.weightPercent}`).sort().join('|');
+
 export default function ModelTrafficCard({ models, upstreams, trafficConfigured, launcherEnabled, onChanged }) {
   const isSuperAdmin = useAuthStore((state) => state.member?.role === 'SUPER_ADMIN');
-  // 저장하지 않은 비율만 기억한다 → 새 모델이 켜져 목록이 바뀌어도 입력 중인 값이 남는다
-  const [draft, setDraft] = useState({});
-  const [busy, setBusy] = useState(''); // 'save' 또는 켜고 끄는 중인 모델 이름
+  const fingerprint = weightFingerprint(models);
+  const [draft, setDraft] = useState({ base: null, values: {} });
+  // 켜기 · 끄기 · 저장은 한 번에 하나. 성공하면 새 목록(models)이 올 때까지 잠근다 (useActionLock)
+  const lock = useActionLock(models);
+  const [action, setAction] = useState(''); // 'save' · 'start:<모델>' · 'stop:<모델>' — 잠긴 동안만 뜻이 있다
   const [error, setError] = useState('');
+  const pending = lock.locked ? action : '';
+  const stopping = pending.startsWith('stop:') ? pending.slice(5) : null;
+  const starting = pending.startsWith('start:') ? pending.slice(6) : null;
 
   const canWeight = (row) => row.servable && row.compatible;
-  const active = models.filter((row) => canWeight(row) || row.weightPercent > 0);
+  // 끄는 중인 모델은 누르는 즉시 분배 목록에서 뺀다 (다시 누를 수 없게). 실패하면 잠금이 풀려 다시 보인다
+  const active = models.filter((row) => (canWeight(row) || row.weightPercent > 0) && row.runName !== stopping);
   const addable = models.filter((row) => row.runId && row.compatible && !row.servable && row.weightPercent === 0);
   const incompatible = models.filter((row) => !row.compatible && !row.servable).length;
 
-  const weightOf = (row) => draft[row.runName] ?? row.weightPercent;
+  const values = draft.base === fingerprint ? draft.values : {};
+  const weightOf = (row) => values[row.runName] ?? row.weightPercent;
   const total = active.reduce((sum, row) => sum + weightOf(row), 0);
   const changed = active.some((row) => weightOf(row) !== row.weightPercent);
   const blocked = active.find((row) => !canWeight(row) && weightOf(row) > 0);
   const colorOf = (index) => SEGMENT_COLORS[index % SEGMENT_COLORS.length];
   const defaultServer = upstreams.find((upstream) => upstream.up);
-  const locked = !isSuperAdmin || Boolean(busy);
+  const busy = lock.locked;
+  const inputsLocked = !isSuperAdmin || busy;
 
   function setWeight(row, value) {
     const parsed = Math.round(Number(value));
     const limit = canWeight(row) ? 100 : row.weightPercent; // 꺼진 모델은 낮추기만
-    setDraft((current) => ({ ...current, [row.runName]: Number.isFinite(parsed) ? Math.min(limit, Math.max(0, parsed)) : 0 }));
+    const next = Number.isFinite(parsed) ? Math.min(limit, Math.max(0, parsed)) : 0;
+    setDraft((current) => ({ base: fingerprint, values: { ...(current.base === fingerprint ? current.values : {}), [row.runName]: next } }));
     setError('');
   }
 
@@ -61,47 +77,41 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
     if (targets.length === 0) return;
     const base = Math.floor(100 / targets.length);
     let rest = 100 - base * targets.length;
-    setDraft(Object.fromEntries(active.map((row) => {
+    setDraft({ base: fingerprint, values: Object.fromEntries(active.map((row) => {
       if (!canWeight(row)) return [row.runName, 0];
       const extra = rest > 0 ? 1 : 0;
       rest -= extra;
       return [row.runName, base + extra];
-    })));
+    })) });
     setError('');
   }
 
-  // 서버 요청 하나를 감싸서: 진행 중 표시 · 성공하면 알림 + 다시 불러오기, 실패하면 카드 안에 문구
+  // 서버 요청 하나: 잠금 · 성공하면 알림 + 다시 불러오기(새 목록이 오면 잠금이 풀린다), 실패하면 카드 안에 문구
   async function run(key, request, done, fallback) {
     if (busy) return;
-    setBusy(key);
+    setAction(key);
     setError('');
     try {
-      await request();
+      if (!(await lock.run(request))) return;
       showToast(done);
       onChanged();
-      return true;
     } catch (err) {
       setError(errorMessage(err, fallback));
-      return false;
-    } finally {
-      setBusy('');
     }
   }
 
-  async function save() {
+  function save() {
     if (total !== 100) {
       setError(`비율 합이 100%가 되어야 합니다. (지금 ${total}%)`);
       return;
     }
-    const saved = await run('save',
-      () => updateModelTraffic(active.map((row) => ({ modelBundle: row.runName, weightPercent: weightOf(row) }))),
+    run('save', () => updateModelTraffic(active.map((row) => ({ modelBundle: row.runName, weightPercent: weightOf(row) }))),
       '모델별 트래픽 비율을 저장했습니다.', '비율을 저장하지 못했습니다. 다시 시도해 주세요.');
-    if (saved) setDraft({});
   }
 
-  const start = (row) => run(row.runName, () => startModelServer(row.runId),
+  const start = (row) => run(`start:${row.runName}`, () => startModelServer(row.runId),
     `${row.runName} 모델을 켜는 중입니다. 몇 초 뒤 분배 목록에 들어옵니다.`, '모델을 켜지 못했습니다.');
-  const stop = (row) => run(row.runName, () => stopModelServer(row.serverPort),
+  const stop = (row) => run(`stop:${row.runName}`, () => stopModelServer(row.serverPort),
     `${row.runName} 모델을 껐습니다.`, '모델을 끄지 못했습니다.');
 
   return (
@@ -122,6 +132,7 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
       )}
 
       <h4 className="model-traffic-section-title">분배 중인 모델 <span>{active.length}개</span></h4>
+      {stopping && <p className="admin-inline-note model-traffic-note" role="status">{stopping} 모델을 끄는 중입니다…</p>}
       {active.length === 0 ? (
         <p className="admin-empty" role="status">켜진 모델이 없습니다. 아래 모델 추가에서 모델을 켜 주세요.</p>
       ) : (
@@ -145,19 +156,19 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
                     {row.servable && !row.compatible && <span className="admin-status is-check">화면 입력과 다른 모델 · 0%로만 바꿀 수 있음</span>}
                     {isSuperAdmin && launcherEnabled && row.stoppable && (
                       <button type="button" className="admin-text-button model-traffic-power" onClick={() => stop(row)}
-                        disabled={Boolean(busy) || hasSavedTraffic}
+                        disabled={busy || hasSavedTraffic}
                         title={hasSavedTraffic ? '비율을 0%로 저장한 뒤 끌 수 있습니다' : undefined}>
-                        <PowerOff size={theme.iconSize.sm} aria-hidden="true" />{busy === row.runName ? '끄는 중…' : '끄기'}
+                        <PowerOff size={theme.iconSize.sm} aria-hidden="true" />끄기
                       </button>
                     )}
                   </div>
                   <ModelMetrics row={row} />
                   <div className="model-traffic-control">
-                    <input type="range" min="0" max="100" step="1" value={weightOf(row)} disabled={locked}
+                    <input type="range" min="0" max="100" step="1" value={weightOf(row)} disabled={inputsLocked}
                       aria-label={`${row.runName} 비율 조절`} onChange={(event) => setWeight(row, event.target.value)} />
                     <span className="model-traffic-input">
                       <input id={inputId} type="number" inputMode="numeric" min="0" max="100" step="1" value={weightOf(row)}
-                        disabled={locked} onChange={(event) => setWeight(row, event.target.value)} />
+                        disabled={inputsLocked} onChange={(event) => setWeight(row, event.target.value)} />
                       <span aria-hidden="true">%</span>
                     </span>
                   </div>
@@ -175,11 +186,11 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
             </p>
             {isSuperAdmin ? (
               <div className="model-traffic-actions">
-                <button type="button" className="admin-outline-button" onClick={splitEvenly} disabled={Boolean(busy)}>똑같이 나누기</button>
-                <button type="button" className="admin-outline-button" onClick={() => { setDraft({}); setError(''); }}
-                  disabled={Boolean(busy) || !changed}>되돌리기</button>
+                <button type="button" className="admin-outline-button" onClick={splitEvenly} disabled={busy}>똑같이 나누기</button>
+                <button type="button" className="admin-outline-button" onClick={() => { setDraft({ base: null, values: {} }); setError(''); }}
+                  disabled={busy || !changed}>되돌리기</button>
                 <button type="button" className="admin-primary-button" onClick={save}
-                  disabled={Boolean(busy) || !changed || total !== 100 || Boolean(blocked)}>{busy === 'save' ? '저장 중…' : '비율 저장'}</button>
+                  disabled={busy || !changed || total !== 100 || Boolean(blocked)}>{pending === 'save' ? '저장 중…' : '비율 저장'}</button>
               </div>
             ) : (
               <p className="admin-feedback">비율 변경 · 모델 켜기와 끄기는 총관리자만 할 수 있습니다.</p>
@@ -201,20 +212,21 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
       ) : (
         <ul className="model-add-list">
           {addable.map((row) => {
-            const starting = row.serverState === 'STARTING';
-            const failed = row.serverState === 'FAILED';
+            // 켜기를 누른 순간부터 "켜는 중" (202 응답 뒤 새 목록이 오기 전에 다시 눌리지 않게)
+            const rowStarting = row.serverState === 'STARTING' || row.runName === starting;
+            const failed = row.serverState === 'FAILED' && !rowStarting;
             return (
               <li key={row.runId}>
                 <div className="model-traffic-head">
                   <strong>{row.runName}</strong>
                   <small>{row.trainedAt ? `학습 ${formatLogTime(row.trainedAt)}` : '학습일 -'} · 가상 가구 {count(row.profiles)}</small>
-                  {starting && <span className="admin-status is-neutral" role="status">켜는 중… (포트 {row.serverPort})</span>}
+                  {rowStarting && <span className="admin-status is-neutral" role="status">켜는 중…{row.serverPort && row.serverState === 'STARTING' ? ` (포트 ${row.serverPort})` : ''}</span>}
                   {failed && <span className="admin-status is-check">켜기 실패</span>}
                   {isSuperAdmin && (
                     <button type="button" className="admin-outline-button model-traffic-power" onClick={() => start(row)}
-                      disabled={Boolean(busy) || starting}>
+                      disabled={busy || rowStarting}>
                       <Power size={theme.iconSize.sm} aria-hidden="true" />
-                      {busy === row.runName ? '요청 중…' : starting ? '켜는 중…' : failed ? '다시 켜기' : '켜기'}
+                      {rowStarting ? '켜는 중…' : failed ? '다시 켜기' : '켜기'}
                     </button>
                   )}
                 </div>

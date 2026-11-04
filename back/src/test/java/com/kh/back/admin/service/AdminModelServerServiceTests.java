@@ -80,6 +80,14 @@ class AdminModelServerServiceTests {
     }
 
     @Test
+    void 끌_수_없는_포트는_비율보다_먼저_거절한다() {
+        org.mockito.Mockito.doThrow(new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST, "SERVER_NOT_MANAGED", "x"))
+                .when(launcher).requireStoppable(8002);
+        assertCode(() -> service.stop(3L, 8002), "SERVER_NOT_MANAGED");
+        verify(trafficMapper, never()).findAllocations();
+    }
+
+    @Test
     void 비율이_남은_모델은_끄지_않고_0퍼센트면_끈다() {
         when(launcher.servedOn(8003)).thenReturn(Optional.of("model-new"));
         TrafficRow weight = new TrafficRow();

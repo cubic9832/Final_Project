@@ -48,6 +48,7 @@ public class AdminModelServerServiceImpl implements AdminModelServerService {
     // 비율이 남은 모델은 먼저 0%로 저장해야 끈다 (사용자가 모르는 사이 다른 모델로 옮겨 가지 않게)
     @Override
     public void stop(Long actorId, int port) {
+        launcher.requireStoppable(port);
         String runName = launcher.servedOn(port).orElse(null);
         if (runName != null && trafficMapper.findAllocations().stream()
                 .anyMatch(row -> runName.equals(row.getModelBundle()) && row.getWeightPercent() > 0)) {

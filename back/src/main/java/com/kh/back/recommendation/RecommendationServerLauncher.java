@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +18,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.IntPredicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +55,8 @@ public class RecommendationServerLauncher {
     }
 
     private static final String APP = "vehicle_matching.api:app";
+    // 끄기: 종료 신호 뒤 이만큼 기다리고 안 끝나면 강제 종료
+    static final Duration STOP_WAIT = Duration.ofSeconds(5);
     // JVM 이 끝날 때 끌 프로세스 (devtools 재시작마다 이 클래스가 새로 올라와도 한 번만 등록)
     private static final Set<Process> SPAWNED = ConcurrentHashMap.newKeySet();
 
@@ -159,18 +165,24 @@ public class RecommendationServerLauncher {
         return servers;
     }
 
-    // 끈 서버의 모델 이름. 켜는 포트가 아니면 400 (dev.sh 로 켠 고정 서버는 여기서 끄지 않는다)
-    public synchronized String stop(int port) {
+    // 관리자 화면에서 끌 수 있는 포트인지 (다른 검사보다 먼저 — 고정 서버에 엉뚱한 안내가 나가지 않게)
+    public void requireStoppable(int port) {
         if (!enabled) {
             throw new ApiException(HttpStatus.CONFLICT, "LAUNCHER_DISABLED", "이 서버에서는 관리자 화면으로 추천 서버를 끌 수 없습니다.");
         }
         if (!registry.poolPorts().contains(port)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "SERVER_NOT_MANAGED", port + " 포트의 추천 서버는 관리자 화면에서 끌 수 없습니다.");
         }
+    }
+
+    // 끈 서버의 모델 이름. 켜는 포트가 아니면 400 (dev.sh 로 켠 고정 서버는 여기서 끄지 않는다)
+    public synchronized String stop(int port) {
+        requireStoppable(port);
         Launched mine = launched.remove(port);
         String runName;
         if (mine != null && mine.process().isAlive()) {
             destroyTree(mine.process());
+            awaitExit(mine.process());
             SPAWNED.remove(mine.process());
             runName = mine.runName();
         } else {
@@ -188,10 +200,14 @@ public class RecommendationServerLauncher {
                 }
                 throw new ApiException(HttpStatus.NOT_FOUND, "SERVER_NOT_FOUND", port + " 포트에 켜진 추천 서버가 없습니다.");
             }
-            external.get().descendants().forEach(ProcessHandle::destroy);
+            List<ProcessHandle> children = external.get().descendants().toList();
+            children.forEach(ProcessHandle::destroy);
             external.get().destroy();
+            awaitExit(external.get());
+            children.forEach(RecommendationServerLauncher::awaitExit);
             runName = served;
         }
+        // 프로세스가 끝난 뒤에 상태를 다시 본다 → 응답 직후 다시 불러온 목록에 "서빙 중"으로 남지 않는다
         registry.refresh();
         return runName;
     }
@@ -226,6 +242,35 @@ public class RecommendationServerLauncher {
                     .orElse("추천 서버가 시작 중에 종료되었습니다.");
         } catch (IOException e) {
             return "추천 서버가 시작 중에 종료되었습니다.";
+        }
+    }
+
+    // 종료 신호 뒤 끝날 때까지 최대 STOP_WAIT 기다리고, 그래도 살아 있으면 강제로 끈다
+    static void awaitExit(Process process) {
+        try {
+            if (!process.waitFor(STOP_WAIT.toMillis(), TimeUnit.MILLISECONDS)) {
+                try {
+                    process.descendants().forEach(ProcessHandle::destroyForcibly);
+                } catch (UnsupportedOperationException ignored) {
+                    // 자식 프로세스를 알 수 없는 경우 → 본 프로세스만
+                }
+                process.destroyForcibly();
+                process.waitFor(STOP_WAIT.toMillis(), TimeUnit.MILLISECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static void awaitExit(ProcessHandle handle) {
+        try {
+            handle.onExit().get(STOP_WAIT.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            handle.destroyForcibly();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException ignored) {
+            // 이미 끝남
         }
     }
 
