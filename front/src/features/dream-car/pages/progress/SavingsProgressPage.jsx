@@ -56,7 +56,7 @@ function SavingsProgressPageContent() {
   const editingRecord = plan ? getSavingRecords(plan).find(record => record.id === editingId) : null;
   function persist(plans, message) {
     if (state.error) { setNotice('저장된 데이터 오류를 먼저 확인해 주세요. 기존 기록을 덮어쓰지 않았습니다.'); return false; }
-    try { localStorage.setItem(progressStorageKey, JSON.stringify(plans)); setState({ plans, error: '' }); setNotice(message); return true; } catch { setNotice('저장 공간을 사용할 수 없어 저장하지 못했습니다. 입력값을 유지했으니 다시 시도해 주세요.'); return false; }
+    try { localStorage.setItem(progressStorageKey, JSON.stringify(plans)); setState({ plans, error: '' }); setNotice(message); window.dispatchEvent(new Event(purchasePlanUpdatedEvent)); return true; } catch { setNotice('저장 공간을 사용할 수 없어 저장하지 못했습니다. 입력값을 유지했으니 다시 시도해 주세요.'); return false; }
   }
   function closeRecordModal() { setRecordModalOpen(false); setEditingId(null); setRecordDirty(false); }
   function openRecordModal(id = null) { setEditingId(id); setRecordDirty(false); setRecordModalOpen(true); }

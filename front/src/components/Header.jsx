@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { logout } from '../features/auth/authApi';
 import LogoutConfirmModal from '../features/auth/components/LogoutConfirmModal';
 import useAuthStore from '../stores/useAuthStore';
+import NotificationBell from '../features/notifications/components/NotificationBell';
 import { showToast } from '../stores/useToastStore';
 
 const HeaderWrapper = styled.header`
@@ -150,6 +151,7 @@ export default function Header() {
           {/* 로그인 복원 중에는 비워 둔다 → 로그인한 사람에게 "로그인" 버튼이 잠깐 보였다 바뀌는 깜빡임 방지 */}
           {!initialized ? null : member ? (
             <AccountArea>
+              <NotificationBell key={member.id} memberId={member.id} />
               <NavLink to="/mypage">{member.nickName}님</NavLink>
               <LogoutButton onClick={() => setIsLogoutOpen(true)}>로그아웃</LogoutButton>
             </AccountArea>
