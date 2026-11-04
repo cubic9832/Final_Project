@@ -747,3 +747,37 @@
   color: var(--color-primary);
   text-decoration: underline;
 }
+
+/* 11-04: 마이페이지 · 로그인과 버튼 통일 — 주 버튼(저장 · 중복 확인)은 로그인 버튼과 같은 남색,
+   보조 버튼(취소 · 변경 · 설정 · 만들기 · 다른 기기 모두 로그아웃)은 마이페이지 보조 버튼과 같은 연한 파랑 */
+.profile-page .profile-dark-button {
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+}
+
+.profile-page .profile-dark-button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.profile-page .my-outline-button {
+  height: 42px;
+  min-width: 72px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-blue-tint);
+  color: var(--color-primary);
+  font-size: 13px;
+}
+
+.profile-page .my-outline-button:hover:not(:disabled) {
+  background: #dde9f7;
+}
+
+.profile-page .my-outline-button.profile-small-button {
+  height: 36px;
+}
+
+/* [취소] 는 옆 [저장] 과 같은 높이 */
+.profile-page .profile-edit-buttons .my-outline-button {
+  height: 42px;
+}
