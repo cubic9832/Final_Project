@@ -1,6 +1,6 @@
 {
   "properties": {
-    "id": { "type": "long" },
+    "id": { "type": "keyword" },
     "brand": {
       "type": "text",
       "analyzer": "korean",

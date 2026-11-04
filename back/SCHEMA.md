@@ -1,3 +1,15 @@
+# 현재 공통 차량 스키마 (V31)
+
+차량 원본은 `managed_vehicles`로 통일했다. 공개 381건·검토 3건, 총 384개 사양이다. V26에서 데이터와 구형 ID를 통합하고 V27에서 성향 테스트 외래키를 문자열 ID로 옮긴 뒤 구형 테이블을 제거했다. V28은 관리자 부가 메타데이터를 보완한다.
+
+`vehicles`, `brands`, `favorite_vehicles`, `purchase_plans`, `recommendations`, `simulations`, `vehicle_preferences`, `analysis_factors`는 현재 스키마에서 제거됐다. 비어 있지 않으면 V27이 중단되도록 검사한다. `analysis_runs` 등 회원 진단 요약 테이블은 유지한다.
+
+현재 구성과 재학습: [공통 차량 카탈로그](../docs/vehicle-catalog.md).
+
+아래는 변경하지 않는 과거 V1~V5 마이그레이션의 설명이며 현재 테이블 목록이 아니다.
+
+---
+
 # 실제 DB 스키마
 
 `src/main/resources/db/migration/V1__create_schema.sql`은 제공된 CreditComPass ERD의 15개 테이블을 MySQL 8.0용으로 작성한 파일입니다.

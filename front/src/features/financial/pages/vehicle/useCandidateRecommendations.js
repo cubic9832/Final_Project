@@ -19,7 +19,7 @@ export default function useCandidateRecommendations(state) {
     const controller = new AbortController();
     pendingRequest.current = controller;
     setRecommending(true);
-    setNotice('차량별 가격·유지비를 계산하고 있습니다.');
+    setNotice('');
     try {
       const response = await getFinancialRecommendations(request, controller.signal);
       if (!controller.signal.aborted) navigate('/financial/result', { state: { diagnosis: state, result: response } });

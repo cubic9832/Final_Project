@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class VehicleResponse {
-    private Long id;
+    private String id;
     private String brand;
     private String name;
     private String trimName;

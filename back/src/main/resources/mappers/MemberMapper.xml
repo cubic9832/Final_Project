@@ -5,6 +5,7 @@
 <mapper namespace="com.kh.back.member.mapper.MemberMapper">
 
     <!-- 보완 11: 권한은 admin_accounts(V21)에 있는 회원만 ADMIN · SUPER_ADMIN, 없으면 USER -->
+    <!-- 보완 15: 탈퇴 회원(users.role = 'WITHDRAWN')은 줄이 남아 있어도 "없는 회원" 으로 본다 (로그인 · 남은 토큰 모두 MEMBER_NOT_FOUND) -->
     <!-- 9단계: 정지 중인지(suspended)는 DB 시각(NOW())으로 계산한다 — 서버 · DB 시간대가 달라도 어긋나지 않게 -->
     <!-- 컬럼은 snake_case, 필드는 camelCase. map-underscore-to-camel-case 설정이 자동으로 맞춰 준다 -->
     <select id="findById" resultType="com.kh.back.member.dto.MemberDto">
@@ -12,7 +13,7 @@
                u.suspended_until, (u.suspended_until IS NOT NULL AND u.suspended_until &gt; NOW()) AS suspended
         FROM users u
         LEFT JOIN admin_accounts a ON a.user_id = u.id
-        WHERE u.id = #{id}
+        WHERE u.id = #{id} AND u.role &lt;&gt; 'WITHDRAWN'
     </select>
 
     <select id="findByEmail" resultType="com.kh.back.member.dto.MemberDto">
@@ -20,7 +21,7 @@
                u.suspended_until, (u.suspended_until IS NOT NULL AND u.suspended_until &gt; NOW()) AS suspended
         FROM users u
         LEFT JOIN admin_accounts a ON a.user_id = u.id
-        WHERE u.email = #{email}
+        WHERE u.email = #{email} AND u.role &lt;&gt; 'WITHDRAWN'
     </select>
 
     <!-- 보완 3: 닉네임 중복 확인. 비교는 DB 정렬 규칙(utf8mb4_unicode_ci)을 따르므로 UNIQUE(V7)와 같은 기준 -->
@@ -47,21 +48,43 @@
     </update>
 
     <!-- 회원 탈퇴 (보완 4). users 를 참조하는 테이블(V1)을 먼저 정리한 뒤 회원을 지운다 -->
-    <delete id="deleteFavoriteVehicles">
-        DELETE FROM favorite_vehicles WHERE user_id = #{userId}
-    </delete>
-
-    <delete id="deletePurchasePlans">
-        DELETE FROM purchase_plans WHERE user_id = #{userId}
-    </delete>
-
-    <!-- 분석 입력 기록은 비회원 입력과 같은 형태(user_id NULL)로 남기고, 누구 것인지만 지운다 -->
+<!-- 분석 입력 기록은 비회원 입력과 같은 형태(user_id NULL)로 남기고, 누구 것인지만 지운다 -->
     <update id="detachInputSnapshots">
         UPDATE input_snapshots SET user_id = NULL WHERE user_id = #{userId}
     </update>
 
-    <delete id="deleteById">
-        DELETE FROM users WHERE id = #{id}
+    <!-- 보완 15 (11-03 회의): 회원 줄은 지우지 않고 "탈퇴 회원" 으로 남긴다 — 상담 기록 · 신고 · 콤파 대화의 근거를 남기기 위해.
+         개인정보는 알아볼 수 없는 값으로 바꾼다: 이메일이 바뀌므로 같은 이메일로 다시 가입하면 새 회원이 된다 (예전 기록과 연결 안 됨) -->
+    <update id="anonymize">
+        UPDATE users
+        SET role = 'WITHDRAWN', email = #{email}, nick_name = #{nickName}, password_hash = 'WITHDRAWN', suspended_until = NULL
+        WHERE id = #{id}
+    </update>
+
+    <!-- 예전에는 회원을 지울 때 ON DELETE CASCADE 로 같이 지워지던 개인 데이터 — 이제 회원 줄이 남으므로 직접 지운다 -->
+    <delete id="deleteProfile">
+        DELETE FROM user_profiles WHERE user_id = #{userId}
+    </delete>
+
+    <delete id="deleteSocialAccounts">
+        DELETE FROM social_accounts WHERE user_id = #{userId}
+    </delete>
+
+    <delete id="deleteAgreements">
+        DELETE FROM user_agreements WHERE user_id = #{userId}
+    </delete>
+
+    <delete id="deleteCurrentTaste">
+        DELETE FROM user_current_tastes WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 관리자가 탈퇴할 때: 권한 · 자주 쓰는 문구 -->
+    <delete id="deleteAdminAccount">
+        DELETE FROM admin_accounts WHERE user_id = #{userId}
+    </delete>
+
+    <delete id="deleteQuickReplies">
+        DELETE FROM chat_quick_reply WHERE admin_id = #{userId}
     </delete>
 
 </mapper>

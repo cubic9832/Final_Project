@@ -43,4 +43,9 @@ public interface ChatRoomService {
     void warn(Long actorId, Long roomId, String reason);
 
     void releaseRoomsOf(Long adminId);
+
+    void closeForSuspension(Long userId);
+
+    // 보완 15: 회원이 탈퇴하면 대기 · 진행 중 상담을 종료한다 (상담 기록은 남는다)
+    void closeForWithdrawal(Long userId);
 }

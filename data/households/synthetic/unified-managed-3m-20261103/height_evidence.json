@@ -1,0 +1,1922 @@
+{
+  "EXP-027e6e5de7da51e6": {
+    "value": 1490,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-1096d5d0d358b84e": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-2c3152a1ba982ed8": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-30c364dd501a8b7a": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-45728268fa65f06f": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-52fda7af61d13df5": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-63054d7480f3acf0": {
+    "value": 1490,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-6c853b7f124b2a46": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-6e4fd4c73de5bdd1": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-75ff9018091406c1": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-7897ac1b08a581e9": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-8b6444b54a72a320": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-e3a06c88c9b1182f": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-f5ea9f946d54a271": {
+    "value": 1490,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP-f7b668b9245f34d2": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-19770fc945dbcb9d": {
+    "value": 1710,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-1c3636dcde51e296": {
+    "value": 1710,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-6d61daadf2ccc487": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "EXP2-82f4694a3def2962": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-959c5ac1021e3b0b": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-97c138801a667ead": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-a135dad4439e6e41": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-a1f5ef9e2d29fd0a": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-abb355a7ab16bf5a": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "EXP2-ae2b75d7c5d425a2": {
+    "value": 1710,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-cf3a31dfcfe6829c": {
+    "value": 1500,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "EXP2-d0496081273cfded": {
+    "value": 1850,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-d53a247834bc35a8": {
+    "value": 1490,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "EXP2-f066e55498834f74": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "SPORT-0313da36e7595ef7": {
+    "value": 1310,
+    "status": "official-reference",
+    "source_url": "https://newsroom.toyota.eu/all-new-toyota-gr86/"
+  },
+  "SPORT-03970cd84d30d96f": {
+    "value": 1304,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.ch/content/dam/bmw/marketCH/bmw_ch/brochure/fr_CH/newvehicles/preis-lists/G29_Z4_Juli_2024_F.pdf.asset.1719311592338.pdf"
+  },
+  "SPORT-0aa5ec06e05bfbfe": {
+    "value": 1431,
+    "status": "official-reference",
+    "source_url": "https://www.mini.co.uk/en_GB/home/range/mini-cooper-convertible/technical-data.22GX.S07EP.html"
+  },
+  "SPORT-0c45e6ba03b35c07": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "SPORT-0eb9f32638b38d6b": {
+    "value": 1320,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "SPORT-107f17bb620ba8cd": {
+    "value": 1383,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.co.uk/en/all-models/4-series/coupe/bmw-4-series-coupe-technical-data.html"
+  },
+  "SPORT-4bb264913759e74b": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "SPORT-4f6544766d9ec799": {
+    "value": 1448,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.co.uk/en/all-models/4-series/gran-coupe/4-series-gran-coupe-2024-g26-technical-data.html"
+  },
+  "SPORT-5ea71e4b2e97abc7": {
+    "value": 1404,
+    "status": "official-reference",
+    "source_url": "https://www.press.bmwgroup.com/asia/article/attachment/T0443240EN/618422"
+  },
+  "SPORT-6a007c7fea67dfbc": {
+    "value": 1365,
+    "status": "cross-site-reported",
+    "source_url": "https://www.carsguide.com.au/maserati/grancabrio/car-dimensions"
+  },
+  "SPORT-6fd53300ad6c5cfb": {
+    "value": 1384,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.co.uk/en/all-models/4-series/4-series-cabrio/bmw-4-series-convertible-technical-data.html"
+  },
+  "SPORT-839c9159aedb4458": {
+    "value": 1403,
+    "status": "official-reference",
+    "source_url": "https://www.press.bmwgroup.com/global/article/attachment/T0442878EN/617892"
+  },
+  "SPORT-9b8a152a6b916393": {
+    "value": 1304,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.ch/content/dam/bmw/marketCH/bmw_ch/brochure/fr_CH/newvehicles/preis-lists/G29_Z4_Juli_2024_F.pdf.asset.1719311592338.pdf"
+  },
+  "SPORT-9ffbe45a9fd7cad6": {
+    "value": 1365,
+    "status": "cross-site-reported",
+    "source_url": "https://www.carsguide.com.au/maserati/grancabrio/car-dimensions"
+  },
+  "SPORT-aaacde75ec1de4df": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "SPORT-bf59f2a2a3aaea76": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "SPORT-e57a272b0b2fca6e": {
+    "value": 1320,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "SPORT-e767c60466be92fc": {
+    "value": 1442,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.co.uk/en/all-models/4-series/gran-coupe/4-series-gran-coupe-2024-g26-technical-data.html"
+  },
+  "SPORT-ed9f1e3b6a60f706": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "SPORT-eea982011b1ca734": {
+    "value": 1310,
+    "status": "official-reference",
+    "source_url": "https://newsroom.toyota.eu/all-new-toyota-gr86/"
+  },
+  "SPORT-f3297d0c4ea75370": {
+    "value": 1407,
+    "status": "official-reference",
+    "source_url": "https://www.press.bmwgroup.com/bulgaria/article/attachment/T0297283BG/432966"
+  },
+  "SPORT-f5326c56ad8df80e": {
+    "value": 1431,
+    "status": "official-reference",
+    "source_url": "https://www.mini.co.uk/en_GB/home/range/mini-cooper-convertible/technical-data.22GX.S07EP.html"
+  },
+  "V-0044b613009f7748": {
+    "value": 1480,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/ev4/specification"
+  },
+  "V-00f674d94357e621": {
+    "value": 1990,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-lounge-hybrid-catalog.pdf"
+  },
+  "V-03246901475ca53f": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-049d84937c97ad57": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-05ddec06ebe5113d": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-0610c5f2afaac210": {
+    "value": 1605,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq5-catalog.pdf"
+  },
+  "V-07ddb98a8309e8e0": {
+    "value": 1715,
+    "status": "official-reference",
+    "source_url": "https://www.genesis.com/kr/ko/models/gv80"
+  },
+  "V-08c6da2d63b963f5": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-0b42368eb362f17c": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-0bb1f2693415ff77": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-0d7f59c429c6292a": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-0f43c458707b24c4": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-0f655fc71eb8570e": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-1148f28b56f11c8d": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-165485f91c88e7c8": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-16bd39ceec4188b8": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-16dde464240a4a8e": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-190ba4c755b528d6": {
+    "value": 1545,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/niro/specification"
+  },
+  "V-19c8ef05355d9af2": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-1a2fb071cae19dc6": {
+    "value": 1545,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/niro/specification"
+  },
+  "V-1ab8626515143797": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge-hybrid-catalog.pdf"
+  },
+  "V-1bcd3a475be19802": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-1c9e5e02aeb45496": {
+    "value": 1560,
+    "status": "official-reference",
+    "source_url": "https://www.chevrolet.co.kr/content/dam/chevrolet/as/kr/ko/index/e-catalogue-price-list/2026/oct/trax-crossover-catalog-202610-e-catalog.pdf"
+  },
+  "V-1cc1b7798f3ca8db": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-1e59d2cf88131713": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-1e97c367b8b2a7b6": {
+    "value": 1990,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-limousine-hybrid_catalog.pdf"
+  },
+  "V-1ea88a23996f39d3": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-20b4be5730d6553a": {
+    "value": 1990,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-lounge-electric-catalog.pdf"
+  },
+  "V-2189ef47898e3f66": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-2292e2e4efc58cae": {
+    "value": 1990,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-lounge-catalog.pdf"
+  },
+  "V-240be12db34ba8b0": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-2476ec2f7d44326a": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-27887ee7cbab9543": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-27b311febff2b34c": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-28e35ab7d6ef4cbd": {
+    "value": 1700,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/ray/specification"
+  },
+  "V-295daaac0b367972": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-2b6bc1d3b49dc152": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-2e0fdfe89a4d121e": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-309fcb751ac5e682": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-321d01c3cfacf874": {
+    "value": 1805,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/palisade-hybrid-catalog.pdf"
+  },
+  "V-32a54466e07f3ed6": {
+    "value": 1560,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ev3.pdf"
+  },
+  "V-336d414c0bfa6ca5": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-354f355b55d99324": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-354f355b55d99324-11seat": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-3552655fed8cf2e8": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-378114de233e14d4": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-382856d132a74854": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-3886eccd1ec206ee": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-39287483c25f8023": {
+    "value": 1460,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-grandeur-hybrid-catalog.pdf"
+  },
+  "V-3a70e1aecf961a84": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-3cbbde8842d5ec6a": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-3d019184d238a603": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-3db52022f5132999": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-3ee6d9eb0ee3ca51": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-3ee7ff531ae67f81": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-40307546993d9378": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-4058fd5b3e326ce4": {
+    "value": 1605,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq5-catalog.pdf"
+  },
+  "V-43413ddb2e70c4b5": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-444e0e3b5c436f9a": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-481a86b7ecb83c8a": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-49023c7dde386135": {
+    "value": 1675,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ev5.pdf"
+  },
+  "V-499049dcaf1bd358": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-4992a62f769b2f63": {
+    "value": 1990,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-lounge-hybrid-catalog.pdf"
+  },
+  "V-4a0eb7956d875e53": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-4ecd449bcfe84bc6": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-4ed3170c9e6a0711": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-50f04ef5d5a83cf4": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-52f843db7c9b3dcc": {
+    "value": 1460,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-grandeur-catalog.pdf"
+  },
+  "V-53876460a134edd0": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-53e46729ce9d3c2f": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-54e87f67313082ea": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-56921e32d83713eb": {
+    "value": 1605,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq5-catalog.pdf"
+  },
+  "V-57d0930969a7505b": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-57ece7c7152d061b": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-581a3d6b917bb98d": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-58e2d4d6e84086a2": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-5b2210b42ca62a1d": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-5b2ab5cb91d2aa9c": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-5ca7a7f55e7ddf10": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-5cff62937ff25f78": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-5d1c10abd9f07cbb": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-5d91b536e43062eb": {
+    "value": 1990,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-limousine-electric-catalog.pdf"
+  },
+  "V-5dbcf369868398ac": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-5eee00bb634458e8": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-5f4da2f91536f0dd": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-62e0cb38eac57639": {
+    "value": 1480,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/ev4/specification"
+  },
+  "V-63cce431b22aa969": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-64c4c208c9a01ac9": {
+    "value": 1425,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-all-new-avante-catalog.pdf"
+  },
+  "V-66a7b9ceb8c3be1a": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-6706c72fceca7879": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-680d73c062953216": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-6af2938396a565bf": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-6b77312928132e11": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-6cc731ec2b6d03ed": {
+    "value": 1700,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/ray/specification"
+  },
+  "V-6d7695dc8385495e": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-6e683dc9eda4ece1": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-6ef5793704f06837": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge-hybrid-catalog.pdf"
+  },
+  "V-6f565a9bbfc6290d": {
+    "value": 1425,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-all-new-avante-catalog.pdf"
+  },
+  "V-6f81b67096aa7ca3": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-70b8f38e89078317": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-715dedd28ebdf536": {
+    "value": 1675,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ev5.pdf"
+  },
+  "V-71de732a43eaa3c4": {
+    "value": 1700,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/ray/specification"
+  },
+  "V-71e783ee54f51895": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-741faec94763182b": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-74264ca3a644637e": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-74e0ecc8924bace2": {
+    "value": 1560,
+    "status": "official-reference",
+    "source_url": "https://www.chevrolet.co.kr/content/dam/chevrolet/as/kr/ko/index/e-catalogue-price-list/2026/oct/trax-crossover-catalog-202610-e-catalog.pdf"
+  },
+  "V-7512039f72332b43": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-75c170f55ebf46e1": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-76ab737c0b1942ec": {
+    "value": 1425,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-all-new-avante-catalog.pdf"
+  },
+  "V-76cf273e0878e8f3": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-772a5c9f49b3228a": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-77c9bb01e171bfbc": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-78b24dde779f00dc": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-7a6e4b693348a2af": {
+    "value": 1460,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-grandeur-catalog.pdf"
+  },
+  "V-7c6bf0c7fdad02e8": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-7dcc8b40623f8ba7": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-7f662e069167dcda": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-80325bbc2b2a332e": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-808c60e1e96cb737": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-830bbc3777bfe3c4": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-844095d9fff024f9": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-8502ea48598fbafd": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-85e4e6c7e4bacf98": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-860e34ed8a4374d0": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-864ea8d64ac8a552": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-86c3b79222dc88b2": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-8975cee909bf0d63": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-8982a4a38042c344": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-89eca9bf45d07cb9": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-8c5ee5d4fbc1f6ee": {
+    "value": 1480,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/ev4/specification"
+  },
+  "V-8c6673301218147b": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-8f669ba6287bd6aa": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-8f69b3918b7ebf51": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-923809da72a4bb56": {
+    "value": 1560,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ev3.pdf"
+  },
+  "V-93c853f94ae1ad6d": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-956f3c7e58374da7": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-9611addacabd613d": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-97a85760eaf39612": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-98232df3ad9fe4a6": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-9d1224e390500902": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-a11900461d6610ff": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-a20d092ac64adade": {
+    "value": 1990,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-lounge-hybrid-catalog.pdf"
+  },
+  "V-a2909bddf36f5aa4": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-a3f19a84bbeaae57": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-a5ac585323fa02e0": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-a653bea6df1a8e60": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-a7b8348cfdc9aca8": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-ab3674ab910b1811": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-ab63421a8b27d732": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-ab6acd952a10f58f": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-ac58006081c96e21": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-adf4605489be598a": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-af6e97a51f640796": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-b0517b3b5605cfd7": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-b0f20733851ebb89": {
+    "value": 1560,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ev3.pdf"
+  },
+  "V-b1345be137e8a2e6": {
+    "value": 1560,
+    "status": "official-reference",
+    "source_url": "https://www.chevrolet.co.kr/content/dam/chevrolet/as/kr/ko/index/e-catalogue-price-list/2026/oct/trax-crossover-catalog-202610-e-catalog.pdf"
+  },
+  "V-b394a1fe9d20b21f": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-b40ccf2b6655f1c8": {
+    "value": 1460,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-grandeur-hybrid-catalog.pdf"
+  },
+  "V-b5960357aef1485b": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-b5b3d323b10f266d": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-b7354dcb1817d620": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-b760b756161dea52": {
+    "value": 1900,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-b8c54dcf00819400": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-b91ba9ede7f6fb62": {
+    "value": 1495,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-ioniq6-catalog.pdf"
+  },
+  "V-b9cc97d474045dc9": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-bf20621f1289b7c2": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-bf58e20c93bc6acd": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-bfcf6995f3269d9f": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-c00cbc6f35c9d03e": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-c095daeded4010d7": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-c1d974553cfc5ea4": {
+    "value": 1675,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ev5.pdf"
+  },
+  "V-c346665e926b6fba": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-c4b2b81a04f5017f": {
+    "value": 1990,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-limousine-hybrid_catalog.pdf"
+  },
+  "V-c51586b7f7b4b4a8": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-c71f8f2f997de41c": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-c797502845d81f01": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge-hybrid-catalog.pdf"
+  },
+  "V-c84beb1fd09a7d2f": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-c90c0264fb93fd17": {
+    "value": 1460,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-grandeur-catalog.pdf"
+  },
+  "V-c96bb9a8153a42b2": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-cf6f2d7d199ccf63": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-cfb3864831786d0d": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-cfe4c672c3883ce3": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d064e55ed7806828": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d1605b60b5fb7d05": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d1c7deecf0bce0a1": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-d273b0529ddabab6": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d2a973d8d43ff671": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d2bd33ec83c02e0c": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d400f3c5158572ac": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d4c8a72e96d47279": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d59481ae22c8585c": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d7301997ec0857a4": {
+    "value": 1485,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/morning/specification"
+  },
+  "V-d91d36c37d262f84": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-d9c96399680afe0e": {
+    "value": 1560,
+    "status": "official-reference",
+    "source_url": "https://www.chevrolet.co.kr/content/dam/chevrolet/as/kr/ko/index/e-catalogue-price-list/2026/oct/trax-crossover-catalog-202610-e-catalog.pdf"
+  },
+  "V-d9efd6396b5bb78f": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-dbe217b4a18ac473": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-dc44d74133e274cb": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-de765f6315ce9d02": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-df61e866c2f2b0cc": {
+    "value": 1715,
+    "status": "official-reference",
+    "source_url": "https://www.genesis.com/kr/ko/models/gv80"
+  },
+  "V-e06f0bbe332598d5": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-e1e1e97914b59e16": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-e2d0562a4e4a1b1d": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-e54a84fd664ec2c6": {
+    "value": 1480,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-e5622256bb513572": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-e5b7be7e384bb09e": {
+    "value": 1550,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ev6.pdf"
+  },
+  "V-e7fcb6d0fc152bb7": {
+    "value": 1545,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/niro/specification"
+  },
+  "V-e8b5890f58591810": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_mo_sportage.pdf"
+  },
+  "V-e965a0974dbeb52a": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-e9d82a9b4b4f4f99": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-ead94bb561ea201f": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-eaf2d231b0b9299e": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-ebd621882f8582b3": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-ebf8c5c3b52b032c": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-efc8ceb863dfb96c": {
+    "value": 1485,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/morning/specification"
+  },
+  "V-efdc973ffc5cfc48": {
+    "value": 1685,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ev5-gt.pdf"
+  },
+  "V-f0a7a6bec0e426cb": {
+    "value": 1700,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/ray/specification"
+  },
+  "V-f2caf287e54c07c2": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-f42fa2d52946eb5b": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-f439c35be1d7e94e": {
+    "value": 1605,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq5-catalog.pdf"
+  },
+  "V-f602ab49930016ac": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-f6aaeb6255c988ea": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-f74d0a20e8a8e51b": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "V-f7d0513154686ba5": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-f8bebd472f5109cf": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge-hybrid-catalog.pdf"
+  },
+  "V-fae92875173561cb": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-fb098506a10d0153": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-fb9ffeb6b909a638": {
+    "value": 1460,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-grandeur-catalog.pdf"
+  },
+  "V-fbc16a5e49890bfb": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-fca66ac7dba984a3": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-fe064d15a080c8bb": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "V-feec12c6666425a3": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "V-ff0f16294c9d93d2": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/sonata-the-edge_catalog.pdf"
+  },
+  "legacy-C0028": {
+    "value": 1805,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/palisade-catalog.pdf"
+  },
+  "legacy-C0029": {
+    "value": 1805,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/palisade-catalog.pdf"
+  },
+  "legacy-C0030": {
+    "value": 1805,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/palisade-catalog.pdf"
+  },
+  "legacy-C0031": {
+    "value": 1805,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/palisade-catalog.pdf"
+  },
+  "legacy-C0032": {
+    "value": 1805,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/palisade-hybrid-catalog.pdf"
+  },
+  "legacy-C0034": {
+    "value": 1805,
+    "status": "official-reference",
+    "source_url": "https://www.hyundai.com/contents/repn-car/catalog/palisade-hybrid-catalog.pdf"
+  },
+  "legacy-C0053": {
+    "value": 1485,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/morning/specification"
+  },
+  "legacy-C0054": {
+    "value": 1485,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/morning/specification"
+  },
+  "legacy-C0055": {
+    "value": 1485,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/morning/specification"
+  },
+  "legacy-C0056": {
+    "value": 1485,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/morning/specification"
+  },
+  "legacy-C0075": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "legacy-C0079": {
+    "value": 1445,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/kr/vehicles/k5/specification"
+  },
+  "legacy-C0095": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "legacy-C0096": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "legacy-C0097": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "legacy-C0098": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "legacy-IMP-C001": {
+    "value": 1624,
+    "status": "official-reference",
+    "source_url": "https://www.tesla.com/ownersmanual/modely/en_mx/GUID-1E76B638-7B12-4D9A-8767-94B7F1E92A0E.html"
+  },
+  "legacy-IMP-C002": {
+    "value": 1624,
+    "status": "official-reference",
+    "source_url": "https://www.tesla.com/ownersmanual/modely/en_mx/GUID-1E76B638-7B12-4D9A-8767-94B7F1E92A0E.html"
+  },
+  "legacy-IMP-C003": {
+    "value": 1468,
+    "status": "official-reference",
+    "source_url": "https://www.mercedes-benz.ie/services/manuals/e-class-saloon-2023-02-w214-mbux/vehicle-data/vehicle-dimensions/"
+  },
+  "legacy-IMP-C004": {
+    "value": 1515,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de_DE/all-models/5-series/sedan/5-series-sedan-2023-g60-technical-data.html/bmw-520i-limousine.bmw"
+  },
+  "legacy-IMP-C005": {
+    "value": 1515,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de_DE/all-models/5-series/sedan/5-series-sedan-2023-g60-technical-data.html/bmw-520i-limousine.bmw"
+  },
+  "legacy-IMP-C006": {
+    "value": 1515,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de_DE/all-models/5-series/sedan/5-series-sedan-2023-g60-technical-data.html/bmw-520i-limousine.bmw"
+  },
+  "legacy-IMP-C007": {
+    "value": 1515,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de_DE/all-models/5-series/sedan/5-series-sedan-2023-g60-technical-data.html/bmw-520i-limousine.bmw"
+  },
+  "legacy-IMP-C008": {
+    "value": 1555,
+    "status": "official-reference",
+    "source_url": "https://www.lexus.co.kr/models/ES-350h/"
+  },
+  "legacy-IMP-C009": {
+    "value": 1555,
+    "status": "official-reference",
+    "source_url": "https://www.lexus.co.kr/models/ES-350h/"
+  },
+  "legacy-IMP-C010": {
+    "value": 1555,
+    "status": "official-reference",
+    "source_url": "https://www.lexus.co.kr/models/ES-350h/"
+  },
+  "legacy-IMP-C011": {
+    "value": 1555,
+    "status": "official-reference",
+    "source_url": "https://www.lexus.co.kr/models/ES-350h/"
+  },
+  "legacy-IMP-C012": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de/bmw-modelle-vergleichen.html/X/G45/31GP/S02TE/content.q"
+  },
+  "legacy-IMP-C013": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de/bmw-modelle-vergleichen.html/X/G45/31GP/S02TE/content.q"
+  },
+  "legacy-IMP-C014": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de/bmw-modelle-vergleichen.html/X/G45/31GP/S02TE/content.q"
+  },
+  "legacy-IMP-C015": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de/bmw-modelle-vergleichen.html/X/G45/31GP/S02TE/content.q"
+  },
+  "legacy-IMP-C016": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "legacy-IMP-C017": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "legacy-IMP-C018": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "legacy-db-10": {
+    "value": 1450,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-11": {
+    "value": 1450,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-114": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-115": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-116": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-12": {
+    "value": 1450,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-120": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-13": {
+    "value": 1450,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-14": {
+    "value": 1450,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-158": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-159": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-160": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-167": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-168": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-170": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-171": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-172": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-173": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-176": {
+    "value": 1900,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-182": {
+    "value": 1450,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-183": {
+    "value": 1450,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-224": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-225": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-30": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-33": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-36": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-39": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-42": {
+    "value": 1700,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-6": {
+    "value": 1500,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-7": {
+    "value": 1500,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-8": {
+    "value": 1500,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-84": {
+    "value": 1500,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-85": {
+    "value": 1500,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "legacy-db-9": {
+    "value": 1500,
+    "status": "estimated-body-prior",
+    "source_url": ""
+  },
+  "research-09ba848c424f73d6": {
+    "value": 1320,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-2252ddfcfaf4f93d": {
+    "value": 1160,
+    "status": "official-reference",
+    "source_url": "https://www.lamborghini.com/sites/it-en/files/DAM/lamborghini/facelift_2019/model_detail/revuelto/2024/brochure/07_23/REVUELTO_DIGITAL_BROCHURE_EN_2024.pdf"
+  },
+  "research-325b63506b5cf709": {
+    "value": 1301,
+    "status": "official-reference",
+    "source_url": "https://www.ferrarisouthbay.com/new-vehicles/amalfi"
+  },
+  "research-39295d8e95003284": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-3be8660b2daab103": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-41dbe8464511fe28": {
+    "value": 1320,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-4ee3df1a41b7dede": {
+    "value": 1320,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-6cd54995b2928c34": {
+    "value": 1191,
+    "status": "official-reference",
+    "source_url": "https://www.ferrari.com/content/dam/ferrari-fcom/old/pdf/CS_296_GTS_final_gbr.pdf"
+  },
+  "research-81f001cd557917d0": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-901d5a74773caa55": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-90fba97cde44e041": {
+    "value": 1320,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-94eaa971ad63e86a": {
+    "value": 1306,
+    "status": "official-reference",
+    "source_url": "https://www.ferrarisouthbay.com/new-vehicles/roma-spider"
+  },
+  "research-b2432b18494d0213": {
+    "value": 1187,
+    "status": "official-reference",
+    "source_url": "https://www.ferrarisouthbay.com/new-vehicles/296-gtb"
+  },
+  "research-c096cac3883cc344": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-d386d919e490ca62": {
+    "value": 1320,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "research-d40dc69716d07f60": {
+    "value": 1292,
+    "status": "official-reference",
+    "source_url": "https://www.ferrarisouthbay.com/new-vehicles/12-cilindri"
+  },
+  "research-f4a205961e52ed2b": {
+    "value": 1350,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-03d3766d44d98675": {
+    "value": 1642,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de/neufahrzeuge/x/x1/bmw-x1-technische-daten.html"
+  },
+  "supp-3b1a87bb6b3f1fa6": {
+    "value": 1621,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.co.th/en/all-models/x-series/X4/bmw-X4-technical-data.html"
+  },
+  "supp-3c90e23f0266eb3f": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-5f9725c71abd1153": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-6b9efd8429d4ff40": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-705332910b044385": {
+    "value": 1440,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de/neufahrzeuge/3er/bmw-3-er-touring/bmw-3er-touring-technische-daten.html"
+  },
+  "supp-73b5c7015451b933": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-7649f161ed165de2": {
+    "value": 1450,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-8952b93576f29ab7": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-89cd283873134273": {
+    "value": 1700,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ray-ev.pdf"
+  },
+  "supp-94a653523ded614f": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-9f6be1db30c9df4c": {
+    "value": 1700,
+    "status": "official-reference",
+    "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/catalog/catalog_ray-ev.pdf"
+  },
+  "supp-ba096b3dfe19c304": {
+    "value": 1515,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de_DE/all-models/5-series/sedan/5-series-sedan-2023-g60-technical-data.html/bmw-520i-limousine.bmw"
+  },
+  "supp-cd1d2d189f7eb993": {
+    "value": 1660,
+    "status": "estimated",
+    "source_url": ""
+  },
+  "supp-d078eb022e6e0a57": {
+    "value": 1765,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.co.uk/content/bmw/marketGB/bmw_co_uk/en/all-models/x-models/x5/bmw-x5-technical-data.html"
+  },
+  "supp-e44a5324b8cefbf6": {
+    "value": 1660,
+    "status": "official-reference",
+    "source_url": "https://www.bmw.de/de/bmw-modelle-vergleichen.html/X/G45/31GP/S02TE/content.q"
+  }
+}

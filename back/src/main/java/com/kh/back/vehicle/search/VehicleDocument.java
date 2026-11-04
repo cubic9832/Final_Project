@@ -39,7 +39,7 @@ public class VehicleDocument {
     private static final Map<String, String> CONDITION_LABELS = Map.of("NEW", "신차", "USED", "중고차");
 
     @Id
-    private Long id;
+    private String id;
     private String brand;
     private String name;
     private String trimName;

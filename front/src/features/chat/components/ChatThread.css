@@ -8,8 +8,9 @@
 
 .chat-thread .chat-connection {
   margin: 0;
+  align-self: flex-end; /* 대화창 오른쪽 위 */
   font-size: var(--font-caption);
-  color: var(--color-danger);
+  color: var(--color-muted); /* 끊겼을 때: 다시 연결될 때까지 회색 */
 }
 
 .chat-thread .chat-connection.is-on {

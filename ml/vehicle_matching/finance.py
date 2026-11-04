@@ -49,7 +49,7 @@ class Profile:
             raise ValueError('months: choose 0, 12, 24, 36, 48, 60 or 72')
         if self.annual_rate > 1 or self.purpose not in PURPOSES:
             raise ValueError('Invalid rate or purpose')
-        if self.preferred_fuel is not None and self.preferred_fuel not in FUELS:
+        if self.preferred_fuel is not None and self.preferred_fuel not in (*FUELS, 'HYDROGEN'):
             raise ValueError('Unknown preferred fuel')
         if type(self.charging_available) is not bool:
             raise ValueError('charging_available must be boolean')
@@ -82,12 +82,13 @@ class Assumptions:
     # Unknown efficiency is an interval assumption, never a vehicle specification.
     efficiency_ranges: tuple = ((8, 14), (14, 22), (10, 16), (6, 10), (3, 6))
     energy_prices: tuple = (1800, 1800, 1700, 1100, 350)
+    hydrogen_price_per_kg: float = 13000  # Explicit development assumption, not a current market quote.
 
     def __post_init__(self):
         if len(self.efficiency_ranges) != len(FUELS) or len(self.energy_prices) != len(FUELS):
             raise ValueError('Fuel assumptions layout mismatch')
         numbers = [self.acquisition_ratio, self.monthly_insurance, self.monthly_maintenance, self.monthly_tax,
-                   self.stress_rate_addition, self.stress_running_multiplier, *self.energy_prices]
+                   self.stress_rate_addition, self.stress_running_multiplier, self.hydrogen_price_per_kg, *self.energy_prices]
         if any(not math.isfinite(x) or x < 0 for x in numbers) or self.stress_running_multiplier < 1:
             raise ValueError('Invalid cost assumptions')
         if any(len(pair) != 2 or not 0 < pair[0] <= pair[1] for pair in self.efficiency_ranges):
@@ -115,10 +116,14 @@ def assess(profile: Profile, vehicle: Vehicle, assumptions=Assumptions()):
         # may pay the purchase price; income is checked against running costs.
         profile = replace(profile, down_payment=min(vehicle.price, profile.liquid_assets-profile.emergency_reserve),
                           months=0, annual_rate=0, financing_mode='automatic')
-    fuel_index = FUELS.index(vehicle.fuel)
-    low, high = assumptions.efficiency_ranges[fuel_index]
+    if vehicle.fuel == 'HYDROGEN':
+        low, high = 80, 120  # km/kg interval when the official efficiency is unavailable.
+        energy = assumptions.hydrogen_price_per_kg
+    else:
+        fuel_index = FUELS.index(vehicle.fuel)
+        low, high = assumptions.efficiency_ranges[fuel_index]
+        energy = assumptions.energy_prices[fuel_index]
     efficiency = vehicle.efficiency or (low + high) / 2
-    energy = assumptions.energy_prices[fuel_index]
     running = profile.annual_distance / 12 / efficiency * energy
     fixed = sum(getattr(vehicle, key) if getattr(vehicle, key) is not None else getattr(assumptions, key) for key in ("monthly_insurance", "monthly_maintenance", "monthly_tax"))
     total_price = round(vehicle.price, 2)
@@ -129,7 +134,7 @@ def assess(profile: Profile, vehicle: Vehicle, assumptions=Assumptions()):
         running = math.ceil(round(running+fixed,2))-fixed
     monthly_cost = payment + running + fixed
     available = profile.monthly_income - profile.monthly_expenses - profile.existing_monthly_payment - profile.monthly_savings
-    reasons = []
+    reasons = [] if vehicle.recommendation_enabled else ['catalog-not-published']
     if profile.purchase_price_ceiling and total_price>profile.purchase_price_ceiling:
         reasons.append('purchase-price-ceiling')
     if profile.months == 0 and principal > 0:

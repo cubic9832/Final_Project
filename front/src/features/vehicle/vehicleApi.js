@@ -64,3 +64,8 @@ export function selectPresetVehicles(ids, vehicles) {
   }
   return selected;
 }
+
+export async function getPlanningVehicles(signal) {
+  const response = await client.get('/vehicles/recommendation-catalog', { signal });
+  return response.data.data;
+}
