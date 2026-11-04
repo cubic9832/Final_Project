@@ -182,8 +182,9 @@ function FavoritesCard({ state }) {
       )}
       {state.status === 'done' && state.data.length > 0 && (
         <>
+          {/* 저장한 차를 모두 보여 주고, 4대부터는 목록 안에서 스크롤 (높이는 MyPage.css .my-fav-list) */}
           <ul className="my-fav-list">
-            {state.data.slice(0, 3).map((vehicle) => (
+            {state.data.map((vehicle) => (
               <li key={vehicle.id}>
                 <Link className="my-fav-line" to={`/vehicles/${vehicle.id}`}>
                   <strong>{vehicle.name}</strong>
@@ -192,7 +193,6 @@ function FavoritesCard({ state }) {
               </li>
             ))}
           </ul>
-          {state.data.length > 3 && <p className="my-empty">외 {state.data.length - 3}대</p>}
           {/* 저장한 뒤에도 더 찾아볼 수 있게 [차량 찾기] 와 [비교하기] 를 함께 */}
           <div className="my-fav-actions">
             <Link className="my-outline-button" to="/search">차량 찾기</Link>

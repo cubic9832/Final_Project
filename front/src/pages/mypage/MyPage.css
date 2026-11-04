@@ -855,8 +855,16 @@
   gap: 8px;
 }
 
-/* 관심차량 카드: [차량 찾기] [비교하기] 한 줄 */
+/* 관심차량 카드: [차량 찾기] [비교하기] 한 줄, 다른 카드 버튼처럼 카드 맨 아래로 */
 .my-fav-actions {
   display: flex;
   gap: 8px;
+  margin-top: auto;
+}
+
+/* 관심차량이 3대를 넘으면 목록 안에서 스크롤 (한 줄 약 40px × 3 + 간격) */
+.my-card-fill .my-fav-list {
+  max-height: 136px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
