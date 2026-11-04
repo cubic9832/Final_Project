@@ -854,3 +854,9 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* 관심차량 카드: [차량 찾기] [비교하기] 한 줄 */
+.my-fav-actions {
+  display: flex;
+  gap: 8px;
+}

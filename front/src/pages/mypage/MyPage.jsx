@@ -193,7 +193,11 @@ function FavoritesCard({ state }) {
             ))}
           </ul>
           {state.data.length > 3 && <p className="my-empty">외 {state.data.length - 3}대</p>}
-          <Link className="my-outline-button" to="/vehicles/compare">비교하기</Link>
+          {/* 저장한 뒤에도 더 찾아볼 수 있게 [차량 찾기] 와 [비교하기] 를 함께 */}
+          <div className="my-fav-actions">
+            <Link className="my-outline-button" to="/search">차량 찾기</Link>
+            <Link className="my-outline-button" to="/vehicles/compare">비교하기</Link>
+          </div>
         </>
       )}
     </section>
