@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass, replace
 from vehicle_matching.catalog import FUELS, Vehicle
 
 PURPOSES = ('commute', 'leisure', 'family', 'business')
-VEHICLE_PAYMENT_MONTHS = (0, 12, 24, 36, 48, 60)
+VEHICLE_PAYMENT_MONTHS = (0, 6, 12, 18, 24, 36, 48, 60, 72)
 # Screen simulation rate for the user-chosen installment, not a lender quote.
 INCOME_RATIO_ANNUAL_RATE = 0.06
 
@@ -74,7 +74,7 @@ class Profile:
         if type(self.vehicle_income_ratio) is not int or not 0 <= self.vehicle_income_ratio <= 100:
             raise ValueError('vehicle_income_ratio: integer percent from 0 to 100 required')
         if type(self.vehicle_payment_months) is not int or self.vehicle_payment_months not in VEHICLE_PAYMENT_MONTHS:
-            raise ValueError('vehicle_payment_months: choose 0, 12, 24, 36, 48 or 60')
+            raise ValueError('vehicle_payment_months: choose 0, 6, 12, 18, 24, 36, 48, 60 or 72')
         if self.vehicle_income_ratio == 0 and self.vehicle_payment_months:
             raise ValueError('vehicle_payment_months requires vehicle_income_ratio')
         if self.preferred_body_type not in ('any', 'SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'COUPE', 'CONVERTIBLE', 'ROADSTER', 'OTHER'):

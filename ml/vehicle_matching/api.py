@@ -53,7 +53,7 @@ class ProfileRequest(BaseModel):
     preferred_body_type: Literal['any', 'SEDAN', 'SUV', 'HATCHBACK', 'WAGON', 'MPV', 'BOX', 'PICKUP', 'COUPE', 'CONVERTIBLE', 'ROADSTER', 'OTHER'] = 'any'
     body_importance: int = Field(default=3, ge=1, le=5, strict=True)
     vehicle_income_ratio: int = Field(default=0, ge=0, le=100, strict=True)
-    vehicle_payment_months: Literal[0, 12, 24, 36, 48, 60] = 0
+    vehicle_payment_months: Literal[0, 6, 12, 18, 24, 36, 48, 60, 72] = 0
     financing_mode: Literal['fixed', 'automatic', 'recommendation'] = Field(default='recommendation', exclude=True, deprecated=True)
 
 
