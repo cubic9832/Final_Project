@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import { ArrowUp, ArrowDown, Car, Copy, Pencil, Trash2 } from 'lucide-react';
 import theme from '../../../styles/theme';
 import './VehicleBoard.css';
-import { formatVehiclePrice } from './formatVehiclePrice.js';
+import { formatVehiclePrice } from '../formatVehiclePrice.js';
 
 const columns = [['number', '번호'], ['vehicle', '차량·트림'], ['year', '연식'], ['fuel', '연료'], ['price', '판매 가격'], ['status', '관리 상태']];
 
