@@ -376,14 +376,12 @@
   min-height: 0;
 }
 
-/* 이름 줄: 왼쪽 닉네임, 오른쪽 수신 상태 (버튼은 다음 줄) */
+/* 이름 줄은 한 줄 전체, 버튼 줄 오른쪽 끝에 수신 상태 (대화창 바로 위) */
 .admin-chat-who {
   flex: 1 1 100%;
 }
 
-.admin-chat-name {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-12);
+.admin-chat-head .chat-live {
+  margin-left: auto;
+  align-self: flex-end;
 }

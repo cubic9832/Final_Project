@@ -150,11 +150,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
     <>
       <div className="admin-chat-head">
         <div className="admin-chat-who">
-          {/* 11-04: 수신 상태는 이름 줄 오른쪽 — 대화창 위 한 줄을 대화 공간으로 돌린다 */}
-          <div className="admin-chat-name">
-            <h3>{room.userNickName}</h3>
-            <ConnectionStatus connected={chat.connected} />
-          </div>
+          <h3>{room.userNickName}</h3>
           <p>
             {STATUS_LABELS[room.status]} · 담당 {room.assignedAdminNickName ? (mine ? '나' : room.assignedAdminNickName) : '없음'}
             {room.warningCount > 0 && ` · 경고 ${room.warningCount}회`}
@@ -200,6 +196,8 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
               })}>제한 풀기</button>
           )}
         </div>
+        {/* 11-04: 수신 상태는 버튼 줄 오른쪽 끝(대화창 바로 위) — 대화창 위 따로 한 줄을 대화 공간으로 돌린다 */}
+        <ConnectionStatus connected={chat.connected} />
       </div>
 
       {confirm && <ChatConfirmModal {...confirm} onClose={() => setConfirm(null)} />}
