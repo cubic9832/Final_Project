@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# 개발 환경 한 번에 실행: MySQL·Elasticsearch·Kibana(Docker) + Spring Boot + Vite
-#   ./dev.sh         전체 실행 (Ctrl+C 로 back/front 종료, Docker 컨테이너는 유지)
+# 개발 환경 한 번에 실행: MySQL·Elasticsearch·Kibana(Docker) + Spring Boot + 추천 서버(FastAPI) + Vite
+#   ./dev.sh         전체 실행 (Ctrl+C 로 back/ml/front 종료, Docker 컨테이너는 유지)
+#   추천 서버는 ml/.venv 가 있을 때만 띄운다 (만드는 방법: ml/README.md). 없으면 경고만 하고 나머지는 실행
 #   ./dev.sh down    Docker 컨테이너 중지 (데이터 유지)
 #   ./dev.sh reset   Docker 컨테이너와 데이터 삭제 (다음 실행 때 Flyway 가 처음부터 적용)
 #   DB_PORT=3308 ./dev.sh   기본 3307 대신 다른 포트를 쓸 때
@@ -137,11 +138,24 @@ print_lan_access() {
 }
 
 APP_PIDS=()
+ML_PORT="${ML_PORT:-8002}"
+
+# 추천 서버(FastAPI). Windows dev.ps1 의 ml/serve-candidates.ps1 과 같은 서버
+start_ml() {
+  if is_port_in_use "$ML_PORT"; then
+    echo "[ml] $ML_PORT 포트에 이미 켜진 추천 서버를 그대로 씁니다."
+  elif [ ! -x ml/.venv/bin/python ]; then
+    echo "[ml] ml/.venv 가 없어 추천 서버를 건너뜁니다. 만들기: ml/README.md 의 mac/Linux 설치 방법" >&2
+  else
+    PORT="$ML_PORT" ./ml/serve-candidates.sh &
+    APP_PIDS+=($!)
+  fi
+}
 
 stop_apps() {
   trap - INT TERM EXIT
   echo
-  echo "back/front 를 종료합니다. (Docker 컨테이너는 유지: ./dev.sh down 으로 중지)"
+  echo "back/ml/front 를 종료합니다. (Docker 컨테이너는 유지: ./dev.sh down 으로 중지)"
   kill "${APP_PIDS[@]}" 2>/dev/null || true
   wait 2>/dev/null || true
 }
@@ -162,10 +176,11 @@ start_apps() {
   APP_PIDS+=($!)
   (cd back && exec ./gradlew bootRun) &
   APP_PIDS+=($!)
+  start_ml
   (cd front && exec npm run dev) &
   APP_PIDS+=($!)
 
-  echo "front: http://localhost:5173  /  back: http://localhost:8080"
+  echo "front: http://localhost:5173  /  back: http://localhost:8080  /  ml: http://127.0.0.1:${ML_PORT}/docs"
   echo "elasticsearch: http://localhost:$ES_PORT  /  kibana: http://localhost:${KIBANA_PORT:-5601}"
   wait
 }

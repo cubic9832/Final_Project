@@ -24,8 +24,16 @@ python -m venv ml/.venv
 ./ml/serve-candidates.ps1
 ```
 
+mac/Linux (프로젝트 루트):
+
+```bash
+python3 -m venv ml/.venv   # python3 가 3.14 보다 새로워 torch 설치가 안 되면: uv venv --python 3.13 ml/.venv
+ml/.venv/bin/python -m pip install -e "./ml[serve,test]"   # uv 로 만들었다면: uv pip install --python ml/.venv/bin/python -e "./ml[serve,test]"
+./ml/serve-candidates.sh
+```
+
 API는 `127.0.0.1:8002`, 추천은 `POST /api/v2/recommendations`를 사용한다.
-루트 `dev.ps1`도 같은 서버를 실행한다. 모델 교체 후 서버를 재시작한다.
+루트 `dev.ps1` · `dev.sh`도 같은 서버를 실행한다 (`dev.sh`는 `ml/.venv`가 있을 때만). 모델 교체 후 서버를 재시작한다.
 기존 hhc 모델을 사용하려면 `-Run 'outputs/models/candidate-preferences/20261027-seating-verified-v1'`을 지정한다.
 
 ## 데이터 재생성과 학습
