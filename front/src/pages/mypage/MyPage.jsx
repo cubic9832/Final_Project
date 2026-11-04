@@ -158,9 +158,9 @@ function ProfileCard({ state }) {
       <div className="my-profile-actions">
         <Link className="my-outline-button" to="/mypage/profile">개인정보 · 계정 관리</Link>
         {/* 8단계: 1:1 상담 — 관리자는 관리자 대시보드의 [1:1 상담] 탭에서 답한다 */}
-        {!isAdminRole(me.role) && <Link className="my-outline-button" to="/mypage/consultation">1:1 상담</Link>}
+        {!isAdminRole(me.role) && <Link className="my-outline-button my-soft-button" to="/mypage/consultation">1:1 상담</Link>}
         {/* 7단계: 관리자 · 총관리자는 일반 로그인 후 여기서도 관리자 대시보드로 */}
-        {isAdminRole(me.role) && <Link className="my-plan-button my-inline-button" to="/console">관리자 대시보드</Link>}
+        {isAdminRole(me.role) && <Link className="my-outline-button my-soft-button" to="/console">관리자 대시보드</Link>}
       </div>
     </section>
   );
@@ -199,8 +199,8 @@ function FavoritesCard({ state }) {
           </ul>
           {/* 저장한 뒤에도 더 찾아볼 수 있게 [차량 찾기] 와 [비교하기] 를 함께 */}
           <div className="my-fav-actions">
-            <Link className="my-outline-button" to="/search">차량 찾기</Link>
             <Link className="my-outline-button" to="/vehicles/compare">비교하기</Link>
+            <Link className="my-outline-button my-soft-button" to="/search">차량 찾기</Link>
           </div>
         </>
       )}
