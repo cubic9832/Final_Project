@@ -357,9 +357,37 @@
   }
 }
 
-/* 11-04: 상담을 맡자마자 스크롤 없이 입력칸까지 보이게 — 대화창 높이 = 화면 높이 − (헤더 · 만족도 줄 · 상담 머리 · 입력칸)
-   회원 상담 화면은 ConsultationPage.css 에서 따로 맞춘다 */
+/* 11-04: 오른쪽 대화 카드 높이 = 왼쪽 목록 카드 높이 (목록은 4개까지 보이고 그 이상은 스크롤)
+   대화창이 남는 높이를 채워서, 상담을 맡자마자 스크롤 없이 입력칸까지 보인다 */
+.admin-chat {
+  align-items: stretch;
+}
+
+.admin-chat .admin-chat-list ul {
+  height: 404px; /* 상담 4개(95px × 4 + 간격 8px × 3) — 목록이 적어도 대화 카드 높이가 그대로 */
+  max-height: none;
+}
+
+.admin-chat-detail .chat-thread {
+  flex: 1;
+  contain: size; /* 대화 길이가 카드 높이를 정하지 않게 (높이는 목록 카드 기준) */
+  min-height: 300px; /* 대화창 최소 240px + 입력칸 */
+}
+
 .admin-chat-detail .chat-thread .chat-board {
-  height: calc(100vh - 490px);
+  flex: 1;
+  height: 0; /* 대화창은 입력칸을 뺀 남는 높이를 채운다 */
   min-height: 240px;
+}
+
+/* 이름 줄: 왼쪽 닉네임, 오른쪽 수신 상태 (버튼은 다음 줄) */
+.admin-chat-who {
+  flex: 1 1 100%;
+}
+
+.admin-chat-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
 }

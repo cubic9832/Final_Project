@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import ChatConfirmModal from '../../features/chat/components/ChatConfirmModal';
-import ChatThread from '../../features/chat/components/ChatThread';
+import ChatThread, { ConnectionStatus } from '../../features/chat/components/ChatThread';
 import ChoiceWithOther from '../../features/chat/components/ChoiceWithOther';
 import { choiceText, OTHER } from '../../features/chat/choice';
 import {
@@ -149,8 +149,12 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
   return (
     <>
       <div className="admin-chat-head">
-        <div>
-          <h3>{room.userNickName}</h3>
+        <div className="admin-chat-who">
+          {/* 11-04: 수신 상태는 이름 줄 오른쪽 — 대화창 위 한 줄을 대화 공간으로 돌린다 */}
+          <div className="admin-chat-name">
+            <h3>{room.userNickName}</h3>
+            <ConnectionStatus connected={chat.connected} />
+          </div>
           <p>
             {STATUS_LABELS[room.status]} · 담당 {room.assignedAdminNickName ? (mine ? '나' : room.assignedAdminNickName) : '없음'}
             {room.warningCount > 0 && ` · 경고 ${room.warningCount}회`}
@@ -240,6 +244,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
         disabledText={disabledText}
         onSend={chat.send}
         quickReplies
+        showConnection={false}
       />
       {isSuper && <RoomFeedback roomId={room.id} reportCount={room.reportCount} />}
     </>
