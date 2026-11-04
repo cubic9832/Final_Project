@@ -85,8 +85,8 @@ function startNewTaste(memberId, data) {
     { phase: 'question', step: 0, answers: Array(data.questionCount).fill(null) });
 }
 
-// 최근 재무 진단 3건 (재무 진단 결과 화면에서 저장한 기록, 최신 순). 없으면 []
-const loadDiagnoses = () => getRecentDiagnoses(3);
+// 재무 진단 기록 최대 20건 (재무 진단 결과 화면에서 저장한 기록, 최신 순, 서버 최대 20). 없으면 []
+const loadDiagnoses = () => getRecentDiagnoses(20);
 
 const loadFavorites = async () => {
   const ids = readFavoriteIds();
@@ -236,38 +236,46 @@ function FavoritesCard({ state }) {
   );
 }
 
-// 내 취향 — 첫 차 취향 테스트 결과 (조원 기능, GET /members/me/current-taste)
-// 최근 재무 진단 — 재무 진단 결과 화면에서 저장한 기록 (GET /members/me/diagnoses). 맨 위 = 가장 최근
+// 재무 진단 기록 — 재무 진단 결과 화면에서 저장한 기록 (GET /members/me/diagnoses). 맨 위 = 가장 최근
+// 기록 줄을 누르면 위 4칸이 그 진단으로 바뀐다 (처음엔 가장 최근 진단)
 function DiagnosisCard({ state }) {
-  const [latest, ...older] = state.status === 'done' ? state.data : [];
+  const records = state.status === 'done' ? state.data : [];
+  const [selectedId, setSelectedId] = useState(null);
+  // 고른 기록이 없거나 목록에서 사라졌으면 가장 최근 진단을 보여 준다
+  const shown = records.find((record) => record.analysisId === selectedId) ?? records[0];
+
   return (
     <section className="my-card my-insight-card" aria-labelledby="my-diagnosis-title">
       <div className="my-insight-head">
         <div>
-          <h2 id="my-diagnosis-title">최근 재무 진단</h2>
-          <p>{latest ? `${formatDate(latest.completedAt?.slice(0, 10))} 진단` : '재무 진단을 마치면 결과가 여기에 저장돼요'}</p>
+          <h2 id="my-diagnosis-title">재무 진단</h2>
+          <p>{shown ? `${formatDate(shown.completedAt?.slice(0, 10))} 진단${shown === records[0] ? ' · 가장 최근' : ''}` : '재무 진단을 마치면 결과가 여기에 저장돼요'}</p>
         </div>
       </div>
       {state.status === 'loading' && <CardLoading />}
       {state.status === 'error' && <CardError message="재무 진단 기록을 불러오지 못했어요." onRetry={state.reload} />}
-      {state.status === 'done' && !latest && <p className="my-empty">아직 저장된 재무 진단이 없어요.</p>}
-      {latest && (
+      {state.status === 'done' && !shown && <p className="my-empty">아직 저장된 재무 진단이 없어요.</p>}
+      {shown && (
         <>
           <div className="my-finance-grid">
-            <div><span>월 실수령액</span><strong>{formatManwon(latest.monthlyIncome)}</strong></div>
+            <div><span>월 실수령액</span><strong>{formatManwon(shown.monthlyIncome)}</strong></div>
             <div>
               <span>구매 전 월 여유금</span>
-              <strong className={latest.monthlyAvailable > 0 ? 'is-good' : undefined}>{formatManwon(latest.monthlyAvailable)}</strong>
+              <strong className={shown.monthlyAvailable > 0 ? 'is-good' : undefined}>{formatManwon(shown.monthlyAvailable)}</strong>
             </div>
-            <div><span>사용 가능 예금</span><strong>{formatManwon(latest.purchaseFunds)}</strong></div>
-            <div><span>구매 가격 상한</span><strong>{latest.priceUpper != null ? formatManwon(latest.priceUpper) : '산정 정보 없음'}</strong></div>
+            <div><span>사용 가능 예금</span><strong>{formatManwon(shown.purchaseFunds)}</strong></div>
+            <div><span>구매 가격 상한</span><strong>{shown.priceUpper != null ? formatManwon(shown.priceUpper) : '산정 정보 없음'}</strong></div>
           </div>
-          {older.length > 0 && (
-            <ul className="my-mini-history" aria-label="이전 재무 진단">
-              {older.map((record) => (
+          {/* 진단 기록 전체 (최대 20건), 3줄을 넘으면 목록 안에서 스크롤 — 높이는 MyPage.css .my-mini-history */}
+          {records.length > 1 && (
+            <ul className="my-mini-history" aria-label="재무 진단 기록">
+              {records.map((record) => (
                 <li key={record.analysisId}>
-                  <strong>{formatDate(record.completedAt?.slice(0, 10))} 진단</strong>
-                  <span>월 여유금 {formatManwon(record.monthlyAvailable)} · 가격 상한 {record.priceUpper != null ? formatManwon(record.priceUpper) : '없음'}</span>
+                  <button type="button" className={record === shown ? 'is-selected' : undefined}
+                    aria-pressed={record === shown} onClick={() => setSelectedId(record.analysisId)}>
+                    <strong>{formatDateTime(record.completedAt)} 진단</strong>
+                    <span>월 여유금 {formatManwon(record.monthlyAvailable)} · 가격 상한 {record.priceUpper != null ? formatManwon(record.priceUpper) : '없음'}</span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -275,12 +283,13 @@ function DiagnosisCard({ state }) {
         </>
       )}
       <div className="my-insight-actions">
-        <Link className="my-plan-button my-inline-button" to="/financial">{latest ? '새로 진단하기' : '재무 진단 하기'}</Link>
+        <Link className="my-plan-button my-inline-button" to="/financial">{shown ? '새로 진단하기' : '재무 진단 하기'}</Link>
       </div>
     </section>
   );
 }
 
+// 내 취향 — 차량 취향 테스트 결과 (조원 기능, GET /members/me/current-taste)
 function TasteCard({ state }) {
   const memberId = useAuthStore((store) => store.member?.id);
 

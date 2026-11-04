@@ -702,13 +702,39 @@
   border-top: 1px solid #dce3ec;
 }
 
+/* 11-04: 기록이 3줄을 넘으면 목록 안에서 스크롤 (한 줄 약 41px) */
+.my-mini-history {
+  max-height: 124px;
+  overflow-y: auto;
+}
+
 .my-mini-history li {
+  border-bottom: 1px solid #edf1f6;
+}
+
+/* 기록 한 줄 = 누르면 위 4칸이 그 진단으로 바뀌는 버튼 */
+.my-mini-history button {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid #edf1f6;
+  width: 100%;
+  padding: 10px 8px;
+  border: 0;
+  background: transparent;
+  color: #152238;
   font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.my-mini-history button:hover {
+  background: #f6f8fb;
+}
+
+/* 지금 위 4칸에 보이는 진단 */
+.my-mini-history button.is-selected {
+  background: var(--color-blue-tint);
+  color: var(--color-primary);
 }
 
 .my-mini-history span {
