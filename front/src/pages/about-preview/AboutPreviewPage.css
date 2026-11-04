@@ -8,8 +8,8 @@
 .about-preview-kicker { color: var(--color-muted); font-size: var(--font-caption); font-weight: 700; letter-spacing: .12em; margin-bottom: var(--space-24); }
 .about-preview h1 { font-size: var(--font-display); line-height: 1.35; letter-spacing: -.04em; word-break: keep-all; }
 .about-preview h1 span { color: var(--color-primary); }
-.about-preview-cta { display: inline-flex; justify-content: center; align-items: center; gap: var(--space-24); min-height: 48px; padding: var(--space-12) var(--space-24); border-radius: var(--radius-sm); background: var(--color-mint); color: var(--color-primary); font-weight: 700; }
-.about-preview-cta:hover { background: var(--color-mint-hover); }
+.about-preview-cta { display: inline-flex; justify-content: center; align-items: center; gap: var(--space-24); min-height: 48px; padding: var(--space-12) var(--space-24); border-radius: var(--radius-sm); background: var(--color-cta); color: var(--color-cta-text); font-weight: 700; border: 1px solid var(--color-border-input); }
+.about-preview-cta:hover { background: var(--color-cta-hover); }
 .about-preview a:focus-visible { outline: 3px solid var(--color-blue); outline-offset: 4px; }
 .about-preview-text-link { font-weight: 700; font-size: var(--font-body); }
 .about-preview-text-link:hover, .about-preview-version a:hover, .about-preview-footer a:hover { text-decoration: underline; text-underline-offset: 4px; }

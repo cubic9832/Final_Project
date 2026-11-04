@@ -87,7 +87,6 @@ function SavingsProgressPageContent() {
 
           </section>
           <RecurringSavingsSettings key={plan.id} plan={plan} asOfDate={asOfDate} onSave={(next, message) => persist(state.plans.map(item => item.id === plan.id ? next : item), message)} />
-          <p className="savings-sidebar-note">저축 기록은 현재 브라우저에 저장됩니다.<br />실제 계좌 잔액과는 다를 수 있어요.</p>
 
         </aside></div>
       {recordModalOpen && <AuthModal title={editingRecord ? '저축 기록 수정' : '저축 기록하기'} subtitle="작은 저축도 내 차를 향한 한 걸음이에요." size="md" isDirty={recordDirty} onClose={closeRecordModal}>
