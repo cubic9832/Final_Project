@@ -85,13 +85,15 @@ class AdminAccessTests {
     }
 
     // 모델 관리: git 에 있는 학습 결과 파일(ml/outputs/...)을 읽는다, 일반 회원 404
+    // 기본 폴더 = 추천 서버와 같은 scenario-choices (새 형식: 이전 모델 비교 지표 없음, 에포크 기록 있음)
     @Test
     void 관리자는_모델_학습_결과를_볼_수_있다() throws Exception {
         mvc.perform(get("/api/v1/admin/model-report")
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.available").value(true))
-                .andExpect(jsonPath("$.data.metrics.length()").value(3))
+                .andExpect(jsonPath("$.data.runName").value("20261103-unified-managed-3m"))
+                .andExpect(jsonPath("$.data.history.length()").value(30))
                 .andExpect(jsonPath("$.data.testPairAccuracy").isNumber());
         mvc.perform(get("/api/v1/admin/model-report")
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(2L, "USER")))

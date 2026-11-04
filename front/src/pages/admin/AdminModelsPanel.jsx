@@ -7,7 +7,7 @@ import { getModelReport, getModelServerInfo } from '../../features/admin/adminAp
 
 // 7단계 모델 관리 — 모두 실제 값 (10-27: 고정 예시 값을 바꿈)
 // 학습 · 평가 결과 = 조원(ML)이 git 에 올린 학습 결과 파일을 서버가 읽은 것 (GET /admin/model-report)
-// 적용 중인 버전 · 후보 차량 수 = 추천 서버가 지금 응답하는 값, 모델 버전 기록 = DB(model_versions)
+// 적용 중인 버전(학습 결과 폴더 이름 modelBundle) · 후보 차량 수 = 추천 서버가 지금 응답하는 값, 모델 버전 기록 = DB(model_versions)
 const percent = (value) => `${(value * 100).toFixed(1)}%`;
 const count = (value) => (value == null ? '-' : value.toLocaleString('ko-KR'));
 
@@ -28,7 +28,7 @@ export default function AdminModelsPanel() {
   return <div className="admin-panel-stack">
     <div className="admin-grid-2">
       <section className="admin-card"><div className="admin-card-heading"><div><h3>현재 적용 모델</h3><p>추천 서버가 지금 쓰는 모델과 학습 정보</p></div><Cpu size={theme.iconSize.md} aria-hidden="true" /></div>
-        <div className="admin-model-version"><strong>{server ? server.info.modelVersion : report.runName ?? '-'}</strong>
+        <div className="admin-model-version"><strong>{server ? server.info.modelBundle ?? server.info.modelVersion : report.runName ?? '-'}</strong>
           <span className={`admin-status ${server ? 'is-ok' : 'is-check'}`}>{server === undefined ? '확인 중' : server ? '적용 중' : '추천 서버 연결 안 됨'}</span></div>
         <dl className="admin-detail-list">
           <div><dt>학습 결과 폴더</dt><dd>{report.runName ?? '-'}</dd></div>

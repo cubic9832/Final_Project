@@ -21,17 +21,22 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * 학습 결과 파일은 조원(ML)이 git 에 올린 ml/outputs/models/... 를 읽기만 한다 (고치지 않음).
- * 폴더는 추천 서버(ml/serve-candidates.ps1)가 쓰는 기본 폴더와 같게 두고, 바뀌면 환경변수 ML_MODEL_RUN_DIR 로 바꾼다.
+ * 폴더는 추천 서버(ml/serve-candidates.ps1 · .sh)가 쓰는 기본 폴더와 같게 두고, 바뀌면 환경변수 ML_MODEL_RUN_DIR 로 바꾼다.
+ * (ML_MODEL_RUN_DIR 가 없으면 추천 서버와 같은 ML_CANDIDATE_RUN 을 쓴다)
  */
 @Slf4j
 @Service
 public class AdminModelServiceImpl implements AdminModelService {
 
-    // 화면에 보일 지표 이름 (report.json comparison.metrics 의 키 → 이름)
+    // 화면에 보일 지표 이름 (옛 형식 report.json comparison.metrics 의 키 → 이름)
     private static final List<String[]> METRICS = List.of(
             new String[] {"standalone_ndcg_at_3", "단독 NDCG@3"},
             new String[] {"final_ndcg_at_3", "최종 NDCG@3"},
             new String[] {"fuel_match_at_3", "연료 일치@3"});
+
+    // 학습 결과 파일 이름: 새 형식(scenario-choices) · 옛 형식(candidate-preferences)
+    private static final String SCENARIO_REPORT = "training_report.json";
+    private static final String PREFERENCE_REPORT = "report.json";
 
     private final AdminModelMapper adminModelMapper;
     private final ObjectMapper objectMapper;
@@ -55,46 +60,75 @@ public class AdminModelServiceImpl implements AdminModelService {
                     List.of(), List.of(), versions);
         }
         try {
-            JsonNode report = read(dir.resolve("report.json"));
             JsonNode metadata = read(dir.resolve("metadata.json"));
-            JsonNode holdout = Files.exists(dir.resolve("holdout_report.json")) ? read(dir.resolve("holdout_report.json")) : null;
-            JsonNode generation = report.path("generation");
-            JsonNode counts = generation.path("counts");
-
-            List<Metric> metrics = new ArrayList<>();
-            JsonNode compared = report.path("comparison").path("metrics");
-            for (String[] metric : METRICS) {
-                JsonNode current = compared.path("new").path(metric[0]);
-                JsonNode previous = compared.path("old").path(metric[0]);
-                if (current.isNumber() && previous.isNumber()) {
-                    metrics.add(new Metric(metric[1], previous.asDouble(), current.asDouble()));
-                }
-            }
-            List<Epoch> history = new ArrayList<>();
-            for (JsonNode epoch : report.path("history")) {
-                history.add(new Epoch(epoch.path("epoch").asInt(), epoch.path("loss").asDouble(),
-                        epoch.path("validation_pair_accuracy").asDouble()));
-            }
+            String schema = metadata.path("schema").asString(null);
             LocalDateTime trainedAt = Files.exists(dir.resolve("model.pt"))
                     ? LocalDateTime.ofInstant(Files.getLastModifiedTime(dir.resolve("model.pt")).toInstant(), ZoneId.systemDefault())
                     : null;
-
-            return new AdminModelReport(true, dir.getFileName().toString(), metadata.path("schema").asString(null), trainedAt,
-                    longOrNull(generation.path("profiles")), longOrNull(generation.path("candidate_rows")),
-                    longOrNull(generation.path("preference_pairs")),
-                    new SplitProfiles(counts.path("train_profiles").asLong(), counts.path("validation_profiles").asLong(),
-                            counts.path("test_profiles").asLong()),
-                    generation.path("held_out_models").size(),
-                    holdout == null ? null : holdout.path("test_pair_accuracy").asDouble(),
-                    holdout == null ? null : holdout.path("financial_violations").asInt(),
-                    holdout == null ? null : holdout.path("meaning").asString(null),
-                    metrics, history, versions);
+            String runName = dir.getFileName().toString();
+            return Files.exists(dir.resolve(SCENARIO_REPORT))
+                    ? scenarioReport(read(dir.resolve(SCENARIO_REPORT)), runName, schema, trainedAt, versions)
+                    : preferenceReport(dir, runName, schema, trainedAt, versions);
         } catch (Exception e) {
             // 파일 형식이 바뀌었거나 읽을 수 없음 → 화면에는 "학습 결과를 읽지 못함" (모델 버전 기록은 보여 준다)
             log.warn("admin model report: cannot read {}: {}", dir, e.getMessage());
             return new AdminModelReport(false, dir.getFileName().toString(), null, null, null, null, null, null, null, null,
                     null, null, List.of(), List.of(), versions);
         }
+    }
+
+    // 옛 형식 (candidate-preferences/...): report.json + holdout_report.json
+    private AdminModelReport preferenceReport(Path dir, String runName, String schema, LocalDateTime trainedAt,
+                                              List<Version> versions) throws Exception {
+        JsonNode report = read(dir.resolve(PREFERENCE_REPORT));
+        JsonNode holdout = Files.exists(dir.resolve("holdout_report.json")) ? read(dir.resolve("holdout_report.json")) : null;
+        JsonNode generation = report.path("generation");
+        JsonNode counts = generation.path("counts");
+
+        List<Metric> metrics = new ArrayList<>();
+        JsonNode compared = report.path("comparison").path("metrics");
+        for (String[] metric : METRICS) {
+            JsonNode current = compared.path("new").path(metric[0]);
+            JsonNode previous = compared.path("old").path(metric[0]);
+            if (current.isNumber() && previous.isNumber()) {
+                metrics.add(new Metric(metric[1], previous.asDouble(), current.asDouble()));
+            }
+        }
+        List<Epoch> history = new ArrayList<>();
+        for (JsonNode epoch : report.path("history")) {
+            history.add(new Epoch(epoch.path("epoch").asInt(), epoch.path("loss").asDouble(),
+                    epoch.path("validation_pair_accuracy").asDouble()));
+        }
+        return new AdminModelReport(true, runName, schema, trainedAt,
+                longOrNull(generation.path("profiles")), longOrNull(generation.path("candidate_rows")),
+                longOrNull(generation.path("preference_pairs")),
+                new SplitProfiles(counts.path("train_profiles").asLong(), counts.path("validation_profiles").asLong(),
+                        counts.path("test_profiles").asLong()),
+                generation.path("held_out_models").size(),
+                holdout == null ? null : holdout.path("test_pair_accuracy").asDouble(),
+                holdout == null ? null : holdout.path("financial_violations").asInt(),
+                holdout == null ? null : holdout.path("meaning").asString(null),
+                metrics, history, versions);
+    }
+
+    // 새 형식 (scenario-choices/...): training_report.json 하나. 이전 모델 비교 · 처음 보는 차종 · 재무 위반 값은 없어 null
+    private AdminModelReport scenarioReport(JsonNode report, String runName, String schema, LocalDateTime trainedAt,
+                                            List<Version> versions) {
+        JsonNode partitions = report.path("partitions");
+        List<Epoch> history = new ArrayList<>();
+        for (JsonNode epoch : report.path("history")) {
+            history.add(new Epoch(epoch.path("epoch").asInt(), epoch.path("training_log_loss").asDouble(),
+                    epoch.path("validation").path("accuracy").asDouble()));
+        }
+        JsonNode testAccuracy = report.path("results").path("mlp").path("accuracy");
+        return new AdminModelReport(true, runName, schema, trainedAt,
+                longOrNull(report.path("validation").path("profiles")), null,
+                longOrNull(report.path("validation").path("comparisons")),
+                new SplitProfiles(partitions.path("train").path("profiles").asLong(),
+                        partitions.path("validation").path("profiles").asLong(),
+                        partitions.path("test").path("profiles").asLong()),
+                null, testAccuracy.isNumber() ? testAccuracy.asDouble() : null, null,
+                report.path("limitation").asString(null), List.of(), history, versions);
     }
 
     @Override
@@ -125,7 +159,8 @@ public class AdminModelServiceImpl implements AdminModelService {
     // 서버를 프로젝트 맨 위에서 켜도, back 폴더에서 켜도 찾게 두 곳을 본다 (dev.sh 는 back 에서 켬)
     private Path findRunDir() {
         for (Path candidate : List.of(Path.of(runDir), Path.of("..").resolve(runDir))) {
-            if (Files.isDirectory(candidate) && Files.exists(candidate.resolve("report.json"))) {
+            if (Files.isDirectory(candidate)
+                    && (Files.exists(candidate.resolve(SCENARIO_REPORT)) || Files.exists(candidate.resolve(PREFERENCE_REPORT)))) {
                 return candidate.toAbsolutePath().normalize();
             }
         }
