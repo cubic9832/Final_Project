@@ -1,7 +1,8 @@
 /* 7단계: 회원 관리 탭 — 가입 추이 막대 · 나이대 · 성별 막대 · 페이지 버튼 (차트 라이브러리 없이 CSS 로) */
 
-/* 가입 추이 · 나이대 · 성별 카드 높이를 맞추고, 가입 추이 막대는 늘어난 높이를 채운다 */
-.admin-member-charts {
+/* 가입 추이 · 나이대 · 성별 카드 높이를 맞추고, 가입 추이 막대는 늘어난 높이를 채운다
+   AdminPage.css 가 이 파일보다 나중에 로드되므로 .admin-grid-2 의 align-items: start 를 이기도록 두 클래스로 지정한다 */
+.admin-grid-2.admin-member-charts {
   align-items: stretch;
 }
 
@@ -10,13 +11,18 @@
   flex-direction: column;
 }
 
+.admin-member-trend-card .admin-member-trend {
+  flex: 1;
+  height: auto;
+  min-height: 180px;
+}
+
 .admin-member-trend {
   display: grid;
-  flex: 1;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   align-items: end;
   gap: var(--space-8);
-  min-height: 180px;
+  height: 180px;
   padding: 0;
   list-style: none;
 }
