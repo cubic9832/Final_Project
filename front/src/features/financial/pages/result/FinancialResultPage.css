@@ -1,4 +1,4 @@
-.financial-result-page { width: 100%; max-width: var(--layout-max-width); margin: 0 auto; padding: var(--space-8) 0 var(--space-48); color: var(--color-primary); animation: financial-result-fade-in 180ms ease-out; }
+.financial-result-page { width: 100%; max-width: var(--layout-max-width); margin: 0 auto; padding: var(--space-8) 0 var(--space-48); color: var(--color-primary); animation: financial-result-fade-in 400ms ease-out; }
 @keyframes financial-result-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .financial-result-page { animation: none; } }
 .result-heading { display: flex; gap: var(--space-16); align-items: flex-start; margin-bottom: var(--space-24); }

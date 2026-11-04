@@ -1,5 +1,6 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import AuthModal from '../../auth/components/AuthModal.jsx';
 import theme from '../../../styles/theme.js';
 import FinancialBudgetSummary from './FinancialBudgetSummary.jsx';
 import { calculateFinancialSummary } from '../calculateFinancialSummary.js';
@@ -9,7 +10,6 @@ export default function SurveySummary({ diagnosis, items = [], mode = 'budget', 
   const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 769px)').matches);
   const [expanded, setExpanded] = useState(false);
   const [conditionsExpanded, setConditionsExpanded] = useState(false);
-  const conditionsId = useId();
   const summaryRef = useRef(null);
   useLayoutEffect(() => {
     const summary = summaryRef.current;
@@ -47,11 +47,13 @@ export default function SurveySummary({ diagnosis, items = [], mode = 'budget', 
         <FinancialBudgetSummary values={diagnosis.values} assets={diagnosis.assets} loans={diagnosis.loans} onEdit={onEdit} editingDisabled={editingDisabled} />
         <section className="survey-selected-conditions" aria-labelledby="survey-conditions-title">
           <div className="survey-conditions-heading"><h2 id="survey-conditions-title">선택한 조건</h2>
-            <button type="button" className="survey-conditions-toggle" aria-label={`선택한 조건 ${conditionsExpanded ? '접기' : '펼치기'}`} aria-expanded={conditionsExpanded} aria-controls={conditionsId} onClick={() => setConditionsExpanded(previous => !previous)}><ChevronDown size={theme.iconSize.sm} aria-hidden /></button>
+            <button type="button" className="survey-conditions-toggle" aria-label={`선택한 조건 ${conditionsExpanded ? '접기' : '펼치기'}`} aria-expanded={conditionsExpanded} aria-haspopup="dialog" onClick={() => setConditionsExpanded(true)}><ChevronDown size={theme.iconSize.sm} aria-hidden /></button>
           </div>
-          <div id={conditionsId} hidden={!conditionsExpanded}>
+          {conditionsExpanded && <AuthModal title="선택한 조건" onClose={() => setConditionsExpanded(false)} size="lg">
+            <div className="survey-conditions-modal">
             {items.length ? <dl aria-live="polite">{items.map(item => <div key={item.id}><dt><span className="survey-summary-label">{item.label}</span>{onEdit && <button type="button" className="survey-summary-edit" disabled={editingDisabled} aria-label={`${item.label} 수정`} onClick={() => { setConditionsExpanded(false); onEdit(item.id); }}>수정</button>}</dt><dd>{item.value}</dd></div>)}</dl> : <p>답을 고르면 여기에 정리해 드려요.</p>}
-          </div>
+            </div>
+          </AuthModal>}
         </section>
         </>}
       </div>

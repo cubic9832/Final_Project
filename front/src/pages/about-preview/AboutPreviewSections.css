@@ -10,9 +10,9 @@
 .about-preview.is-stage { position: relative; height: calc(100svh - var(--preview-top, 73px)); overflow: hidden; isolation: isolate; background: var(--color-background); transition: background 600ms ease; }
 .about-preview.is-stage[data-active-section="1"] { background: var(--color-blue-tint); }
 .about-preview.is-stage[data-active-section="3"] { background: var(--color-primary); }
-.about-preview.is-stage > section { position: absolute; inset: 0; width: 100%; max-width: var(--layout-max-width); margin: auto; padding: var(--space-32) var(--space-64); padding-right: calc(var(--space-64) + var(--space-32)); min-height: 0; height: fit-content; max-height: calc(100% - 112px); overflow-y: auto; opacity: 0; visibility: hidden; transform: translateY(20px); transition: opacity 600ms ease, transform 600ms ease, visibility 600ms; pointer-events: none; border: 0; border-radius: 0; background: transparent; }
+.about-preview.is-stage > section { position: absolute; inset: 0; width: 100%; max-width: var(--layout-max-width); margin: auto; padding: var(--space-32) var(--space-64); padding-right: calc(var(--space-64) + var(--space-32)); min-height: 0; height: fit-content; max-height: calc(100% - 112px); overflow-y: auto; opacity: 0; visibility: hidden; transform: translateY(20px); transition: opacity 600ms ease, transform 600ms ease; pointer-events: none; border: 0; border-radius: 0; background: transparent; }
 .about-preview.is-stage[data-active-section="0"] > #about-preview-intro,
-.about-preview.is-stage[data-active-section="1"] > #about-preview-budget,
+.about-preview.is-stage[data-active-section="1"] > #about-preview-comparison,
 .about-preview.is-stage[data-active-section="2"] > #about-preview-story,
 .about-preview.is-stage[data-active-section="3"] > #about-preview-criteria { opacity: 1; visibility: visible; transform: none; pointer-events: auto; }
 .about-preview.is-stage [data-reveal].is-reveal-ready > * { opacity: 1; transform: none; transition: none; }
@@ -28,10 +28,6 @@
 .about-preview.is-stage h1 { font-size: clamp(28px, 3vw, 44px); }
 .about-preview.is-stage h2 { font-size: var(--font-page-title); }
 .about-preview.is-stage .about-preview-kicker { letter-spacing: .04em; }
-.about-preview.is-stage .about-preview-budget-section { grid-template-columns: .85fr 1.15fr; gap: var(--space-32); }
-.about-preview.is-stage .about-preview-budget-section > div { border: 0; padding-left: 0; }
-.about-preview.is-stage .about-preview-report { border: 0; border-radius: var(--radius-lg); padding: var(--space-32); }
-.about-preview.is-stage .about-preview-live-result { border-left: 3px solid var(--color-blue); }
 .about-preview.is-stage .about-preview-journey-list { gap: var(--space-24); margin-block: var(--space-24); }
 .about-preview.is-stage .about-preview-journey-list li { background: var(--color-surface); border: 0; border-top: 3px solid var(--color-primary); border-radius: 0 0 var(--radius-md) var(--radius-md); padding: var(--space-24); }
 .about-preview.is-stage .about-preview-journey-list li:nth-child(2) { border-color: var(--color-blue); }

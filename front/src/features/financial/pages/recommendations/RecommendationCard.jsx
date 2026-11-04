@@ -3,19 +3,20 @@ import { Car } from 'lucide-react';
 import theme from '../../../../styles/theme.js';
 import { candidateImage, candidateMoney, fuelLabels } from './candidatePresentation.js';
 import ExplainTerm from '../../../chatbot/ExplainTerm';
-import VehiclePreferenceSummary from './VehiclePreferenceSummary.jsx';
-import SurveyDialog from '../../components/SurveyDialog.jsx';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 
-export default function RecommendationCard({ candidate, rank, view, comparisonSelected, comparisonFull, onToggleComparison }) {
+
+export default function RecommendationCard({ candidate, rank, comparisonSelected, comparisonFull, onToggleComparison }) {
   const [failedSrc, setFailedSrc] = useState(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const navigate = useNavigate();
+  const { state } = useLocation();
   const { vehicle, cost } = candidate;
   const image = candidateImage(vehicle);
 
   return <li className="financial-recommendation-card">
     <div className="financial-recommendation-media"><span className="financial-recommendation-rank">{candidate.seatingVerificationRequired || candidate.lengthVerificationRequired ? '확인 후보' : '추천'} {rank}</span>
-      {image && failedSrc !== image.src ? <img key={image.src} src={image.src} alt={image.alt} style={image.style} loading="lazy" onError={() => setFailedSrc(image.src)} /> : <div className="financial-recommendation-image-placeholder"><Car size={theme.iconSize.lg} aria-hidden="true" /><span>차량 이미지 준비 중</span></div>}
+      {image && failedSrc !== image.src ? <img key={image.src} src={image.src} alt={image.alt} style={{ ...image.style, objectFit: "contain", objectPosition: "center", transform: "none", position: "static", inset: "auto", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "100%" }} loading="lazy" onError={() => setFailedSrc(image.src)} /> : <div className="financial-recommendation-image-placeholder"><Car size={theme.iconSize.lg} aria-hidden="true" /><span>차량 이미지 준비 중</span></div>}
     </div>
     <div className="financial-recommendation-card-body">
       <div className="financial-recommendation-aligned-summary"><div data-recommendation-measure="summary">
@@ -29,22 +30,7 @@ export default function RecommendationCard({ candidate, rank, view, comparisonSe
         {[['차량 가격', vehicle.price], ['예상 월 유지비', cost.monthly_running_cost]].map(([label, value]) => <div key={label}><dt><ExplainTerm term={label} context={`추천 차량 ${vehicle.brand} ${vehicle.model}의 비용 항목`} /></dt><dd>{candidateMoney(value)}</dd></div>)}
       </dl>
       </div></div>
-      <button type="button" className="recommendation-detail-button" onClick={() => setDetailsOpen(true)}>추천 근거·차량 상세 보기</button>
-      {detailsOpen && <SurveyDialog title={`${vehicle.brand} ${vehicle.model}`} onClose={() => setDetailsOpen(false)}>
-      <dl className="financial-recommendation-specs">{[['구매 후 남는 예금', view.financial?.cashAfterPurchase], ['유지비 지출 후 월 잔여금', cost.remaining_monthly]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{candidateMoney(value)}</dd></div>)}</dl>
-      {view?.financial?.fundingSource === 'assets' && <p className="financial-candidate-alert">예금에서 매월 {candidateMoney(view.financial.monthlyAssetDrawdown)}을 사용해요. 구매 후 예금으로 약 {view.financial.assetRunwayMonths}개월 유지할 수 있어요.</p>}
-      <section className="financial-recommendation-reasons" aria-label={`${vehicle.model} 맞는 조건`}>
-        <h3>맞는 조건</h3>
-        <ul>{view.matches.slice(0, 2).map(item => <li key={item.key}><p>{item.text}</p></li>)}</ul>
-        {!view.matches.length && <p className="candidate-condition-note">{view.evidence ? '지정한 연료·크기·정원 중 일치가 확인된 선호가 없어요. 구매 가능 여부와 비용도 함께 비교해 주세요.' : '조건별 평가 근거를 불러오지 못했어요. 조건을 다시 적용해 추천받아 주세요.'}</p>}
-      </section>
-      <section className="candidate-tradeoffs" aria-label={`${vehicle.model} 다른 조건`}>
-        <h3>다른 조건 · 확인할 점</h3>{candidate.preferenceCompromise && <p>일부 선호 조건을 조정한 절충 후보예요.</p>}
-        <ul>{[...view.mismatches, ...view.unknowns].sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0)).slice(0, 2).map(item => <li key={item.key}>{item.text}</li>)}</ul>
-        {!view.mismatches.length && !view.unknowns.length && view.evidence && <p>지정한 연료·크기·정원에서 확인된 불일치가 없어요.</p>}
-      </section>
-      <VehiclePreferenceSummary vehicle={vehicle} specifications={candidate.lifestyleEvidence?.specifications} values={candidate.lifestyleEvidence?.values} evidence={candidate.lifestyleEvidence?.evidence} />
-      </SurveyDialog>}
+      <button type="button" className="recommendation-detail-button" onClick={() => navigate(`/financial/recommendations/details?index=${rank - 1}`, { state })}>추천 근거·차량 상세 보기</button>
     </div>
   </li>;
 }
