@@ -364,6 +364,7 @@ export default function ProfilePage() {
               {changed.length
                 ? <>바꾼 항목 <strong>{changed.length}개</strong>: {changed.map((key) => FIELD_LABELS[key]).join(' · ')}</>
                 : '바꾼 항목만 저장됩니다. 아래 세 영역을 한 번에 저장합니다.'}
+              {' '}<span className="form-required" aria-hidden="true">*</span> 표시는 필수 항목입니다.
             </p>
           </div>
           <div className="profile-edit-buttons">

@@ -388,7 +388,7 @@ export default function SignupPage() {
 
       <section className="signup-form-card" aria-labelledby="signup-form-title">
         <h2 id="signup-form-title">기본 정보</h2>
-        <p className="signup-subtitle">서비스 이용에 필요한 최소한의 정보만 받습니다.</p>
+        <p className="signup-subtitle">서비스 이용에 필요한 최소한의 정보만 받습니다. <span className="form-required" aria-hidden="true">*</span> 표시는 필수 항목입니다.</p>
 
         <form onSubmit={handleSubmit} noValidate>
           {/* 보완 5: 좌우 2칸 — 왼쪽 계정 정보, 오른쪽 개인 정보 (좁은 화면에서는 위아래로 쌓인다) */}

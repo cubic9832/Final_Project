@@ -121,7 +121,7 @@ export default function GoogleSignupPage() {
       <section className="signup-form-card" aria-labelledby="google-signup-title">
         <h2 id="google-signup-title">추가 정보</h2>
         <p className="signup-subtitle">
-          구글 계정 {pending.email} 으로 가입합니다. 비밀번호는 만들지 않고, 닉네임은 구글 이름으로 정해집니다.
+          구글 계정 {pending.email} 으로 가입합니다. 비밀번호는 만들지 않고, 닉네임은 구글 이름으로 정해집니다. <span className="form-required" aria-hidden="true">*</span> 표시는 필수 항목입니다.
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
