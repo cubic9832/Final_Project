@@ -109,8 +109,6 @@ export default function ConsultationPage() {
                   : <button type="button" className="consult-outline" onClick={() => setConfirmingClose(true)} disabled={busy}>상담 종료</button>}
               </div>
             </div>
-            {/* 상담원이 맡았던 상담이 끝나면 한 번 — 남기면 서버가 닫고(feedbackOpen=false) 다시 읽는다 */}
-            {room.status === 'CLOSED' && room.feedbackOpen && <FeedbackForm onDone={loadRoom} />}
             <ChatThread
               messages={chat.messages}
               viewer="member"
@@ -123,6 +121,9 @@ export default function ConsultationPage() {
               onSend={chat.send}
               showConnection={false}
             />
+            {/* 상담원이 맡았던 상담이 끝나면 한 번 — 남기면 서버가 닫고(feedbackOpen=false) 다시 읽는다
+                11-04: 대화를 다 읽은 다음 평가하도록 대화창 아래에 둔다 */}
+            {room.status === 'CLOSED' && room.feedbackOpen && <FeedbackForm onDone={loadRoom} />}
           </>
         )}
         {actionError && <p className="consult-error" role="alert">{actionError}</p>}
