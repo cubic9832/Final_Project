@@ -385,3 +385,19 @@
   margin-left: auto;
   align-self: flex-end;
 }
+
+/* 11-04: 배지(신고 · 경고 · 제한 · 상태)가 많으면 카드보다 넓어져 목록에 좌우 스크롤이 생겼다
+   → 배지는 넘치면 다음 줄로, 목록은 위아래로만 스크롤 */
+.admin-chat .admin-chat-list ul {
+  overflow-x: hidden;
+}
+
+.admin-chat-row {
+  flex-wrap: wrap;
+}
+
+.admin-chat-badges {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+}
