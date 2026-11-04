@@ -563,26 +563,27 @@
   border-color: #12335b;
 }
 
-/* 11-04: 로그인 · 회원가입과 색 통일 — 카드는 모두 흰색, 버튼은 모두 남색(로그인 버튼과 같은 색) */
-.my-outline-button,
-.my-plan-button {
+/* 11-04: 로그인 · 회원가입과 색 통일 — 카드는 모두 흰색, 버튼은 모두 남색(로그인 버튼과 같은 색)
+   .my-page 안에서만: 개인정보 · 계정 관리(ProfilePage)도 이 파일을 쓰지만 그 화면 버튼은 그대로 */
+.my-page .my-outline-button,
+.my-page .my-plan-button {
   border: 0;
   background: var(--color-primary);
   color: var(--color-surface);
 }
 
-.my-outline-button:hover,
-.my-plan-button:hover {
+.my-page .my-outline-button:hover,
+.my-page .my-plan-button:hover {
   background: var(--color-primary-hover);
 }
 
 /* 보조 버튼: 카드마다 주 버튼(남색)은 하나, 나머지는 연한 파랑 — 위 "운전 1~3년" 배지와 같은 색 */
-.my-soft-button {
+.my-page .my-soft-button {
   background: var(--color-blue-tint);
   color: var(--color-primary);
 }
 
-.my-soft-button:hover {
+.my-page .my-soft-button:hover {
   background: #dde9f7;
 }
 
