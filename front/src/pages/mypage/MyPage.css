@@ -591,13 +591,26 @@
   color: #12335b;
 }
 
-.my-plan-note {
-  color: #6d7988; /* .my-empty 와 같은 회색 */
+/* 11-04: 카드 간격 정돈 — 위 줄도 아래 3칸과 같은 칸 나누기(내 정보 = 1칸, 재무 진단 = 2칸)라 세로 선이 맞는다 */
+.my-row-top > .my-insight-card {
+  grid-column: span 2;
+}
+
+/* 내 정보 카드도 다른 카드와 같은 안쪽 여백 · 간격 */
+.my-profile {
+  gap: 14px;
+  padding: 22px;
+}
+
+@media (max-width: 1024px) {
+  .my-row-top > .my-insight-card {
+    grid-column: auto;
+  }
 }
 
 .my-row-top {
   display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 11-04: 아래 3칸과 세로 선 맞춤 (재무 진단 = 2칸) */
   gap: 24px;
   align-items: stretch;
 }

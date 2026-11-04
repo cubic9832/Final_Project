@@ -97,11 +97,15 @@ export default function MyPage() {
         <FavoritesCard state={favorites} />
 
         {/* 구매계획: 저장 기능이 아직 없어 계획 전(빈 상태)으로 보여 준다 — 기능이 생기면 저장한 계획으로 */}
+        {/* 제목 줄은 관심차량 · 내 취향 카드와 같은 모양 (my-insight-head) */}
         <section className="my-plan my-card-fill" aria-labelledby="my-plan-title">
-          <div className="my-plan-heading">
-            <div><span>저장한 구매계획</span><h2 id="my-plan-title">아직 구매계획이 없어요</h2></div>
+          <div className="my-insight-head">
+            <div>
+              <h2 id="my-plan-title">구매계획</h2>
+              <p>드림카 플래너에서 저장한 계획</p>
+            </div>
           </div>
-          <p className="my-plan-note">재무 진단으로 구매 여력과 추천 차량을 먼저 확인해 보세요.</p>
+          <p className="my-empty">아직 저장한 구매계획이 없어요. 재무 진단으로 구매 여력과 추천 차량을 먼저 확인해 보세요.</p>
           <Link className="my-plan-button my-inline-button" to="/financial">재무 진단 하러 가기</Link>
         </section>
 
