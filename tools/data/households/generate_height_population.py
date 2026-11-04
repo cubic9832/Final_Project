@@ -30,7 +30,7 @@ def generate(output, comparisons=3000000, seed=20261102, source=None, require_co
     template=Profile(**seeds[0]['profile'])
     template=Profile(**{**asdict(template),'annual_distance':15000,'financing_mode':'recommendation','liquid_assets':10000000000.,'monthly_income':1000000000.})
     prices=np.asarray([c.price for c in catalog]);running=np.asarray([assess(template,c)['monthly_running_cost'] for c in catalog])
-    seats=np.asarray([c.seats or 0 for c in catalog]);known=np.asarray([c.seats_status!='official-reference-conflict' for c in catalog])
+    enabled=np.asarray([c.recommendation_enabled for c in catalog]);seats=np.asarray([c.seats or 0 for c in catalog]);known=np.asarray([c.seats_status!='official-reference-conflict' for c in catalog])
     count=0;users=0;attempts=0
     config={'version':'ui-scenario-height-population-v2','target_comparisons':comparisons,'seed':seed,'pairs_per_user_max':10,'split':[.7,.15,.15],'high_value_financial_stratum_probability':.35,'price_band_policy':'cash-importance-band-v1','feature_names':FEATURE_NAMES}
     write_json(output/'configuration.json',config)
@@ -49,7 +49,7 @@ def generate(output, comparisons=3000000, seed=20261102, source=None, require_co
             for key in ('cost_importance','space_importance','fuel_importance'):p[key]=rng.choice([1,3,5])
             profile=Profile(**p);band=recommendation_budget(profile,[],{})
             available=p['monthly_income']-p['monthly_expenses']-p['existing_monthly_payment']
-            mask=(prices>=band['lower'])&(prices<=band['upper'])&((p['liquid_assets']-prices)>=12*np.maximum(0,running-available))
+            mask=enabled&(prices>=band['lower'])&(prices<=band['upper'])&((p['liquid_assets']-prices)>=12*np.maximum(0,running-available))
             if p['minimum_seats']:mask &= (seats>=p['minimum_seats'])&known
             indices=np.flatnonzero(mask).tolist();pool={}
             for i in indices:pool.setdefault((catalog[i].brand,catalog[i].model),[]).append(i)
@@ -81,7 +81,7 @@ def generate(output, comparisons=3000000, seed=20261102, source=None, require_co
             np.savez_compressed(directory/f'{role}_choices.npz',features=np.asarray(b['features'],dtype=np.float32).reshape(-1,len(FEATURE_NAMES)),comparisons=np.asarray(b['comparisons'],dtype=np.int64).reshape(-1,2),labels=np.asarray(b['labels'],dtype=np.float32),profile_ids=np.asarray(b['profile_ids'],dtype=np.int64),vehicle_indices=np.asarray(b['vehicle_indices'],dtype=np.int64))
             for suffix,rows in [('profiles',b['users']),('choices',b['choices'])]:(directory/f'{role}_{suffix}.jsonl').write_text(''.join(json.dumps(row,ensure_ascii=False)+'\n' for row in rows),encoding='utf-8')
         shards.append({'directory':directory.name});print(json.dumps({'stage':'generate','profiles':users,'comparisons':count,'target':comparisons}),flush=True)
-    coverage=coverage_report(catalog,models,specs,{'train':20,'validation':5,'test':5},1);write_json(output/'coverage_report.json',coverage)
+    coverage=coverage_report([c for c in catalog if c.recommendation_enabled],models,specs,{'train':20,'validation':5,'test':5},1);write_json(output/'coverage_report.json',coverage)
     if require_coverage and coverage['status']!='passed':raise ValueError('Vehicle coverage failed')
     write_json(output/'manifest.json',{'version':config['version'],'feature_names':FEATURE_NAMES,'profiles':users,'comparisons':count,'partitions':{r:{'profiles':counts[r+'_profiles'],'comparisons':counts[r+'_comparisons']} for r in ROLES},'shards':shards,'files_sha256':{str(p.relative_to(output)):file_hash(p) for p in output.rglob('*') if p.is_file()},'source_sha256':{str(p.relative_to(ROOT)):file_hash(p) for p in (Path(__file__),ROOT/'ml/vehicle_matching/height_scenario_model.py')}})
 

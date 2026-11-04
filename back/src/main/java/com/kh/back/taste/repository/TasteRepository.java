@@ -30,10 +30,11 @@ public class TasteRepository {
         jdbc.query("SELECT * FROM taste_types WHERE test_version_id=? ORDER BY display_order,taste_type_id", rs -> {
             long typeId = rs.getLong("taste_type_id");
             List<TasteCatalogResponse.Vehicle> vehicles = jdbc.query("""
-                    SELECT v.id, CONCAT(b.name,' ',v.name) name, v.class_code, v.image_url
-                    FROM taste_type_vehicles tv JOIN vehicles v ON v.id=tv.vehicle_id JOIN brands b ON b.id=v.brand_id
+                    SELECT v.id, CONCAT(v.payload->>'$.brand',' ',v.payload->>'$.model') name,
+                           v.payload->>'$.body_type' class_code, v.payload->>'$.image_url' image_url
+                    FROM taste_type_vehicles tv JOIN managed_vehicles v ON v.id=tv.vehicle_id AND v.status='PUBLISHED'
                     WHERE tv.taste_type_id=? ORDER BY tv.display_order,v.id
-                    """, (v, n) -> new TasteCatalogResponse.Vehicle(v.getLong("id"), v.getString("name"),
+                    """, (v, n) -> new TasteCatalogResponse.Vehicle(v.getString("id"), v.getString("name"),
                     v.getString("class_code"), v.getString("image_url")), typeId);
             types.put(rs.getString("type_code"), new TasteCatalogResponse.Type(typeId, rs.getString("type_name"),
                     rs.getString("description"), json.readValue(rs.getString("tags_json"), new TypeReference<List<String>>() {}), vehicles));

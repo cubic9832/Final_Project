@@ -3,6 +3,8 @@ package com.kh.back.admin.vehicle;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import com.kh.back.vehicle.VehicleCatalogChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import tools.jackson.databind.node.ObjectNode;
 public class AdminVehicleService {
     private final AdminVehicleRepository repository;
     private final ObjectMapper mapper;
+    private final ApplicationEventPublisher events;
 
     public List<AdminVehicleResponse> list() { return repository.findAll(); }
     public AdminVehicleResponse get(String id) {
@@ -56,17 +59,25 @@ public class AdminVehicleService {
         else if(repository.update(key,input.version(),json,input.status(),actor)!=1)
             throw new ResponseStatusException(HttpStatus.CONFLICT,"다른 관리자가 먼저 수정했습니다.");
         repository.audit(key,actor,before,json,input.status());
+        events.publishEvent(new VehicleCatalogChangedEvent());
         return get(key);
     }
     private void ensureUnique(String id,String brand,String model,String year,String trim,String fuel,String drive) {
+        // Imported trims can represent different engines/seating configurations.
+        // Editing an existing identity must not reject those preserved variants.
+        var current = id == null ? null : repository.find(id);
+        if (current != null && sameIdentity(current.vehicle(),brand,model,year,trim,fuel,drive)) return;
         boolean duplicate=repository.findAll().stream().anyMatch(row -> !row.id().equals(id) && !row.status().equals("DELETED")
-            && row.vehicle().path("brand").asText().strip().equalsIgnoreCase(brand.strip())
-            && row.vehicle().path("model").asText().strip().equalsIgnoreCase(model.strip())
-            && row.vehicle().path("year").asText().equals(year)
-            && row.vehicle().path("trim").asText().strip().equalsIgnoreCase(trim.strip())
-            && row.vehicle().path("fuel").asText().equals(fuel)
-            && row.vehicle().path("drive").asText("미확인").equals(drive));
+            && sameIdentity(row.vehicle(),brand,model,year,trim,fuel,drive));
         if(duplicate)throw new ResponseStatusException(HttpStatus.CONFLICT,"같은 브랜드·모델·연식·트림·연료·구동 방식의 차량이 이미 있습니다.");
+    }
+    private boolean sameIdentity(tools.jackson.databind.JsonNode vehicle,String brand,String model,String year,String trim,String fuel,String drive) {
+        return vehicle.path("brand").asText().strip().equalsIgnoreCase(brand.strip())
+            && vehicle.path("model").asText().strip().equalsIgnoreCase(model.strip())
+            && vehicle.path("year").asText().equals(year)
+            && vehicle.path("trim").asText().strip().equalsIgnoreCase(trim.strip())
+            && vehicle.path("fuel").asText().equals(fuel)
+            && vehicle.path("drive").asText("미확인").equals(drive);
     }
     @Transactional
     public AdminVehicleResponse changeDeleted(String id,long version,boolean deleted,long actor) {
@@ -79,6 +90,7 @@ public class AdminVehicleService {
         String status=deleted?"DELETED":"DRAFT";
         if(repository.update(id,version,v.toString(),status,actor)!=1)throw new ResponseStatusException(HttpStatus.CONFLICT,"다른 관리자가 먼저 수정했습니다.");
         repository.audit(id,actor,before,v.toString(),status);
+        events.publishEvent(new VehicleCatalogChangedEvent());
         return get(id);
     }
     private boolean webUrl(String value) {

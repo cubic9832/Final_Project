@@ -45,7 +45,7 @@ class AdminMemberSuspendTests {
     }
 
     @Test
-    void 총관리자가_일반_회원을_7일_정지하면_로그아웃되고_운영_로그에_남는다() {
+    void 총관리자가_일반_회원을_7일_정지하면_로그아웃_상담_종료되고_운영_로그에_남는다() {
         when(currentRoleLookup.currentRole(SUPER)).thenReturn("SUPER_ADMIN");
         when(adminMemberMapper.findRole(MEMBER)).thenReturn("USER");
 
@@ -55,6 +55,7 @@ class AdminMemberSuspendTests {
         verify(adminMemberMapper).suspend(eq(MEMBER), until.capture());
         assertThat(until.getValue()).isBetween(LocalDateTime.now().plusDays(7).minusMinutes(1), LocalDateTime.now().plusDays(7));
         verify(refreshTokenMapper).deleteByUserId(MEMBER);
+        verify(chatRoomService).closeForSuspension(MEMBER); // 대기 · 진행 중 상담 종료
         verify(adminAuditLogMapper).insert(SUPER, "MEMBER_SUSPEND", "MEMBER", MEMBER, "계정 정지 7일 (부적절한 이용)");
     }
 

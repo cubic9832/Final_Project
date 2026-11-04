@@ -24,6 +24,13 @@ class MemberWithdrawTests {
     @InjectMocks MemberServiceImpl memberService;
 
     @Test
+    void 탈퇴_회원_이메일_닉네임은_번호로_겹치지_않고_회원이_고를_수_없는_이름이다() {
+        assertThat(MemberServiceImpl.withdrawnEmail(12L)).isEqualTo("withdrawn-12@deleted.invalid");
+        // 닉네임은 2~12자만 쓸 수 있다 → 13자 이상이면 회원이 같은 이름을 미리 쓸 수 없다
+        assertThat(MemberServiceImpl.withdrawnNickName(1L)).hasSizeGreaterThan(12);
+    }
+
+    @Test
     void 총관리자는_탈퇴할_수_없다() {
         MemberDto superAdmin = new MemberDto();
         superAdmin.setId(35L);
@@ -33,6 +40,6 @@ class MemberWithdrawTests {
 
         assertThatThrownBy(() -> memberService.withdraw(35L, "password", null))
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCode()).isEqualTo("SUPER_ADMIN_WITHDRAW"));
-        verify(memberMapper, never()).deleteById(any());
+        verify(memberMapper, never()).anonymize(any(), any(), any());
     }
 }

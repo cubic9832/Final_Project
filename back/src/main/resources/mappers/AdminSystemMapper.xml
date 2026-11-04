@@ -8,10 +8,11 @@
         SELECT 1
     </select>
 
+    <!-- 적용 순서가 달라도 현재 프로젝트의 정수 버전 중 가장 높은 적용 완료 버전을 표시한다. -->
     <select id="findLatestMigration" resultType="string">
         SELECT version FROM flyway_schema_history
         WHERE success = 1 AND version IS NOT NULL
-        ORDER BY installed_rank DESC
+        ORDER BY CAST(version AS UNSIGNED) DESC
         LIMIT 1
     </select>
 

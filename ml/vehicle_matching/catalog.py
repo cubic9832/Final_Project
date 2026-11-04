@@ -46,6 +46,7 @@ class Vehicle:
     height_mm: int | None = None
     height_source_url: str | None = None
     height_status: str | None = None
+    recommendation_enabled: bool = True
 
     def __post_init__(self):
         import math
@@ -58,7 +59,7 @@ class Vehicle:
             raise ValueError('Unknown vehicle body type')
         if not all((self.id, self.brand, self.model, self.trim, self.source_url, self.checked_on)):
             raise ValueError('Vehicle identity and provenance are required')
-        if self.fuel not in FUELS or not math.isfinite(self.price) or self.price <= 0:
+        if self.fuel not in (*FUELS, 'HYDROGEN') or not math.isfinite(self.price) or self.price <= 0:
             raise ValueError('Unsupported fuel or invalid vehicle price')
         if self.efficiency is not None and (not math.isfinite(self.efficiency) or self.efficiency <= 0):
             raise ValueError('Efficiency must be positive or unknown')

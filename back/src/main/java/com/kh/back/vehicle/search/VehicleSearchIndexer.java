@@ -1,15 +1,17 @@
 package com.kh.back.vehicle.search;
 
 import com.kh.back.vehicle.mapper.VehicleMapper;
+import com.kh.back.vehicle.VehicleCatalogChangedEvent;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * 서버가 뜰 때 MySQL 차량을 ES 에 다시 색인한다. vehicles 는 Flyway 시드로만 바뀌어 시작할 때 한 번이면 충분하다.
+ * 서버 시작 및 관리자 변경 커밋 후 공통 MySQL 카탈로그를 ES 에 다시 색인한다.
  * ES 가 꺼져 있어도 서버는 계속 뜨고, 검색 요청만 503 으로 응답한다.
  */
 @Slf4j
@@ -18,6 +20,11 @@ import org.springframework.stereotype.Component;
 public class VehicleSearchIndexer {
     private final VehicleMapper vehicleMapper;
     private final VehicleSearchRepository searchRepository;
+
+    @TransactionalEventListener
+    public void catalogChanged(VehicleCatalogChangedEvent event) {
+        reindex();
+    }
 
     @EventListener(ApplicationReadyEvent.class)
     public void reindex() {

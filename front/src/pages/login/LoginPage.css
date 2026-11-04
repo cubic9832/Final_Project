@@ -2,8 +2,16 @@
   padding: var(--space-8) 0 var(--space-48);
 }
 
+/* 11-03: 간편 체험 카드를 지워 로그인 카드 한 장 → 제목 · 카드를 가운데 같은 폭으로 */
+.login-heading,
+.login-grid {
+  max-width: 560px;
+  margin-inline: auto;
+}
+
 .login-heading {
   margin-bottom: var(--space-24);
+  text-align: center;
 }
 
 .login-heading h1 {
@@ -18,15 +26,10 @@
 }
 
 .login-grid {
-  display: grid;
-  /* 로그인 폼을 넓게, 간편 체험 카드는 좁게 (3:2) */
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: var(--space-24);
-  align-items: stretch;
+  margin-bottom: var(--space-48);
 }
 
-.login-form-card,
-.login-demo-card {
+.login-form-card {
   display: flex;
   flex-direction: column;
 }
@@ -129,8 +132,7 @@
   text-decoration: underline;
 }
 
-.login-submit,
-.login-demo-button {
+.login-submit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -178,87 +180,6 @@
   font-size: var(--font-caption);
 }
 
-.login-demo-card {
-  min-height: 392px;
-  padding: var(--space-24);
-  border: 1px solid transparent;
-  border-radius: var(--radius-lg);
-  background: var(--color-primary);
-  color: var(--color-surface);
-}
-
-.login-demo-icon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  margin-bottom: var(--space-24);
-  border-radius: var(--radius-sm);
-  background: var(--color-tint-on-primary);
-}
-
-.login-demo-eyebrow {
-  color: var(--color-mint);
-  font-size: var(--font-caption);
-  font-weight: 700;
-}
-
-.login-demo-card h2 {
-  margin: var(--space-16) 0;
-  color: inherit;
-  font-size: var(--font-section-title);
-  line-height: 1.5;
-  letter-spacing: -0.7px;
-}
-
-.login-demo-card p {
-  color: var(--color-text-on-primary);
-  line-height: 1.8;
-}
-
-.login-demo-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  margin: var(--space-24) 0;
-}
-
-.login-demo-tags span {
-  padding: var(--space-4) var(--space-8);
-  border-radius: var(--radius-sm);
-  background: var(--color-tint-on-primary);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-caption);
-}
-
-/* 민트 배경에는 대비를 위해 네이비 글씨를 쓴다. */
-.login-demo-button {
-  background: var(--color-mint);
-  color: var(--color-primary);
-}
-
-.login-demo-button:hover {
-  background: var(--color-mint-hover);
-}
-
-.login-privacy {
-  margin: var(--space-24) 0;
-  padding: var(--space-16) var(--space-24);
-  border-radius: var(--radius-md);
-  background: var(--color-blue-tint);
-}
-
-.login-privacy h2 {
-  font-size: var(--font-subtitle);
-}
-
-.login-privacy p {
-  margin-top: var(--space-4);
-  color: var(--color-text-sub);
-  font-size: var(--font-caption);
-  line-height: 1.8;
-}
-
 .login-footer {
   padding: var(--space-24);
   background: var(--color-primary);
@@ -280,16 +201,6 @@
   color: var(--color-text-on-primary);
   font-size: var(--font-caption);
   line-height: 1.8;
-}
-
-@media (max-width: 768px) {
-  .login-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .login-demo-card {
-    min-height: auto;
-  }
 }
 
 /* 보완 6: 로그인 여러 번 실패 후 나타나는 reCAPTCHA */

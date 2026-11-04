@@ -12,9 +12,9 @@ export function annualVehicleTax(cc, electric = false, seats = 5) {
 }
 
 export function getVehicleCostDefaults(vehicle, annualDistance = 12000) {
-  const cc = displacements[vehicle.id]?.cc;
+  const cc = vehicle.displacement_cc ?? displacements[vehicle.id]?.cc;
   const tax = annualVehicleTax(cc, vehicle.fuel === 'ELECTRIC', vehicle.seats);
-  const energyPrice = { GASOLINE: 1700, HYBRID: 1700, DIESEL: 1550, LPG: 1000, ELECTRIC: 350 }[vehicle.fuel] ?? '';
+  const energyPrice = { GASOLINE: 1700, HYBRID: 1700, DIESEL: 1550, LPG: 1000, ELECTRIC: 350, HYDROGEN: 13000 }[vehicle.fuel] ?? '';
   // 보험사 견적 모델이 아닌 예산 수립용 가정: 연 60만 원 + 차량가의 1%.
   const insurance = Math.round(60 + vehicle.price / 10000 * 0.01);
   // 실제 부과세액·정비 견적이 아닌 자금 계획용 가정.

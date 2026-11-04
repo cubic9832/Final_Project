@@ -47,14 +47,15 @@ export default function AdminChatbotPanel() {
       <div className="compa-admin-heading"><h3>콤파 대화 기록</h3>
       <form className="compa-admin-toolbar" onSubmit={(event) => { event.preventDefault(); changeQuery({ ...query, keyword: keyword.trim(), page: 0 }); }}>
         <div className="compa-admin-search form-focus-group">
-          <input type="search" aria-label="회원 닉네임 또는 회원번호 검색" placeholder="회원 닉네임 또는 회원번호" value={keyword} maxLength={50} onChange={(event) => setKeyword(event.target.value)} />
-          <button type="submit" className="compa-admin-search-submit" aria-label="회원 검색"><Search size={theme.iconSize.md} aria-hidden="true" /></button>
+          <input type="search" aria-label="질문 내용 또는 회원 닉네임 검색" placeholder="질문·회원 닉네임 검색" value={keyword} maxLength={50} onChange={(event) => setKeyword(event.target.value)} />
+          <button type="submit" className="compa-admin-search-submit" aria-label="질문 또는 회원 닉네임 검색"><Search size={theme.iconSize.md} aria-hidden="true" /></button>
         </div>
       </form>
       </div>
       {state.status === 'loading' && <p className="admin-empty" role="status">대화 기록을 불러오는 중…</p>}
       {state.status === 'error' && <p className="admin-empty" role="alert">{state.error} <button type="button" className="admin-text-button" onClick={() => { setState({ status: 'loading', data: null, error: '' }); setReload((value) => value + 1); }}>다시 시도</button></p>}
       {state.status === 'done' && <>
+        {state.data.ratingCounts && <p className="compa-admin-rating-counts" role="status"><span>좋아요 {state.data.ratingCounts.likes.toLocaleString()}건</span><span>싫어요 {state.data.ratingCounts.dislikes.toLocaleString()}건</span><span>평가 없음 {state.data.ratingCounts.unrated.toLocaleString()}건</span></p>}
         <div className="compa-admin-table-wrap"><table className="compa-admin-table">
           <caption className="sr-only">콤파 질문·답변 및 평가 목록</caption>
           <colgroup>{[8, 30, 10, 12, 8, 11, 14, 7].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
@@ -70,7 +71,7 @@ export default function AdminChatbotPanel() {
             <tr className={selected?.answerId === item.answerId ? 'compa-admin-selected' : ''}>
               <td>{item.number}</td>
               <td className="compa-admin-question"><button type="button" className="compa-admin-subject" aria-expanded={selected?.answerId === item.answerId} aria-controls={`compa-admin-detail-${item.answerId}`} onClick={() => select(item)}>{item.question}</button></td>
-              <td><strong>{item.userName || '닉네임 없음'}</strong></td>
+              <td>{item.userName || '닉네임 없음'}</td>
               <td>{sourceLabels[item.questionSource] || item.questionSource}</td><td>{item.answerType === 'FIXED' ? '고정' : 'AI'}</td>
               <td><span className="compa-admin-rating">{item.rating === 'LIKE' ? <ThumbsUp size={theme.iconSize.sm} aria-hidden="true" /> : item.rating === 'DISLIKE' ? <ThumbsDown size={theme.iconSize.sm} aria-hidden="true" /> : null}{ratingLabels[item.rating] || '평가 없음'}</span></td>
               <td><time dateTime={item.createdAt}>{item.createdAt?.slice(0, 10)}</time></td>

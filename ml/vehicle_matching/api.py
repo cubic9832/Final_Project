@@ -39,7 +39,7 @@ class ProfileRequest(BaseModel):
     annual_rate: float = Field(default=0, ge=0, le=1, exclude=True, deprecated=True)
     minimum_buffer: float = Field(default=0, ge=0, le=1e12)
     purpose: Literal['commute', 'leisure', 'family', 'business'] = 'commute'
-    preferred_fuel: Literal['GASOLINE', 'HYBRID', 'DIESEL', 'LPG', 'ELECTRIC'] | None = None
+    preferred_fuel: Literal['GASOLINE', 'HYBRID', 'DIESEL', 'LPG', 'ELECTRIC', 'HYDROGEN'] | None = None
     charging_available: bool = Field(default=False, strict=True)
     cost_importance: int = Field(default=3, ge=1, le=5, strict=True)
     space_importance: int = Field(default=3, ge=1, le=5, strict=True)
@@ -131,19 +131,28 @@ def load_service(directory, *, apply_specification_updates=True):
 def create_app(service=None):
     @asynccontextmanager
     async def lifespan(application):
-        application.state.candidates = service or load_service(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261102-height-high-value-3m')))
+        application.state.candidates = service or load_service(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261103-unified-managed-3m')))
         from vehicle_matching.managed_catalog import ManagedCatalog
         url=os.environ.get('ML_MANAGED_CATALOG_URL','http://127.0.0.1:8080/api/v1/vehicles/recommendation-catalog')
         from vehicle_matching.lifestyle_service import LifestyleService
         from vehicle_matching.scenario_service import ScenarioService
         from vehicle_matching.ui_scenario_service import UiScenarioService
         application.state.managed_catalog = ManagedCatalog(url) if service is None and url and not isinstance(application.state.candidates, (LifestyleService,ScenarioService,UiScenarioService)) else None
+        application.state.snapshot_guard = None
+        if service is None and url and isinstance(application.state.candidates, UiScenarioService):
+            model_path = Path(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261103-unified-managed-3m')))
+            metadata = json.loads((model_path / 'metadata.json').read_text(encoding='utf-8'))
+            if metadata['training'].get('catalog_origin') == 'managed-database':
+                from vehicle_matching.managed_catalog import ManagedSnapshotGuard
+                application.state.snapshot_guard = ManagedSnapshotGuard(url, application.state.candidates.vehicles)
         yield
 
     application = FastAPI(title='Experimental user–vehicle ranking', lifespan=lifespan)
 
     def current_service(request):
         current=request.app.state.candidates
+        if request.app.state.snapshot_guard is not None:
+            request.app.state.snapshot_guard.check()
         provider=request.app.state.managed_catalog
         if provider is None:return current
         updated=CandidateService(current.ranker,provider.read(),ml_only=current.ml_only)
@@ -157,7 +166,7 @@ def create_app(service=None):
 
     @application.exception_handler(HTTPException)
     async def http_error(request: Request, error):
-        return problem(request, error.status_code, '요청 오류', '경로와 메서드를 확인해 주세요.')
+        return problem(request, error.status_code, '요청 오류', error.detail if error.status_code == 503 else '경로와 메서드를 확인해 주세요.')
 
     @application.exception_handler(Exception)
     async def unexpected_error(request: Request, error):
@@ -174,7 +183,7 @@ def create_app(service=None):
                 'brandOptions': [] if getattr(current.ranker,'schema',None) in ('scenario-ranker-v1','ui-scenario-ranker-v1','ui-scenario-height-ranker-v2') else getattr(current, 'brands', []),
                 'trainingCatalogCount': len(current.catalog) if hasattr(current, 'catalog') else len(current.vehicles),
                 'scorePolicy': current.policy,
-                'catalogSource': 'managed-database' if request.app.state.managed_catalog is not None else 'model-snapshot',
+                'catalogSource': 'managed-verified-snapshot' if request.app.state.snapshot_guard is not None else 'managed-database' if request.app.state.managed_catalog is not None else 'model-snapshot',
                 'featureCount': len(current.ranker.mean) if hasattr(current.ranker, 'mean') else None,
                 'rankerSchema': getattr(current.ranker, 'schema', 'candidate-v2'),
                 'modelNames': len({(v.brand, v.model) for v in current.vehicles}),

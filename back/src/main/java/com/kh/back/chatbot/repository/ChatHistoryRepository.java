@@ -25,7 +25,8 @@ public class ChatHistoryRepository {
     public record Exchange(long answerId, long conversationId, long userId, String userName, String question, String answer,
                            String questionSource, String guideId, String answerType, String provider,
                            String model, String rating, LocalDateTime createdAt, long number) {}
-    public record ExchangePage(List<Exchange> items, boolean hasMore, int page, long total, long totalPages) {}
+    public record RatingCounts(long likes, long dislikes, long unrated) {}
+    public record ExchangePage(List<Exchange> items, boolean hasMore, int page, long total, long totalPages, RatingCounts ratingCounts) {}
 
     private final RowMapper<ChatHistoryResponse.Message> messageMapper = (rs, index) -> new ChatHistoryResponse.Message(
         rs.getLong("id"), rs.getString("role").equals("USER") ? "user" : "model",
@@ -118,16 +119,18 @@ public class ChatHistoryRepository {
         var parameters = new ArrayList<Object>();
         if (rating.equals("LIKE") || rating.equals("DISLIKE")) parameters.add(rating);
         if (!keyword.isBlank()) {
-            filter += " AND (CAST(c.user_id AS CHAR)=? OR u.nick_name LIKE ? ESCAPE '!')";
-            parameters.add(keyword);
+            filter += " AND (q.content LIKE ? ESCAPE '!' OR u.nick_name LIKE ? ESCAPE '!')";
+            parameters.add("%" + keyword.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
             parameters.add("%" + keyword.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
         }
         String from = " FROM chatbot_messages a JOIN chatbot_messages q ON q.id=a.reply_to_message_id JOIN chatbot_conversations c ON c.id=a.conversation_id JOIN users u ON u.id=c.user_id LEFT JOIN chatbot_feedback f ON f.answer_message_id=a.id WHERE a.role='ASSISTANT'" + filter;
-        long total = Objects.requireNonNull(jdbc.queryForObject("SELECT COUNT(*)" + from, Long.class, parameters.toArray()));
+        RatingCounts counts = Objects.requireNonNull(jdbc.queryForObject("SELECT COUNT(CASE WHEN f.rating='LIKE' THEN 1 END) AS likes,COUNT(CASE WHEN f.rating='DISLIKE' THEN 1 END) AS dislikes,COUNT(CASE WHEN f.id IS NULL THEN 1 END) AS unrated" + from,
+            (rs, n) -> new RatingCounts(rs.getLong("likes"), rs.getLong("dislikes"), rs.getLong("unrated")), parameters.toArray()));
+        long total = counts.likes() + counts.dislikes() + counts.unrated();
         parameters.add(page * 20);
         var rows = jdbc.query("SELECT ROW_NUMBER() OVER (ORDER BY a.id ASC) AS row_ordinal,a.id,a.conversation_id,c.user_id,u.nick_name AS user_name,q.content AS question,a.content AS answer,q.question_source,q.guide_id,a.answer_type,a.provider,a.model,f.rating,a.created_at" + from + " ORDER BY " + order + " LIMIT 20 OFFSET ?",
             (rs, n) -> new Exchange(rs.getLong("id"),rs.getLong("conversation_id"),rs.getLong("user_id"),rs.getString("user_name"),PiiMasker.mask(rs.getString("question")),PiiMasker.mask(rs.getString("answer")),rs.getString("question_source"),rs.getString("guide_id"),rs.getString("answer_type"),rs.getString("provider"),rs.getString("model"),rs.getString("rating"),rs.getTimestamp("created_at").toLocalDateTime(),rs.getLong("row_ordinal")), parameters.toArray());
-        return new ExchangePage(List.copyOf(rows), (page + 1L) * 20 < total, page, total, Math.max(1, (total + 19) / 20));
+        return new ExchangePage(List.copyOf(rows), (page + 1L) * 20 < total, page, total, Math.max(1, (total + 19) / 20), counts);
     }
 
     private void lockMember(long userId) {

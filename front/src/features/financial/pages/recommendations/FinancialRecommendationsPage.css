@@ -1,15 +1,15 @@
-.financial-recommendations-page { width: 100%; max-width: var(--layout-max-width); margin: 0 auto; padding: 0 0 var(--space-24); color: var(--color-primary); animation: recommendations-fade-in 180ms ease-out; }
-.recommendations-heading { min-height: 82px; margin-bottom: var(--space-24); }
-.recommendations-heading h1 { font-size: var(--font-page-title); line-height: 1.4; letter-spacing: -.03em; }
-.recommendations-heading p { margin-top: var(--space-8); color: var(--color-muted); font-size: var(--font-body); line-height: 1.7; }
+.financial-recommendations-page { width: 100%; max-width: var(--layout-max-width); margin: 0 auto; padding: var(--space-8) 0 var(--space-48); color: var(--color-primary); animation: recommendations-fade-in 180ms ease-out; }
+.recommendations-heading { margin-bottom: var(--space-24); }
+.recommendations-heading h1 { font-size: var(--font-page-title); line-height: 1.5; letter-spacing: -0.8px; }
+.recommendations-heading p { margin-top: var(--space-8); color: var(--color-muted); font-size: var(--font-body); line-height: 1.5; }
 .recommendations-context > summary, .candidate-decision-summary > summary { cursor: pointer; font-size: var(--font-body); font-weight: 700; padding-block: var(--space-8); }
 .recommendations-context { padding: var(--space-12) var(--space-24); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
 .recommendations-context .financial-recommendations-summary { margin-top: var(--space-12); padding: var(--space-16) 0; border: 0; }
 .financial-recommendations-page .candidate-decision-summary { margin-top: var(--space-12); padding: var(--space-12) var(--space-24); }
-.financial-recommendations-page .financial-recommendation-card { height: 440px; }
+.financial-recommendations-page .financial-recommendation-card { min-height: 440px; height: auto; }
 .financial-recommendations-page .financial-recommendation-media { height: 112px; min-height: 112px; }
 .financial-recommendations-page .financial-recommendation-media img { width: 100%; height: 100%; object-fit: contain; }
-.financial-recommendations-page .financial-recommendation-card-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: var(--space-16); }
+.financial-recommendations-page .financial-recommendation-card-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: var(--space-24); }
 .financial-recommendations-page .financial-recommendation-aligned-summary { min-height: 0; }
 .financial-recommendations-page .financial-recommendation-card-body h2 { font-size: var(--font-card-title); }
 .financial-recommendations-page .financial-recommendation-card-body h2 + p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--font-caption); }
@@ -186,3 +186,13 @@
 .vehicle-sales-verification dt { font-weight: 700; }
 .vehicle-sales-verification dd { margin: var(--space-8) 0 0; overflow-wrap: anywhere; }
 .vehicle-sales-verification a { display: inline-block; margin-right: var(--space-8); color: var(--color-blue-strong); }
+
+#recommended-vehicles > .financial-recommendations-list-heading { margin-top:0; }
+.financial-recommendations-list-heading { flex-wrap:wrap; }
+.financial-recommendations-list-heading > span { font-size:var(--font-caption); }
+
+.recommendations-result-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:calc((100% - var(--space-24)) * 0.6); gap:var(--space-12); margin-top:var(--space-16); }
+.recommendations-result-actions > button { display:flex; align-items:center; justify-content:center; gap:var(--space-8); width:100%; min-width:0; min-height:48px; margin:0; padding:var(--space-12); border-radius:var(--radius-md); font-size:var(--font-body); font-weight:700; }
+.recommendations-result-actions > .financial-next-button { background:var(--color-mint); color:var(--color-primary); }
+.recommendations-result-actions > .financial-next-button:hover { background:var(--color-mint-hover); }
+@media(max-width:768px) { .recommendations-result-actions { width:100%; } }
