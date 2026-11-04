@@ -77,6 +77,14 @@ function openSavedTaste(memberId, data) {
     { phase: 'result', step: data.questionCount - 1, answers: data.savedAnswers });
 }
 
+// [취향 바꾸기 (테스트 다시 하기)]: 같은 이유로 임시 기록을 "첫 질문 · 답 없음" 으로 바꿔 두고 이동한다
+// → 결과 화면이 아니라 1번 질문부터 시작
+function startNewTaste(memberId, data) {
+  if (!memberId) return;
+  writeMemberTasteDraft(memberId, data.version,
+    { phase: 'question', step: 0, answers: Array(data.questionCount).fill(null) });
+}
+
 // 최근 재무 진단 3건 (재무 진단 결과 화면에서 저장한 기록, 최신 순). 없으면 []
 const loadDiagnoses = () => getRecentDiagnoses(3);
 
@@ -303,7 +311,7 @@ function TasteCard({ state }) {
           <p className="my-taste-how">
             취향이 바뀌었다면 테스트를 다시 하세요. 결과 화면에서 &quot;현재 취향을 바꿀까요?&quot;를 확인하면 새 결과로 바뀝니다.
           </p>
-          <Link className="my-outline-button" to="/taste-test">취향 바꾸기 (테스트 다시 하기)</Link>
+          <Link className="my-outline-button" to="/taste-test" onClick={() => startNewTaste(memberId, state.data)}>취향 바꾸기 (테스트 다시 하기)</Link>
         </>
       )}
     </section>
