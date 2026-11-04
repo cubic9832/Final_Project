@@ -180,10 +180,19 @@
   border: 0;
 }
 
+/* 11-04: 보조 버튼([상담 종료])은 마이페이지 · 계정 관리 보조 버튼과 같은 연한 파랑 */
 .consult-outline {
-  color: var(--color-text-sub);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-input);
+  color: var(--color-primary);
+  background: var(--color-blue-tint);
+  border: 0;
+}
+
+.consult-outline:hover:not(:disabled) {
+  background: #dde9f7;
+}
+
+.consult-button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
 }
 
 .consult-button:disabled,
