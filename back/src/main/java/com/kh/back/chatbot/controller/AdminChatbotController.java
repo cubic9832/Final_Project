@@ -21,13 +21,13 @@ public class AdminChatbotController {
     public ApiResponse<ChatHistoryRepository.ExchangePage> exchanges(@AuthenticationPrincipal Long actor,
             @RequestParam(defaultValue="ALL") String rating, @RequestParam(defaultValue="0") int page,
             @RequestParam(defaultValue="") String keyword, @RequestParam(defaultValue="") String sort,
-            @RequestParam(defaultValue="ASC") String direction) {
+            @RequestParam(defaultValue="ASC") String direction, @RequestParam(required=false) Long promptVersionId) {
         requireAdmin(actor);
         if (!Set.of("ALL", "LIKE", "DISLIKE", "UNRATED").contains(rating) || page < 0 || page > 100000 || keyword.strip().length() > 50
                 || !Set.of("", "number", "question", "member", "source", "answer", "rating", "createdAt").contains(sort)
-                || !Set.of("ASC", "DESC").contains(direction))
+                || !Set.of("ASC", "DESC").contains(direction) || (promptVersionId != null && promptVersionId < 0))
             throw new ApiException(HttpStatus.BAD_REQUEST, "CHAT_INVALID", "조회 조건을 확인해 주세요.");
-        return ApiResponse.ok(history.exchanges(rating, page, keyword.strip(), sort, direction));
+        return ApiResponse.ok(history.exchanges(rating, page, keyword.strip(), sort, direction, promptVersionId));
     }
 
     @GetMapping("/chatbot-conversations/{conversationId}/messages")

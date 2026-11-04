@@ -187,3 +187,155 @@
 @media(max-width:1024px) { .savings-main-grid { grid-template-columns:minmax(0,1fr) 280px; } .savings-plan-picker { grid-template-columns:1fr; gap:var(--space-24); } .savings-metrics strong { font-size:var(--font-figure-md); } }
 @media(max-width:768px) { .savings-main-grid { grid-template-columns:1fr; } .savings-sidebar { grid-template-columns:1fr 1fr; } .savings-sidebar>.savings-caption { grid-column:1/-1; } .savings-header { align-items:start; flex-direction:column; } .savings-local-label { display:none; } }
 @media(max-width:480px) { .savings-metrics { grid-template-columns:1fr; } .savings-metrics section { gap:var(--space-4); } .savings-metrics svg { display:none; } .savings-sidebar { grid-template-columns:1fr; } .savings-start-controls { align-items:stretch; flex-direction:column; width:100%; } .savings-plan-heading { align-items:start; flex-direction:column; } .savings-view-controls { align-items:start; flex-direction:column; gap:var(--space-8); } .savings-example-button { margin-left:0; } .savings-chart-unit { display:none; } }
+
+.savings-chart-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-16); margin:0 0 var(--space-24); padding:var(--space-16) 0; border-top:1px solid var(--color-border); border-bottom:1px solid var(--color-border); }
+.savings-chart-summary > div { min-width:0; }
+.savings-chart-summary dt { color:var(--color-text-sub); font-size:var(--font-caption); }
+.savings-chart-summary dd { margin:var(--space-8) 0; color:var(--color-primary); font-size:var(--font-figure-md); font-weight:700; overflow-wrap:anywhere; }
+.savings-chart-summary small { color:var(--color-muted); font-size:var(--font-caption); line-height:1.7; display:block; }
+@media(max-width:480px) {
+  .savings-chart-summary { grid-template-columns:1fr; }
+  .savings-chart-summary > div + div { padding-top:var(--space-16); border-top:1px solid var(--color-border); }
+}
+/* 저축 현황: 추천 화면과 같은 요약 카드와 명확한 핵심 행동 */
+.savings-overline { color:var(--color-blue-strong); font-size:var(--font-caption); font-weight:700; margin-bottom:var(--space-16); }
+.savings-total-heading { display:flex; align-items:center; justify-content:space-between; gap:var(--space-16); }
+.savings-total-heading h2 { font-size:var(--font-subtitle); }
+.savings-total-heading > span,.savings-trend-heading > span { font-size:var(--font-caption); color:var(--color-muted); }
+.savings-total-amount { display:block; color:var(--color-primary); font-size:var(--font-figure-lg); margin-top:var(--space-12); }
+.savings-overview > .savings-caption { margin-top:var(--space-8); }
+.savings-goal-progress { margin-top:var(--space-24); padding:var(--space-16); border-radius:var(--radius-md); background:var(--color-background); }
+.savings-goal-progress > div { display:flex; align-items:center; justify-content:space-between; font-size:var(--font-caption); color:var(--color-text-sub); }
+.savings-goal-progress strong { font-size:var(--font-figure-md); color:var(--color-primary); }
+.savings-goal-progress progress { display:block; appearance:none; width:100%; height:8px; margin-block:var(--space-12); border:0; border-radius:var(--radius-pill); overflow:hidden; background:var(--color-border); accent-color:var(--color-mint); }
+.savings-goal-progress progress::-webkit-progress-bar { background:var(--color-border); }
+.savings-goal-progress progress::-webkit-progress-value { background:var(--color-mint); border-radius:var(--radius-pill); }
+.savings-goal-progress progress::-moz-progress-bar { background:var(--color-mint); }
+.savings-goal-progress p { color:var(--color-text-sub); font-size:var(--font-caption); line-height:1.8; }
+.savings-month-status { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-8) var(--space-16); padding-block:var(--space-24); font-size:var(--font-caption); color:var(--color-muted); }
+.savings-month-status strong { color:var(--color-primary); font-size:var(--font-body); }
+.savings-month-status > span:last-child { margin-left:auto; }
+.savings-trend-heading { display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--color-border); padding-top:var(--space-24); margin-bottom:var(--space-24); }
+.savings-trend-heading h2 { font-size:var(--font-subtitle); }
+.savings-goal-vehicle { display:flex; gap:var(--space-12); align-items:center; padding-bottom:var(--space-24); border-bottom:1px solid var(--color-border); }
+.savings-goal-vehicle h2 { font-size:var(--font-card-title); color:var(--color-primary); overflow-wrap:anywhere; }
+.savings-goal-vehicle p { font-size:var(--font-caption); color:var(--color-muted); margin-top:var(--space-8); }
+.savings-goal-card dl > div { display:flex; justify-content:space-between; align-items:baseline; gap:var(--space-16); padding-top:var(--space-24); }
+.savings-goal-card dt { color:var(--color-text-sub); font-size:var(--font-caption); }
+.savings-goal-card dd { color:var(--color-primary); font-weight:700; text-align:right; }
+.savings-goal-card > .savings-button { width:100%; margin-top:var(--space-32); }
+.savings-plan-link { display:block; text-align:center; padding-top:var(--space-16); color:var(--color-blue-strong); font-size:var(--font-caption); }
+.savings-plan-link:hover { text-decoration:underline; }
+.savings-sidebar-note { color:var(--color-muted); font-size:var(--font-caption); line-height:1.8; padding-inline:var(--space-8); }
+.savings-record-modal .savings-entry { padding:0; border:0; }
+.savings-record-modal .savings-entry > .savings-section-heading { display:none; }
+.savings-page button:focus-visible,.savings-page a:focus-visible { outline:2px solid var(--color-blue); outline-offset:3px; }
+@media(max-width:768px) { .savings-sidebar { grid-template-columns:1fr; grid-row:1; }.savings-sidebar-note { margin-top:calc(-1 * var(--space-8)); } }
+@media(max-width:480px) { .savings-month-status > span:last-child { margin-left:0; width:100%; }.savings-total-amount { font-size:var(--font-figure-lg); } }
+/* 구매 계획과 동일한 3:2 카드 구성 및 하단 이전/실행 버튼 */
+.savings-main-grid { grid-template-columns:minmax(0,3fr) minmax(0,2fr); }
+.savings-overview { min-height:576px; height:auto; overflow:visible; }
+.savings-progress-heading { display:flex; gap:var(--space-12); align-items:center; margin-bottom:var(--space-24); color:var(--color-primary); }
+.savings-progress-heading > span { padding:var(--space-8); background:var(--color-blue-tint); border-radius:var(--radius-sm); font-size:var(--font-caption); font-weight:700; }
+.savings-progress-heading > h2 { font-size:var(--font-card-title); }
+.savings-progress-heading > svg { margin-left:auto; }
+.savings-goal-card { min-height:576px; display:flex; flex-direction:column; background:var(--color-primary); color:var(--color-surface); border-color:var(--color-primary); }
+.savings-goal-card .savings-overline,.savings-goal-card dt,.savings-goal-card .savings-goal-vehicle p,.savings-goal-card .savings-caption { color:var(--color-text-on-primary); }
+.savings-goal-card .savings-goal-vehicle { border-color:var(--color-tint-on-primary); }
+.savings-goal-card .savings-goal-vehicle h2,.savings-goal-card dd { color:var(--color-surface); }
+.savings-goal-card .savings-goal-vehicle { padding-block:var(--space-8) var(--space-32); }
+.savings-goal-card dl > div { padding-top:var(--space-32); }
+.savings-goal-card dl:first-of-type > div:first-child { display:block; }
+.savings-goal-card dl:first-of-type > div:first-child dd { text-align:left; font-size:var(--font-figure-lg); margin-top:var(--space-12); }
+.savings-flow-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-12); margin-top:var(--space-16); }
+.savings-flow-actions > * { display:flex; align-items:center; justify-content:center; gap:var(--space-8); min-height:48px; font-size:var(--font-body); font-weight:700; border-radius:var(--radius-sm); }
+.savings-previous { border:1px solid var(--color-border); background:var(--color-surface); color:var(--color-text-sub); }
+.savings-previous:hover { background:var(--color-blue-tint); }
+@media(max-width:768px) { .savings-main-grid { grid-template-columns:1fr; }.savings-sidebar { grid-row:auto; }.savings-overview { height:auto; overflow:visible; }.savings-goal-card { min-height:0; } }
+.savings-overview .savings-chart { min-width:480px; }
+
+.savings-overview .savings-trend-heading { margin-top:var(--space-24); }
+
+.savings-goal-card-progress { margin-top:var(--space-24); }
+.savings-goal-card-progress > div,.savings-goal-card-month > div { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--space-8); font-size:var(--font-caption); color:var(--color-text-on-primary); }
+.savings-goal-card-progress strong { color:var(--color-surface); font-size:var(--font-figure-md); }
+.savings-goal-card-progress progress { display:block; appearance:none; width:100%; height:8px; border:0; border-radius:var(--radius-pill); overflow:hidden; margin-block:var(--space-12); background:var(--color-tint-on-primary); accent-color:var(--color-mint); }
+.savings-goal-card-progress progress::-webkit-progress-bar { background:var(--color-tint-on-primary); }
+.savings-goal-card-progress progress::-webkit-progress-value { background:var(--color-mint); border-radius:var(--radius-pill); }
+.savings-goal-card-progress progress::-moz-progress-bar { background:var(--color-mint); }
+.savings-goal-card-progress p { color:var(--color-text-on-primary); font-size:var(--font-caption); line-height:1.8; }
+.savings-goal-card-month { margin-top:var(--space-24); padding-top:var(--space-24); border-top:1px solid var(--color-tint-on-primary); }
+.savings-goal-card-month > strong { display:block; color:var(--color-surface); font-size:var(--font-subtitle); margin-top:var(--space-12); }
+
+/* 현황과 목표 요약을 같은 그리드 행에서 늘려 두 카드 하단을 정렬한다. */
+@media(min-width:769px) {
+  .savings-main-grid { align-items:stretch; row-gap:var(--space-16); }
+  .savings-main-content,.savings-main-grid > .savings-sidebar { display:contents; }
+  .savings-main-content > .savings-overview { grid-column:1; grid-row:1; }
+  .savings-main-grid .savings-goal-card { grid-column:2; grid-row:1; min-height:0; }
+  .savings-main-content > .savings-flow-actions { grid-column:1; grid-row:2; margin-top:0; align-self:start; }
+  .savings-main-content > .savings-history { grid-column:1; margin-top:0; }
+  .savings-main-grid .savings-recurring { grid-column:2; grid-row:3; align-self:start; }
+  .savings-main-grid .savings-sidebar-note { grid-column:2; align-self:start; }
+}
+.savings-goal-card .savings-goal-vehicle { padding-bottom:var(--space-24); }
+.savings-goal-card dl > div { padding-top:var(--space-24); }
+.savings-goal-card-progress { margin-top:var(--space-16); }
+.savings-goal-card-month { margin-top:auto; padding-top:var(--space-16); }
+.savings-goal-card dl + .savings-goal-card-month { margin-top:var(--space-24); }
+
+/* 종합 계획과 동일한 카드 높이. 내용은 간격과 차트 크기로 맞춘다. */
+@media(min-width:769px) {
+  .savings-main-content > .savings-overview,
+  .savings-main-grid .savings-goal-card { height:576px; min-height:0; overflow:visible; }
+  .savings-overview { display:flex; flex-direction:column; }
+  .savings-overview .savings-progress-heading { margin-bottom:var(--space-16); }
+  .savings-overview .savings-total-amount { margin-top:var(--space-8); }
+  .savings-overview .savings-trend-heading { padding-top:var(--space-16); margin-top:var(--space-16); margin-bottom:var(--space-16); }
+  .savings-overview .savings-chart-toolbar { margin-bottom:var(--space-8); }
+  .savings-overview .savings-chart-scroll { overflow:visible; min-height:0; flex:1; }
+  .savings-overview .savings-chart { width:100%; min-width:0; height:100%; max-height:240px; }
+  .savings-overview .savings-chart-detail { margin-top:var(--space-8); }
+  .savings-goal-card .savings-overline { margin-bottom:var(--space-8); }
+  .savings-goal-card .savings-goal-vehicle { padding-top:0; padding-bottom:var(--space-16); }
+  .savings-goal-card dl > div { padding-top:var(--space-16); }
+  .savings-goal-card-progress { margin-top:var(--space-16); }
+  .savings-goal-card dl + .savings-goal-card-month { margin-top:var(--space-16); }
+  .savings-goal-card-month { padding-top:var(--space-16); }
+  .savings-goal-card-month > strong { margin-top:var(--space-8); }
+}
+
+.savings-current-total { align-items:center; justify-content:space-between; }
+.savings-current-total > strong { font-size:var(--font-figure-md); }
+@media(min-width:769px) {
+  .savings-overview .savings-trend-heading { margin-top:0; }
+  .savings-overview .savings-chart { max-height:none; }
+}
+
+/* 그래프를 주 정보로 강조하고 하단 금액은 작은 요약으로 표시한다. */
+.savings-current-total { padding:var(--space-8) var(--space-12); font-size:var(--font-caption); }
+.savings-current-total > strong { font-size:var(--font-body); }
+@media(min-width:769px) {
+  .savings-overview .savings-progress-heading { margin-bottom:var(--space-8); }
+  .savings-overview .savings-trend-heading { padding-top:var(--space-12); margin-bottom:var(--space-8); }
+  .savings-overview .savings-chart-toolbar { margin-bottom:var(--space-4); }
+  .savings-overview .savings-chart { min-width:0; max-height:none; }
+  .savings-overview .savings-chart-detail { margin-top:var(--space-4); }
+}
+
+/* 페이지 배경은 유지하고 현황 카드의 내용만 부드럽게 표시한다. */
+.savings-progress-heading,
+.savings-overview > .savings-trend-heading,
+.savings-overview > .savings-chart-toolbar,
+.savings-overview > .savings-chart-scroll,
+.savings-overview > .savings-chart-detail,
+.savings-goal-card > * { animation:savings-content-fade-in 400ms ease-out; }
+@keyframes savings-content-fade-in { from { opacity:0; } to { opacity:1; } }
+@media(prefers-reduced-motion:reduce) {
+  .savings-progress-heading,
+  .savings-overview > .savings-trend-heading,
+  .savings-overview > .savings-chart-toolbar,
+  .savings-overview > .savings-chart-scroll,
+  .savings-overview > .savings-chart-detail,
+  .savings-goal-card > * { animation:none; }
+}

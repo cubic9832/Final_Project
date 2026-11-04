@@ -40,6 +40,9 @@ public class SecurityConfig {
 
                 // ③ 주소별 접근 규칙 — 위에서부터 차례로 검사한다
                 .authorizeHttpRequests(auth -> auth
+                        // 최초 SSE 요청은 JWT로 인증한다. 종료 시의 내부 ASYNC 재디스패치만 허용한다.
+                        .requestMatchers(request -> request.getDispatcherType() == jakarta.servlet.DispatcherType.ASYNC
+                                && "/api/v1/notifications/stream".equals(request.getRequestURI())).permitAll()
                         // 10-22: 비밀번호 변경은 /auth 아래지만 로그인 필요 — 공개로 두면 토큰이 만료됐을 때 "만료" 대신
                         //        "로그인 필요"로 응답해 화면이 자동 재발급 없이 로그아웃했다 (위에서부터 검사하므로 permitAll 보다 먼저)
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/password").authenticated()
@@ -53,6 +56,12 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/vehicles/**").permitAll() // 차량 조회는 누구나 (비회원 차량 찾기)
                         .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll() // 종목 조회 예제
+                        // 모델 관리: 추천 요청은 누구나 (비회원 재무 진단도 추천을 받는다). 비율대로 여러 추천 서버 중 하나로 넘긴다
+                        .requestMatchers("/api/v1/recommendation/**").permitAll()
+                        // 모델 관리: 모델별 트래픽 비율 바꾸기는 모든 사용자에게 영향 → 총관리자만 (아래 관리자 규칙보다 먼저)
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/admin/model-traffic").hasRole("SUPER_ADMIN")
+                        // 모델 관리: 추천 서버 켜기 · 끄기도 총관리자만 (PC 에서 프로세스를 띄운다)
+                        .requestMatchers("/api/v1/admin/model-servers", "/api/v1/admin/model-servers/**").hasRole("SUPER_ADMIN")
                         // 7단계: 관리자 권한 주기 · 빼기는 총관리자(SUPER_ADMIN)만 — 아래 관리자 규칙보다 먼저 적는다
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/members/*/role").hasRole("SUPER_ADMIN")
                         // 7단계: 관리자 API 는 관리자(ADMIN) · 총관리자(SUPER_ADMIN)만 (토큰의 role → ROLE_…). 일반 회원 404(보완 11, 숨김), 비회원 401

@@ -356,3 +356,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* 11-04: 오른쪽 대화 카드 높이 = 왼쪽 목록 카드 높이 (목록은 4개까지 보이고 그 이상은 스크롤)
+   대화창 높이는 고정 — 넘기기 · 경고 · 상담 제한 입력칸을 펼치면 대화창은 그대로 두고 카드만 아래로 늘어난다
+   321px = 목록 카드 높이 − (이름 · 버튼 줄 + 여백). 총관리자의 "이 회원이 남긴 평가" 줄도 입력칸처럼 아래에 붙는다 */
+.admin-chat .admin-chat-list ul {
+  height: 404px; /* 상담 4개(95px × 4 + 간격 8px × 3) — 목록이 적어도 카드 높이가 그대로 */
+  max-height: none;
+}
+
+.admin-chat-detail .chat-thread {
+  flex: none;
+  height: 321px;
+}
+
+.admin-chat-detail .chat-thread .chat-board {
+  flex: 1;
+  height: 0; /* 대화창은 입력칸을 뺀 남는 높이를 채운다 */
+  min-height: 0;
+}
+
+/* 이름 줄은 한 줄 전체, 버튼 줄 오른쪽 끝에 수신 상태 (대화창 바로 위) */
+.admin-chat-who {
+  flex: 1 1 100%;
+}
+
+.admin-chat-head .chat-live {
+  margin-left: auto;
+  align-self: flex-end;
+}
+
+/* 11-04: 배지(신고 · 경고 · 제한 · 상태)가 많으면 카드보다 넓어져 목록에 좌우 스크롤이 생겼다
+   → 배지는 넘치면 다음 줄로, 목록은 위아래로만 스크롤 */
+.admin-chat .admin-chat-list ul {
+  overflow-x: hidden;
+}
+
+.admin-chat-row {
+  flex-wrap: wrap;
+}
+
+.admin-chat-badges {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+}

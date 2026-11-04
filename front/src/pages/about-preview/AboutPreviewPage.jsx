@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChartNoAxesCombined, Wallet, CarFront } from 'lucide-react';
 import theme from '../../styles/theme';
@@ -6,6 +5,7 @@ import vehiclePhoto from '../../assets/vehicles/vehicle-0.webp';
 import useScrollReveal from './useScrollReveal';
 import useSectionStage from './useSectionStage';
 import './AboutPreviewPage.css';
+import './AboutPreviewComparison.css';
 import './AboutPreviewSections.css';
 
 const journey = [
@@ -14,26 +14,29 @@ const journey = [
   { number: '03', Icon: ChartNoAxesCombined, title: '목표 차량을 위한 저축 계획', text: '구매 조건과 유지 비용을 살펴보고, 목표 차량을 위한 저축 계획으로 이어갑니다.' },
 ];
 
-function DiagnosisExample() {
-  const [income, setIncome] = useState(350);
-  const [expenses, setExpenses] = useState(190);
-  const available = income - expenses - 85;
-  return <figure className="about-preview-report">
-    <figcaption><span>내 예산, 이렇게 살펴봅니다</span><span className="about-preview-sample">직접 바꿔보세요</span></figcaption>
-    <label className="about-preview-slider"><span>월 소득 <strong>{income}만 원</strong></span><input type="range" min="200" max="700" step="10" value={income} onChange={event => setIncome(Number(event.target.value))} aria-valuetext={`${income}만 원`} /></label>
-    <label className="about-preview-slider"><span>월 생활비·기존 지출 <strong>{expenses}만 원</strong></span><input type="range" min="100" max="400" step="10" value={expenses} onChange={event => setExpenses(Number(event.target.value))} aria-valuetext={`${expenses}만 원`} /></label>
-    <dl className="about-preview-breakdown">
-      <div><dt><i className="about-preview-dot-saving" />저축과 남겨둘 여유 · 고정 예시</dt><dd>85만 원</dd></div>
-    </dl>
-    <div className="about-preview-live-result" aria-live="polite" aria-atomic="true"><span>지출과 저축을 제외한 월 여력</span><strong>{available} <small>만 원</small></strong><p>{available > 0 ? '이 여력 안에서 차량 구매·유지 비용을 함께 살펴보세요.' : '예시에서는 여유 자금이 부족해요. 지출과 저축 계획부터 살펴보세요.'}</p></div>
-    <p className="about-preview-disclaimer">단순 계산 예시입니다. 실제 진단은 자산·부채 등을 추가로 반영합니다. 위 금액은 권장 차량 예산이 아닙니다.</p>
+const comparisonExamples = [
+  { label: '차량 가격', values: ['2,800만 원', '3,200만 원', '3,600만 원'] },
+  { label: '월 유지비', values: ['25만 원', '19만 원', '15만 원'] },
+  { label: '3년 총비용', values: ['3,700만 원', '3,884만 원', '4,140만 원'] },
+];
+
+function VehicleComparisonExample() {
+  return <figure className="about-preview-comparison-example">
+    <figcaption><strong>한눈에 보는 차량 비교</strong><span>가상 예시 · 3대 비교</span></figcaption>
+    <div className="about-preview-comparison-table-wrap"><table>
+      <caption className="sr-only">가상 차량 3대의 가격과 유지비 비교</caption>
+      <thead><tr><th scope="col">비교 항목</th>{['가솔린 세단', '하이브리드 SUV', '전기 SUV'].map((name, index) => <th scope="col" key={name}><span className="about-preview-comparison-car"><CarFront size={theme.iconSize.lg} aria-hidden="true" /></span><small>후보 0{index + 1}</small><strong>{name}</strong></th>)}</tr></thead>
+      <tbody>{comparisonExamples.map(({ label, values }) => <tr key={label}><th scope="row">{label}</th>{values.map((value, index) => <td key={index}>{value}</td>)}</tr>)}</tbody>
+    </table></div>
+    <div className="about-preview-comparison-note"><ChartNoAxesCombined size={theme.iconSize.md} aria-hidden="true" /><p><strong>차량 가격 다음으로, 유지비까지.</strong><span>같은 기준으로 비교하면 선택이 더 명확해집니다.</span></p></div>
+    <p className="about-preview-comparison-disclaimer">이해를 돕기 위한 가상 차량·금액입니다. 3년 총비용은 차량 가격과 월 유지비 36개월의 합이며, 실제 비교 결과는 차량과 구매 조건에 따라 달라집니다.</p>
   </figure>;
 }
 
 export default function AboutPreviewPage() {
   const containerRef = useScrollReveal();
   const { activeSection, stageEnabled, setActiveSection } = useSectionStage(containerRef);
-  const sectionNames = ['서비스 소개', '예산 계산', '주요 기능', '드림카 플래너'];
+  const sectionNames = ['서비스 소개', '차량 비교', '주요 기능', '드림카 플래너'];
   return <div className={`about-preview${stageEnabled ? ' is-stage' : ''}`} data-active-section={activeSection} ref={containerRef}>
     {stageEnabled && <nav className="about-preview-stage-nav" aria-label="소개 섹션"><div>{sectionNames.map((name, index) => <button type="button" key={name} aria-label={`${index + 1}. ${name}`} title={name} aria-current={index === activeSection ? 'step' : undefined} onClick={() => setActiveSection(index)}><span>{String(index + 1).padStart(2, '0')}</span><span className="about-preview-nav-label">{name}</span></button>)}</div><div className="about-preview-stage-controls"><span aria-live="polite">0{activeSection + 1} <span>/ 04</span></span><button type="button" aria-label="이전 섹션" disabled={activeSection === 0} onClick={() => setActiveSection(index => Math.max(0, index - 1))}><ArrowRight className="about-preview-previous-icon" size={theme.iconSize.sm} aria-hidden="true" /></button><button type="button" aria-label="다음 섹션" disabled={activeSection === sectionNames.length - 1} onClick={() => setActiveSection(index => Math.min(sectionNames.length - 1, index + 1))}><ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></button></div></nav>}
     <section id="about-preview-intro" data-reveal className="about-preview-hero about-preview-container" aria-labelledby="about-preview-title">
@@ -47,7 +50,10 @@ export default function AboutPreviewPage() {
       <figure className="about-preview-vehicle-photo"><img src={vehiclePhoto} alt="밝은 스튜디오에 주차된 흰색 세단의 전면과 측면" fetchPriority="high" /><figcaption><span>가격부터 유지비까지</span><strong>내 생활에 맞는 한 대를 찾는 기준.</strong><Link to="/search">차량 둘러보기 <ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></figcaption></figure>
     </section>
 
-    <section id="about-preview-budget" data-reveal className="about-preview-container about-preview-budget-section" aria-labelledby="about-preview-budget-title"><div><p className="about-preview-kicker">예산을 먼저 확인해 보세요</p><h2 id="about-preview-budget-title">월급에서 지출을 빼면,<br />차에 쓸 여유는 얼마일까요?</h2><p>오른쪽 예시의 소득과 지출을 바꿔보세요.<br />실제 진단에서는 자산과 부채까지 함께 살펴봅니다.</p><Link className="about-preview-text-link" to="/financial">내 정보로 자세히 진단하기 <ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></div><DiagnosisExample /></section>
+    <section id="about-preview-comparison" data-reveal className="about-preview-container about-preview-comparison-section" aria-labelledby="about-preview-comparison-title">
+      <div className="about-preview-comparison-copy"><p className="about-preview-kicker">차량 비교 · 최대 3대를 한눈에</p><h2 id="about-preview-comparison-title">마음에 드는 차들,<br />같은 기준으로 비교하세요.</h2><p>구매 가격부터 월 유지비, 장기 보유 비용까지.<br />후보를 나란히 놓고 내 생활에 맞는 차를 찾아보세요.</p><ul><li>차량 가격과 할부금 비교</li><li>유류비·보험료·세금 등 유지비 확인</li><li>3년 총비용과 구매 후 월 여유 자금 확인</li></ul><Link className="about-preview-cta" to="/vehicles/compare">차량 비교하러 가기 <ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></div>
+      <VehicleComparisonExample />
+    </section>
 
     <section data-reveal id="about-preview-story" className="about-preview-container about-preview-journey" aria-labelledby="about-preview-journey-title">
       <div className="about-preview-section-heading"><p className="about-preview-kicker">재무 진단부터 차량 비교, 구매 계획까지</p><h2 id="about-preview-journey-title">자동차를 고를 때 필요한<br />3가지 결과를 확인하세요.</h2><p>재무 진단에서 차량 비교, 구매 계획까지 한 흐름으로.</p></div>

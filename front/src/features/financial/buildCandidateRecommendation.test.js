@@ -21,6 +21,26 @@ test('height selection is sent to the API and invalid ranges are rejected', () =
   assert.equal(buildCandidateRecommendation(state).request, null);
 });
 
+test('income share and installment months reach the API only together', () => {
+  const state = diagnosis();
+  assert.equal(buildCandidateRecommendation(state).request.profile.vehicle_income_ratio, 0);
+  assert.equal(buildCandidateRecommendation(state).request.profile.vehicle_payment_months, 0);
+  state.vehicle.incomeRatio = '15';
+  state.vehicle.paymentMonths = '36';
+  const { profile } = buildCandidateRecommendation(state).request;
+  assert.equal(profile.vehicle_income_ratio, 15);
+  assert.equal(profile.vehicle_payment_months, 36);
+  // 예금만 쓰기로 바꾸면 이전에 고른 개월 수는 보내지 않는다 (서버는 비율 없는 개월을 거절한다).
+  state.vehicle.incomeRatio = '0';
+  assert.equal(buildCandidateRecommendation(state).request.profile.vehicle_payment_months, 0);
+  state.vehicle.incomeRatio = '15';
+  state.vehicle.paymentMonths = '30';
+  assert.deepEqual(buildCandidateRecommendation(state).errors, ['할부 기간']);
+  state.vehicle.paymentMonths = '36';
+  state.vehicle.incomeRatio = '200';
+  assert.equal(buildCandidateRecommendation(state).request, null);
+});
+
 test('v2 request converts units and shares detailed debt totals with the displayed budget', () => {
   const state = diagnosis();
   const { request, errors } = buildCandidateRecommendation(state);

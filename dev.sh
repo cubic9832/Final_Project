@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# 개발 환경 한 번에 실행: MySQL·Elasticsearch·Kibana(Docker) + Spring Boot + Vite
-#   ./dev.sh         전체 실행 (Ctrl+C 로 back/front 종료, Docker 컨테이너는 유지)
+# 개발 환경 한 번에 실행: MySQL·Elasticsearch·Kibana(Docker) + Spring Boot + 추천 서버(FastAPI) + Vite
+#   ./dev.sh         전체 실행 (Ctrl+C 로 back/ml/front 종료, Docker 컨테이너는 유지)
+#   추천 서버는 ml/.venv 가 있을 때만 띄운다 (만드는 방법: ml/README.md). 없으면 경고만 하고 나머지는 실행
+#   ML_EXTRA_RUNS="<ml/ 아래 폴더>@<포트>,..." ./dev.sh   다른 모델로 추천 서버를 더 띄운다 (관리자 모델 관리에서 비율 분배)
 #   ./dev.sh down    Docker 컨테이너 중지 (데이터 유지)
 #   ./dev.sh reset   Docker 컨테이너와 데이터 삭제 (다음 실행 때 Flyway 가 처음부터 적용)
 #   DB_PORT=3308 ./dev.sh   기본 3307 대신 다른 포트를 쓸 때
@@ -137,17 +139,61 @@ print_lan_access() {
 }
 
 APP_PIDS=()
+ML_PORT="${ML_PORT:-8002}"
+
+# 모델 관리 트래픽 분배용: 다른 모델로 추천 서버를 더 띄운다. "<ml/ 아래 폴더>@<포트>" 를 쉼표로
+#   ML_EXTRA_RUNS="outputs/models/scenario-choices/20261102-height-high-value-3m@8003" ./dev.sh
+ML_EXTRA_RUNS="${ML_EXTRA_RUNS:-}"
+
+# Spring 이 비율대로 나눠 보낼 추천 서버 주소 목록 (첫 번째 = 기본). RECOMMENDATION_UPSTREAMS 를 직접 주면 그대로 쓴다
+recommendation_upstreams() {
+  local urls="http://127.0.0.1:$ML_PORT" entry
+  # mac 기본 bash 3.2 는 set -u 에서 빈 배열을 펼치면 unbound variable 오류 → 비어 있으면 배열을 만들지 않는다
+  [ -n "$ML_EXTRA_RUNS" ] || { echo "$urls"; return; }
+  IFS=',' read -ra entries <<< "$ML_EXTRA_RUNS"
+  for entry in "${entries[@]}"; do
+    if [ -n "$entry" ]; then urls="$urls,http://127.0.0.1:${entry##*@}"; fi
+  done
+  echo "$urls"
+}
+
+# 추천 서버(FastAPI) 하나 띄우기: start_ml_server <포트> [폴더]. Windows dev.ps1 의 ml/serve-candidates.ps1 과 같은 서버
+start_ml_server() {
+  local port="$1" run="${2:-}"
+  if is_port_in_use "$port"; then
+    echo "[ml] $port 포트에 이미 켜진 추천 서버를 그대로 씁니다."
+  elif [ ! -x ml/.venv/bin/python ]; then
+    echo "[ml] ml/.venv 가 없어 추천 서버($port)를 건너뜁니다. 만들기: ml/README.md 의 mac/Linux 설치 방법" >&2
+  elif [ -n "$run" ]; then
+    PORT="$port" RUN="$run" ./ml/serve-candidates.sh &
+    APP_PIDS+=($!)
+  else
+    PORT="$port" ./ml/serve-candidates.sh &
+    APP_PIDS+=($!)
+  fi
+}
+
+start_ml() {
+  local entry
+  start_ml_server "$ML_PORT"
+  [ -n "$ML_EXTRA_RUNS" ] || return 0 # 비어 있으면 끝 (위와 같은 bash 3.2 빈 배열 문제)
+  IFS=',' read -ra entries <<< "$ML_EXTRA_RUNS"
+  for entry in "${entries[@]}"; do
+    if [ -n "$entry" ]; then start_ml_server "${entry##*@}" "${entry%@*}"; fi
+  done
+}
 
 stop_apps() {
   trap - INT TERM EXIT
   echo
-  echo "back/front 를 종료합니다. (Docker 컨테이너는 유지: ./dev.sh down 으로 중지)"
+  echo "back/ml/front 를 종료합니다. (Docker 컨테이너는 유지: ./dev.sh down 으로 중지)"
   kill "${APP_PIDS[@]}" 2>/dev/null || true
   wait 2>/dev/null || true
 }
 
 start_apps() {
   export SPRING_DATASOURCE_URL="jdbc:mysql://$DB_HOST:$DB_PORT/final_sample?serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
+  export RECOMMENDATION_UPSTREAMS="${RECOMMENDATION_UPSTREAMS:-$(recommendation_upstreams)}"
 
   print_lan_access
 
@@ -162,10 +208,12 @@ start_apps() {
   APP_PIDS+=($!)
   (cd back && exec ./gradlew bootRun) &
   APP_PIDS+=($!)
+  start_ml
   (cd front && exec npm run dev) &
   APP_PIDS+=($!)
 
-  echo "front: http://localhost:5173  /  back: http://localhost:8080"
+  echo "front: http://localhost:5173  /  back: http://localhost:8080  /  ml: http://127.0.0.1:${ML_PORT}/docs"
+  echo "추천 서버(모델 관리 트래픽 분배 대상): $RECOMMENDATION_UPSTREAMS"
   echo "elasticsearch: http://localhost:$ES_PORT  /  kibana: http://localhost:${KIBANA_PORT:-5601}"
   wait
 }

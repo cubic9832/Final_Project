@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { Ban } from 'lucide-react';
 import theme from '../../styles/theme';
 import { suspendMember, unsuspendMember } from '../../features/admin/adminApi';
+import useActionLock from '../../features/admin/useActionLock';
 import ChoiceWithOther from '../../features/chat/components/ChoiceWithOther';
 import { OTHER, choiceText } from '../../features/chat/choice';
 import { suspendedText } from './adminLogFormat';
+import { isAdminRole } from '../../features/auth/roles';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
 
-// 9단계: 회원 상세 아래 계정 정지 영역 — 총관리자에게만 보인다 (서버도 총관리자인지 한 번 더 확인)
+// 9단계: 회원 상세 아래 계정 정지 영역 — 관리자 · 총관리자에게 보인다 (11-03, 서버는 /admin/** 로 관리자만 통과)
 // 정지하면: 로그인 · 구글 로그인 · 로그인 유지 · 탈퇴가 막히고, 로그인된 기기는 모두 로그아웃 (이미 받은 토큰은 최대 30분)
 // 관리자 계정은 먼저 [관리자 해제] 를 해야 정지할 수 있다
 
@@ -27,10 +29,13 @@ export default function MemberSuspendActions({ member, onChanged }) {
   const [choice, setChoice] = useState('');
   const [other, setOther] = useState('');
   const [confirming, setConfirming] = useState(false);
-  const [busy, setBusy] = useState(false);
+  // 한 번만 보내고, 성공하면 목록을 다시 불러와 이 회원 정보(member)가 바뀔 때까지 잠근다 (정지 · 정지 풀기가 두 번 가지 않게)
+  const lock = useActionLock(member);
+  const busy = lock.locked;
   const [error, setError] = useState('');
 
-  if (me?.role !== 'SUPER_ADMIN' || me.id === member.id) return null;
+  // 11-03: 계정 정지는 관리자 · 총관리자 누구나 (총관리자 전용은 권한 주기 · 빼기와 상담원 모니터링만)
+  if (!isAdminRole(me?.role) || me.id === member.id) return null;
 
   if (member.role !== 'USER') {
     return (
@@ -46,10 +51,9 @@ export default function MemberSuspendActions({ member, onChanged }) {
 
   // 서버 요청 하나를 감싸서: 성공하면 알림 + 목록 다시 불러오기, 실패하면 문구 (그사이 탈퇴했으면 목록 새로고침)
   async function run(request, done) {
-    setBusy(true);
     setError('');
     try {
-      await request();
+      if (!(await lock.run(request))) return;
       showToast(done);
       setOpen(false);
       setConfirming(false);
@@ -61,8 +65,6 @@ export default function MemberSuspendActions({ member, onChanged }) {
         return;
       }
       setError(errorMessage(err, '처리하지 못했습니다.'));
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -86,8 +88,9 @@ export default function MemberSuspendActions({ member, onChanged }) {
     return (
       <div className="admin-member-role">
         <div className="admin-member-role-buttons">
-          <button type="button" className="admin-outline-button" onClick={() => setOpen(true)}>
-            <Ban size={theme.iconSize.sm} aria-hidden="true" />계정 정지
+          {/* 정지 직후 목록이 다시 오기 전에는 아직 "정지 전" 화면이라 잠가 둔다 */}
+          <button type="button" className="admin-outline-button" onClick={() => setOpen(true)} disabled={busy}>
+            <Ban size={theme.iconSize.sm} aria-hidden="true" />{busy ? '반영 중…' : '계정 정지'}
           </button>
         </div>
       </div>

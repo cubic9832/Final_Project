@@ -20,10 +20,20 @@
         VALUES (#{userId}, 'SUBMITTED', NOW())
     </insert>
 
-    <!-- 소득 · 지출 · 예금 (기타 칸은 지금 화면에서 받지 않아 비워 둔다) -->
+    <!-- 소득 · 지출 · 예금 · 기타 소득(11-04) (나머지 칸은 지금 화면에서 받지 않아 비워 둔다) -->
     <insert id="insertFinancialProfile">
-        INSERT INTO financial_profiles (snapshot_id, monthly_net_income, monthly_living_expense, available_cash)
-        VALUES (#{snapshotId}, #{monthlyIncome}, #{monthlyExpense}, #{purchaseFunds})
+        INSERT INTO financial_profiles (snapshot_id, monthly_net_income, monthly_living_expense, available_cash,
+                                        monthly_other_income)
+        VALUES (#{snapshotId}, #{monthlyIncome}, #{monthlyExpense}, #{purchaseFunds}, #{otherIncome})
+    </insert>
+
+    <!-- 기존 대출 여러 건 (11-04) -->
+    <insert id="insertLoans">
+        INSERT INTO loan_inputs (snapshot_id, loan_type_code, balance_amount, monthly_repayment)
+        VALUES
+        <foreach collection="loans" item="loan" separator=",">
+            (#{snapshotId}, #{loan.type}, #{loan.balance}, #{loan.payment})
+        </foreach>
     </insert>
 
     <!-- 분석 결과: 월 여유금 · 구매 가격 상한 -->
@@ -43,5 +53,24 @@
         WHERE s.user_id = #{userId} AND a.status_code = 'COMPLETED'
         ORDER BY a.completed_at DESC, a.analysis_id DESC
         LIMIT #{size}
+    </select>
+
+    <!-- 진단 한 건 자세히 (11-04). user_id 조건으로 남의 기록은 null -->
+    <select id="findDetail" resultType="com.kh.back.diagnosis.dto.DiagnosisSummary">
+        SELECT a.analysis_id, a.snapshot_id, a.completed_at, f.monthly_net_income AS monthly_income,
+               f.monthly_living_expense AS monthly_expense, f.monthly_other_income AS other_income,
+               a.monthly_available_amount AS monthly_available, f.available_cash AS purchase_funds,
+               a.recommended_price_max AS price_upper
+        FROM analysis_runs a
+        JOIN input_snapshots s ON s.snapshot_id = a.snapshot_id
+        LEFT JOIN financial_profiles f ON f.snapshot_id = a.snapshot_id
+        WHERE s.user_id = #{userId} AND a.analysis_id = #{analysisId} AND a.status_code = 'COMPLETED'
+    </select>
+
+    <select id="findLoans" resultType="com.kh.back.diagnosis.dto.DiagnosisLoan">
+        SELECT loan_type_code AS type, balance_amount AS balance, monthly_repayment AS payment
+        FROM loan_inputs
+        WHERE snapshot_id = #{snapshotId}
+        ORDER BY loan_input_id
     </select>
 </mapper>

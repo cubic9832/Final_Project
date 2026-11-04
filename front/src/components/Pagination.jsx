@@ -6,10 +6,10 @@ export default function Pagination({ page, totalPages, onChange, ariaLabel = '�
   const end = Math.min(totalPages - 1, start + 4);
   const pages = Array.from({ length: Math.max(0, end - start + 1) }, (_, index) => start + index);
   return <nav className="pagination" aria-label={ariaLabel}>
-    <button type="button" disabled={page === 0} onClick={() => onChange(0)}>처음</button>
-    <button type="button" disabled={page === 0} aria-label="5페이지 이전으로" onClick={() => onChange(Math.max(0, page - 5))}>이전</button>
+    {page > 0 && <button type="button" onClick={() => onChange(0)}>처음</button>}
+    {page > 0 && <button type="button" aria-label="최대 5페이지 이전으로" onClick={() => onChange(Math.max(0, page - 5))}>이전</button>}
     {pages.map((number) => <button type="button" key={number} aria-current={page === number ? 'page' : undefined} aria-label={`${number + 1}페이지`} onClick={() => onChange(number)}>{number + 1}</button>)}
-    <button type="button" disabled={page >= totalPages - 1} aria-label="5페이지 다음으로" onClick={() => onChange(Math.min(totalPages - 1, page + 5))}>다음</button>
-    <button type="button" disabled={page >= totalPages - 1} onClick={() => onChange(totalPages - 1)}>마지막</button>
+    {page < totalPages - 1 && <button type="button" aria-label="최대 5페이지 다음으로" onClick={() => onChange(Math.min(totalPages - 1, page + 5))}>다음</button>}
+    {page < totalPages - 1 && <button type="button" onClick={() => onChange(totalPages - 1)}>마지막</button>}
   </nav>;
 }

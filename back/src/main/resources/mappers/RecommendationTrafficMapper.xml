@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 모델별 트래픽 비율 · 하루 추천 요청 수. 표는 Flyway V34__create_recommendation_model_traffic.sql -->
+<mapper namespace="com.kh.back.recommendation.RecommendationTrafficMapper">
+
+    <select id="findAllocations" resultType="com.kh.back.recommendation.TrafficRow">
+        SELECT model_bundle, weight_percent FROM recommendation_model_traffic ORDER BY model_bundle
+    </select>
+
+    <delete id="deleteAllocations">
+        DELETE FROM recommendation_model_traffic
+    </delete>
+
+    <insert id="insertAllocation">
+        INSERT INTO recommendation_model_traffic (model_bundle, weight_percent, updated_by)
+        VALUES (#{modelBundle}, #{weightPercent}, #{updatedBy})
+    </insert>
+
+    <insert id="incrementUsage">
+        INSERT INTO recommendation_model_daily_usage (usage_date, model_bundle, request_count)
+        VALUES (CURRENT_DATE, #{modelBundle}, 1)
+        ON DUPLICATE KEY UPDATE request_count = request_count + 1
+    </insert>
+
+    <select id="sumUsage" resultType="com.kh.back.recommendation.UsageRow">
+        SELECT model_bundle, SUM(request_count) AS requests
+        FROM recommendation_model_daily_usage
+        WHERE usage_date &gt; CURRENT_DATE - INTERVAL #{days} DAY
+        GROUP BY model_bundle
+    </select>
+</mapper>

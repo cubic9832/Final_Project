@@ -52,3 +52,10 @@ export const getRecentDiagnoses = async (size = 3) => {
   const res = await client.get('/members/me/diagnoses', { params: { size } });
   return res.data.data;
 };
+
+// 재무 진단 한 건 자세히 (11-04) → 위 항목 + { monthlyExpense, otherIncome, loans: [{ type, balance, payment }] }
+// otherIncome 이 null 이면 요약만 저장한 예전 기록
+export const getDiagnosisDetail = async (analysisId) => {
+  const res = await client.get(`/members/me/diagnoses/${analysisId}`);
+  return res.data.data;
+};

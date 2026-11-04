@@ -121,7 +121,7 @@ export default function GoogleSignupPage() {
       <section className="signup-form-card" aria-labelledby="google-signup-title">
         <h2 id="google-signup-title">추가 정보</h2>
         <p className="signup-subtitle">
-          구글 계정 {pending.email} 으로 가입합니다. 비밀번호는 만들지 않고, 닉네임은 구글 이름으로 정해집니다.
+          구글 계정 {pending.email} 으로 가입합니다. 비밀번호는 만들지 않고, 닉네임은 구글 이름으로 정해집니다. <span className="form-required" aria-hidden="true">*</span> 표시는 필수 항목입니다.
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -230,16 +230,18 @@ export default function GoogleSignupPage() {
               </label>
             </div>
           </fieldset>
-          {renderError('terms')}
-
-          {serverError && (
-            <p className="signup-error" role="alert">
-              {serverError} <Link to="/login">로그인 화면으로</Link>
-            </p>
-          )}
-          <button className="signup-submit" type="submit" disabled={submitting}>
-            {submitting ? '가입 중…' : '가입 완료'}
-          </button>
+          {/* 11-03: 약관 · 가입 실패 문구는 버튼 오른쪽 같은 줄 (회원가입 화면과 같게) */}
+          <div className="signup-submit-row">
+            <button className="signup-submit" type="submit" disabled={submitting}>
+              {submitting ? '가입 중…' : '가입 완료'}
+            </button>
+            {renderError('terms')}
+            {serverError && (
+              <p className="signup-error" role="alert">
+                {serverError} <Link to="/login">로그인 화면으로</Link>
+              </p>
+            )}
+          </div>
         </form>
       </section>
 

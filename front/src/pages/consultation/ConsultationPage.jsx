@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import ChatThread from '../../features/chat/components/ChatThread';
+import ChatThread, { ConnectionStatus } from '../../features/chat/components/ChatThread';
 import ChatConfirmModal from '../../features/chat/components/ChatConfirmModal';
 import ChoiceWithOther from '../../features/chat/components/ChoiceWithOther';
 import { choiceText, OTHER } from '../../features/chat/choice';
@@ -101,12 +101,14 @@ export default function ConsultationPage() {
           <>
             <div className="consult-status">
               <span className={`consult-badge is-${room.status.toLowerCase()}`}>{STATUS_LABELS[room.status]}</span>
-              {room.status === 'CLOSED'
-                ? <button type="button" className="consult-button" onClick={handleStart} disabled={busy || room.restricted}>새로 상담하기</button>
-                : <button type="button" className="consult-outline" onClick={() => setConfirmingClose(true)} disabled={busy}>상담 종료</button>}
+              {/* 오른쪽: 수신 상태 + 버튼 한 줄 (대화창 위에 따로 두면 빈 줄이 생긴다) */}
+              <div className="consult-status-actions">
+                <ConnectionStatus connected={chat.connected} />
+                {room.status === 'CLOSED'
+                  ? <button type="button" className="consult-button" onClick={handleStart} disabled={busy || room.restricted}>새로 상담하기</button>
+                  : <button type="button" className="consult-outline" onClick={() => setConfirmingClose(true)} disabled={busy}>상담 종료</button>}
+              </div>
             </div>
-            {/* 상담원이 맡았던 상담이 끝나면 한 번 — 남기면 서버가 닫고(feedbackOpen=false) 다시 읽는다 */}
-            {room.status === 'CLOSED' && room.feedbackOpen && <FeedbackForm onDone={loadRoom} />}
             <ChatThread
               messages={chat.messages}
               viewer="member"
@@ -117,7 +119,11 @@ export default function ConsultationPage() {
                 ? `운영 정책 위반으로 ${restrictionLabel(room.restrictedUntil)} 중입니다. 새 상담을 시작할 수 없습니다.`
                 : '종료된 상담입니다. 더 궁금한 점이 있으면 [새로 상담하기]를 눌러 주세요.'}
               onSend={chat.send}
+              showConnection={false}
             />
+            {/* 상담원이 맡았던 상담이 끝나면 한 번 — 남기면 서버가 닫고(feedbackOpen=false) 다시 읽는다
+                11-04: 대화를 다 읽은 다음 평가하도록 대화창 아래에 둔다 */}
+            {room.status === 'CLOSED' && room.feedbackOpen && <FeedbackForm onDone={loadRoom} />}
           </>
         )}
         {actionError && <p className="consult-error" role="alert">{actionError}</p>}
@@ -187,8 +193,11 @@ function FeedbackForm({ onDone }) {
         <ChoiceWithOther label="신고 사유" options={REPORT_REASONS} choice={reason.choice} other={reason.other}
           onChoice={(choice) => setReason((prev) => ({ ...prev, choice }))} onOther={(other) => setReason((prev) => ({ ...prev, other }))} />
       )}
-      {error && <p className="consult-error" role="alert">{error}</p>}
-      <button type="submit" className="consult-button" disabled={saving || !ready}>{reported ? '평가 · 신고 보내기' : '평가 보내기'}</button>
+      {/* 11-03: 저장 실패 문구는 버튼 오른쪽 — 버튼 위에 끼면 버튼이 밀렸다 */}
+      <div className="consult-submit-row">
+        <button type="submit" className="consult-button" disabled={saving || !ready}>{reported ? '평가 · 신고 보내기' : '평가 보내기'}</button>
+        {error && <p className="consult-error" role="alert">{error}</p>}
+      </div>
     </form>
   );
 }

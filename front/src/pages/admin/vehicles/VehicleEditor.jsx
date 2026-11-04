@@ -1,5 +1,5 @@
 import { vehicleInputAttributes, vehicleInputError, validateVehicleDraft } from './vehicleEditorValidation.js';
-import { formatVehiclePrice } from './formatVehiclePrice.js';
+import { formatVehiclePrice } from '../formatVehiclePrice.js';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Car, ImagePlus, Save, X } from 'lucide-react';
 import theme from '../../../styles/theme';
@@ -64,7 +64,7 @@ export default function VehicleEditor({ vehicle, onCancel, onSave, saving = fals
   return <form className="vehicle-management vehicle-editor" aria-label={editing ? '차량 정보 수정' : '새 차량 등록'} onSubmit={save} noValidate>
     <button type="button" className="admin-text-button vehicle-editor-back" disabled={saving} onClick={close}><ArrowLeft size={theme.iconSize.sm} aria-hidden="true" />차량 목록</button>
     <div className="vehicle-editor-layout"><div className="admin-panel-stack">
-      <section className="admin-card"><div className="admin-card-heading"><div><h3 ref={heading} tabIndex={-1}>기본 정보</h3><p><span className="vehicle-editor-required">*</span> 표시는 저장에 필요한 항목입니다.</p></div></div><div className="vehicle-editor-fields">
+      <section className="admin-card"><div className="admin-card-heading"><div><h3 ref={heading} tabIndex={-1}>기본 정보</h3><p><span className="vehicle-editor-required">*</span> 표시는 필수 입력사항입니다.</p></div></div><div className="vehicle-editor-fields">
         {field('brand', '브랜드', { required: true, placeholder: '예: 현대, 기아, BMW' })}
         {field('model', '모델명', { required: true, placeholder: '예: 쏘나타, 스포티지' })}
         {field('year', '연식', { placeholder: '예: 2026', suffix: '년형' })}

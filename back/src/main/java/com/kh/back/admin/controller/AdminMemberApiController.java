@@ -70,7 +70,7 @@ public class AdminMemberApiController {
         return ApiResponse.ok(null);
     }
 
-    // POST /api/v1/admin/members/{id}/suspend — 9단계 계정 정지 { days: 7 (0 = 영구), reason } (총관리자만, 서비스에서 확인)
+    // POST /api/v1/admin/members/{id}/suspend — 9단계 계정 정지 { days: 7 (0 = 영구), reason } (관리자 · 총관리자, 서비스에서 확인)
     // 호출: AdminMembersPanel.jsx 회원 상세 [계정 정지] → adminApi.suspendMember
     @PostMapping("/{id}/suspend")
     public ApiResponse<Void> suspend(@AuthenticationPrincipal Long userId, @PathVariable Long id,
@@ -79,7 +79,7 @@ public class AdminMemberApiController {
         return ApiResponse.ok(null);
     }
 
-    // POST /api/v1/admin/members/{id}/unsuspend — 9단계 정지 풀기 (총관리자만)
+    // POST /api/v1/admin/members/{id}/unsuspend — 9단계 정지 풀기 (관리자 · 총관리자)
     @PostMapping("/{id}/unsuspend")
     public ApiResponse<Void> unsuspend(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
         adminMemberService.unsuspend(userId, id);

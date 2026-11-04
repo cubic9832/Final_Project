@@ -388,7 +388,7 @@ export default function SignupPage() {
 
       <section className="signup-form-card" aria-labelledby="signup-form-title">
         <h2 id="signup-form-title">기본 정보</h2>
-        <p className="signup-subtitle">서비스 이용에 필요한 최소한의 정보만 받습니다.</p>
+        <p className="signup-subtitle">서비스 이용에 필요한 최소한의 정보만 받습니다. <span className="form-required" aria-hidden="true">*</span> 표시는 필수 항목입니다.</p>
 
         <form onSubmit={handleSubmit} noValidate>
           {/* 보완 5: 좌우 2칸 — 왼쪽 계정 정보, 오른쪽 개인 정보 (좁은 화면에서는 위아래로 쌓인다) */}
@@ -643,31 +643,27 @@ export default function SignupPage() {
               </div>
             ))}
           </fieldset>
-          {renderError('terms')}
-
-          <p className="signup-notice" role="status">
-            {notice}
-          </p>
-          {serverError && (
-            <p className="signup-error" role="alert">
-              {serverError}
+          {/* 11-03: 약관 · 가입 실패 · 안내 문구는 버튼 오른쪽 같은 줄 — 버튼 위에 끼면 버튼이 아래로 밀렸다 */}
+          <div className="signup-submit-row">
+            <button className="signup-submit" type="submit" disabled={submitting}>
+              {submitting ? '가입 중…' : '회원가입 완료'}
+            </button>
+            {renderError('terms')}
+            {serverError && (
+              <p className="signup-error" role="alert">
+                {serverError}
+              </p>
+            )}
+            <p className="signup-notice" role="status">
+              {notice}
             </p>
-          )}
-          <button className="signup-submit" type="submit" disabled={submitting}>
-            {submitting ? '가입 중…' : '회원가입 완료'}
-          </button>
+          </div>
         </form>
 
         <p className="signup-login-link">
           이미 계정이 있으신가요? <Link to="/login">로그인</Link>
         </p>
       </section>
-
-      <footer className="signup-footer">
-        <strong>CreditCompass</strong>
-        <p>첫차 구매 전, 감당 가능한 비용부터 확인하세요.</p>
-        <small>본 서비스는 교육·시연용이며 실제 NICE·KCB 신용점수나 금융기관 심사 결과를 의미하지 않습니다.</small>
-      </footer>
 
       {/* 팝업: 약관 보기, 회원가입 완료 */}
       {viewingTerm && (

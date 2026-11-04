@@ -1,104 +1,99 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ExternalLink, Image, Search } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { ArrowDown, ArrowUp, Car, ExternalLink, Search } from 'lucide-react';
 import theme from '../../styles/theme';
+import Pagination from '../../components/Pagination.jsx';
 import { getRecommendationCandidates } from '../../features/admin/adminApi';
 import { candidateModelImages } from '../../features/vehicle/candidateModelImages';
+import { formatVehiclePrice } from './formatVehiclePrice.js';
+import { candidateCounts, filterCandidates, fuelLabels, needsSeatCheck, qualityLabels, seatCheckLabel, seatStatusLabels, sortCandidates } from './recommendations/recommendationBoardData.js';
+import './AdminRecommendationsPanel.css';
 
-// 7단계 추천 관리 — 추천 서버가 실제로 쓰는 후보 차량 목록 검수 (10-27: 고정 예시 4대 → 실제 후보 전체)
-// 목록 = 학습 결과 폴더의 catalog.json 을 서버가 읽은 것 (GET /admin/recommendation-candidates, 읽기만)
-// 고칠 곳이 보이면 조원(ML) 데이터 파일에서 고친다 — 이 화면은 출처 · 확인일 · 승차 정원 상태를 검수하는 용도
-const FUEL_LABELS = { GASOLINE: '가솔린', HYBRID: '하이브리드', DIESEL: '디젤', LPG: 'LPG', ELECTRIC: '전기' };
 const PAGE_SIZE = 10;
-const manwon = (won) => (won == null ? '-' : `${Math.round(won / 10000).toLocaleString('ko-KR')}만 원`);
-const imageOf = (car) => candidateModelImages[`${car.brand}::${car.model}`] ?? null;
-// catalog.json 의 상태 코드 → 화면 설명
-const SEAT_STATUS = {
-  'user-provided': '제조사 확인 전 (제공 목록 기준)',
-  'official-reference-conflict': '제조사 자료와 다름',
-  'official-reference': '제조사 자료 기준',
-  'official-source-verified': '제조사 출처 확인',
-  'official-body-reference': '제조사 차체 자료 기준',
-};
-const QUALITY = {
-  'automatically-extracted-snapshot': '가격표에서 자동 추출',
-  'legacy-price-snapshot': '예전 가격 자료',
-  'official-source-checked-supplement': '제조사 출처 확인 후 보충',
-};
-// 승차 정원이 제조사 자료로 확인되지 않았거나 자료와 다른 후보
-const needsSeatCheck = (car) => !car.seatsStatus?.startsWith('official-') || car.seatsStatus === 'official-reference-conflict';
+const columns = [['number', '번호'], ['vehicle', '차량·트림'], ['year', '연식'], ['fuel', '연료'], ['price', '판매 가격'], ['status', '정원 확인'], ['checkedOn', '확인일']];
+const priceLabel = won => formatVehiclePrice(won == null ? null : Number(won) / 10000);
+const sourceLink = url => /^https?:\/\//i.test(url || '') ? url : null;
 
 export default function AdminRecommendationsPanel() {
-  const [candidates, setCandidates] = useState(); // undefined 불러오는 중 · null 실패
-  const [query, setQuery] = useState({ keyword: '', fuel: '', check: '', page: 1 });
-  const [selectedId, setSelectedId] = useState(null);
+  const [state, setState] = useState({ status: 'loading', data: [], error: '' });
+  const [reload, setReload] = useState(0);
+  const [keyword, setKeyword] = useState('');
+  const [query, setQuery] = useState({ keyword: '', page: 0 });
+  const [sort, setSort] = useState({ column: '', direction: 'ASC' });
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    getRecommendationCandidates(controller.signal)
-      .then(setCandidates)
-      .catch(() => !controller.signal.aborted && setCandidates(null));
+    getRecommendationCandidates(controller.signal).then(data => {
+      if (!controller.signal.aborted) setState({ status: 'done', error: '', data: data.map((car, index) => ({ ...car, listNumber: data.length - index, image: candidateModelImages[`${car.brand}::${car.model}`] ?? null })) });
+    }).catch(() => {
+      if (!controller.signal.aborted) setState({ status: 'error', data: [], error: '추천 후보 차량을 불러오지 못했습니다.' });
+    });
     return () => controller.abort();
-  }, []);
+  }, [reload]);
 
-  // 검색 · 연료 · 검수 필요 거르기 (전체가 300건 안쪽이라 화면에서 거른다)
-  const filtered = useMemo(() => (candidates ?? []).filter((car) => {
-    const text = `${car.brand} ${car.model} ${car.trim}`.toLowerCase();
-    return (!query.keyword || text.includes(query.keyword.trim().toLowerCase()))
-      && (!query.fuel || car.fuel === query.fuel)
-      && (!query.check || (query.check === 'seats' ? needsSeatCheck(car) : !imageOf(car)));
-  }), [candidates, query]);
+  const filtered = useMemo(() => filterCandidates(state.data, query.keyword), [state.data, query.keyword]);
+  const sorted = useMemo(() => sortCandidates(filtered, sort), [filtered, sort]);
+  const counts = candidateCounts(filtered);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const page = Math.min(query.page, totalPages - 1);
+  const rows = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  function sortBy(column) {
+    setSort(current => ({ column: current.column === column && current.direction === 'DESC' ? '' : column, direction: current.column === column && current.direction === 'ASC' ? 'DESC' : 'ASC' }));
+    setQuery(current => ({ ...current, page: 0 })); setExpandedId(null);
+  }
 
-  if (candidates === undefined) return <p className="admin-empty" role="status">추천 후보 차량을 불러오는 중…</p>;
-  if (candidates === null) return <p className="admin-empty" role="alert">추천 후보 차량을 불러오지 못했습니다.</p>;
+  return <section className="admin-card recommendation-board-panel">
+    <div className="recommendation-board-heading"><h3>추천 후보 목록</h3>
+      <form className="recommendation-board-search" onSubmit={event => { event.preventDefault(); setQuery({ keyword: keyword.trim(), page: 0 }); setExpandedId(null); }}>
+        <div className="admin-search-field form-focus-group"><input type="search" maxLength={100} aria-label="브랜드, 차량명, 연료 또는 확인 상태 검색" placeholder="브랜드·차량명·연료·확인 상태 검색" value={keyword} onChange={event => setKeyword(event.target.value)} /><button type="submit" aria-label="추천 후보 검색"><Search size={theme.iconSize.md} aria-hidden="true" /></button></div>
+      </form>
+    </div>
+    {state.status === 'loading' && <p className="admin-empty" role="status">추천 후보 차량을 불러오는 중…</p>}
+    {state.status === 'error' && <p className="admin-empty" role="alert">{state.error} <button type="button" className="admin-text-button" onClick={() => { setState({ status: 'loading', data: [], error: '' }); setReload(value => value + 1); }}>다시 시도</button></p>}
+    {state.status === 'done' && <>
+      <p className="recommendation-board-counts" role="status"><span>차종 {counts.models.toLocaleString()}개</span><span>이미지 없는 차종 {counts.noImage.toLocaleString()}개</span><span>정원 확인 필요 {counts.seatCheck.toLocaleString()}건</span></p>
+      <div className="recommendation-board-wrap"><table className="recommendation-board">
+        <caption className="admin-sr-only">추천 후보 목록과 승차 정원 확인 상태</caption>
+        <colgroup>{[7, 26, 9, 10, 13, 15, 13, 7].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
+        <thead><tr>{columns.map(([column, label]) => {
+          const active = sort.column === column;
+          const Icon = sort.direction === 'ASC' ? ArrowUp : ArrowDown;
+          const next = active ? sort.direction === 'ASC' ? '내림차순 정렬' : '정렬 해제' : '오름차순 정렬';
+          return <th scope="col" key={column} aria-sort={active ? sort.direction === 'ASC' ? 'ascending' : 'descending' : 'none'}><button type="button" className="recommendation-board-sort" aria-label={`${label} ${next}`} onClick={() => sortBy(column)}>{label}<span aria-hidden="true">{active && <Icon size={theme.iconSize.sm} />}</span></button></th>;
+        })}<th scope="col">상세</th></tr></thead>
+        <tbody>{rows.length === 0 ? <tr><td colSpan={8} className="recommendation-board-empty">조건에 맞는 추천 후보가 없습니다.</td></tr> : rows.map(car => {
+          const open = expandedId === car.id;
+          const name = [car.brand, car.model, car.trim].filter(Boolean).join(' ');
+          const toggle = () => setExpandedId(open ? null : car.id);
+          const detailId = `recommendation-detail-${car.id}`;
+          return <Fragment key={car.id}><tr className={open ? 'recommendation-board-selected' : ''}>
+            <td>{car.listNumber}</td><td><button className="recommendation-board-subject" type="button" aria-expanded={open} aria-controls={detailId} onClick={toggle}>{car.brand} {car.model}<span>{car.trim || '트림 미입력'}</span></button></td>
+            <td>{car.year || '미입력'}</td><td>{fuelLabels[car.fuel] ?? car.fuel ?? '미입력'}</td><td>{priceLabel(car.price)}</td>
+            <td><span className={`admin-status ${needsSeatCheck(car) ? 'is-check' : 'is-ok'}`}>{seatCheckLabel(car)}</span></td><td>{car.checkedOn?.slice(0, 10) || '미입력'}</td>
+            <td><button type="button" className="admin-text-button" aria-expanded={open} aria-controls={detailId} aria-label={`${name} 상세 ${open ? '접기' : '보기'}`} onClick={toggle}>{open ? '접기' : '보기'}</button></td>
+          </tr>{open && <tr><td colSpan={8} className="recommendation-board-detail-cell"><RecommendationDetails key={car.id} car={car} detailId={detailId} /></td></tr>}</Fragment>;
+        })}</tbody>
+      </table></div>
+      <Pagination ariaLabel="추천 후보 목록 페이지" page={page} totalPages={totalPages} onChange={next => { setQuery(current => ({ ...current, page: next })); setExpandedId(null); }} />
+    </>}
+  </section>;
+}
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const page = Math.min(query.page, totalPages);
-  const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const selected = candidates.find((car) => car.id === selectedId) ?? rows[0] ?? null;
-  const modelCount = new Set(candidates.map((car) => `${car.brand}::${car.model}`)).size;
-  const noImage = new Set(candidates.filter((car) => !imageOf(car)).map((car) => `${car.brand}::${car.model}`)).size;
-  const seatCheck = candidates.filter(needsSeatCheck).length;
-  const change = (next) => setQuery((prev) => ({ ...prev, ...next, page: next.page ?? 1 }));
-  const image = selected && imageOf(selected);
-
-  return <div className="admin-panel-stack">
-    <section className="admin-card"><div className="admin-card-heading"><div><h3>추천 후보 차량 검수</h3><p>추천 서버가 실제로 고르는 후보 차량입니다. 가격 출처 · 확인일 · 승차 정원 상태를 검수하세요.</p></div>
-      <span className="admin-count-badge">전체 {candidates.length}건 · 차종 {modelCount}개 · 이미지 없는 차종 {noImage}개 · 승차 정원 확인 필요 {seatCheck}건</span></div>
-      <div className="admin-filters">
-        <label className="admin-search-field form-focus-group"><Search size={theme.iconSize.sm} aria-hidden="true" /><input type="search" placeholder="브랜드 · 모델 · 트림" value={query.keyword} onChange={(event) => change({ keyword: event.target.value })} aria-label="후보 차량 검색" /></label>
-        <label className="admin-filter-field">연료<select value={query.fuel} onChange={(event) => change({ fuel: event.target.value })}><option value="">전체</option>{Object.entries(FUEL_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <label className="admin-filter-field">검수<select value={query.check} onChange={(event) => change({ check: event.target.value })}><option value="">전체</option><option value="seats">승차 정원 확인 필요</option><option value="image">이미지 없음</option></select></label>
-      </div>
-      {rows.length === 0 ? <p className="admin-empty" role="status">조건에 맞는 후보 차량이 없습니다.</p> : <div className="admin-table-wrap"><table className="admin-table"><caption className="admin-sr-only">추천 후보 차량</caption>
-        <thead><tr><th scope="col">차량</th><th scope="col">연식</th><th scope="col">가격</th><th scope="col">연료 · 연비</th><th scope="col">승차 정원</th><th scope="col">확인일</th><th scope="col">상세</th></tr></thead>
-        <tbody>{rows.map(car => <tr key={car.id} className={selected?.id === car.id ? 'is-selected' : undefined}>
-          <td><strong>{car.brand} {car.model}</strong><small>{car.trim}</small></td><td>{car.year ?? '-'}</td><td>{manwon(car.price)}</td>
-          <td>{FUEL_LABELS[car.fuel] ?? car.fuel ?? '-'}{car.efficiency != null ? ` · ${car.efficiency}` : ''}</td>
-          <td>{car.seatsLabel ?? '-'}{needsSeatCheck(car) && <small>확인 필요</small>}</td><td>{car.checkedOn ?? '-'}</td>
-          <td><button type="button" className="admin-text-button" onClick={() => setSelectedId(car.id)}>보기</button></td></tr>)}</tbody></table></div>}
-      <p className="admin-result-count" aria-live="polite">검색 결과 {filtered.length}건</p>
-      {totalPages > 1 && <nav className="admin-member-pagination" aria-label="후보 차량 페이지">
-        <button type="button" disabled={page <= 1} onClick={() => change({ page: page - 1 })}>이전</button><span>{page} / {totalPages}</span>
-        <button type="button" disabled={page >= totalPages} onClick={() => change({ page: page + 1 })}>다음</button></nav>}
-    </section>
-    {selected && <div className="admin-grid-2">
-      <section className="admin-card"><div className="admin-card-heading"><div><h3>사용자 카드 미리보기</h3><p>{selected.brand} · {FUEL_LABELS[selected.fuel] ?? selected.fuel}</p></div></div>
-        <article className="admin-recommendation-preview"><div className="admin-preview-image">
-          {image ? <img src={image.src} alt={image.alt ?? `${selected.model} 대표 이미지`} /> : <p className="admin-empty">이 차종은 대표 이미지가 없습니다.</p>}
-          <span className="admin-image-label"><Image size={theme.iconSize.sm} aria-hidden="true" />차종 대표 이미지 (색상 · 트림은 다를 수 있음)</span></div>
-          <div className="admin-preview-body"><p>{selected.year ?? ''} · {selected.trim}</p><h3>{selected.brand} {selected.model}</h3>
-            <div className="admin-preview-reason"><strong>{manwon(selected.price)}</strong><p>{FUEL_LABELS[selected.fuel] ?? selected.fuel}{selected.efficiency != null ? ` · 연비 ${selected.efficiency}` : ''}{selected.lengthMm ? ` · 전장 ${selected.lengthMm.toLocaleString('ko-KR')}mm` : ''}{selected.seatsLabel ? ` · ${selected.seatsLabel}` : ''}</p></div></div>
-        </article>
-      </section>
-      <section className="admin-card"><div className="admin-card-heading"><div><h3>검수 정보</h3><p>데이터 출처와 확인 상태</p></div></div>
-        <dl className="admin-detail-list">
-          <div><dt>후보 번호</dt><dd>{selected.id}</dd></div>
-          <div><dt>가격 출처</dt><dd>{selected.sourceUrl ? <a className="admin-text-button" href={selected.sourceUrl} target="_blank" rel="noreferrer">제조사 가격표 열기<ExternalLink size={theme.iconSize.sm} aria-hidden="true" /></a> : '없음'}</dd></div>
-          <div><dt>출처 확인일</dt><dd>{selected.checkedOn ?? '-'}</dd></div>
-          <div><dt>수집 방식</dt><dd>{QUALITY[selected.quality] ?? selected.quality ?? '-'}</dd></div>
-          <div><dt>승차 정원 상태</dt><dd>{SEAT_STATUS[selected.seatsStatus] ?? selected.seatsStatus ?? '-'}{selected.seatsNote ? ` — ${selected.seatsNote}` : ''}</dd></div>
-        </dl>
-      </section>
-    </div>}
-  </div>;
+function RecommendationDetails({ car, detailId }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const link = sourceLink(car.sourceUrl);
+  const details = [
+    ['판매 가격', priceLabel(car.price)], ['승차 정원', car.seatsLabel],
+    ['연료', fuelLabels[car.fuel] ?? car.fuel], ['연비', car.efficiency == null ? null : `${car.efficiency} ${car.fuel === 'ELECTRIC' ? 'km/kWh' : 'km/L'}`],
+    ['전장', car.lengthMm ? `${Number(car.lengthMm).toLocaleString('ko-KR')} mm` : null], ['확인일', car.checkedOn?.slice(0, 10)],
+    ['수집 방식', qualityLabels[car.quality] ?? car.quality], ['정원 확인 근거', seatStatusLabels[car.seatsStatus] ?? car.seatsStatus],
+  ];
+  return <section className="recommendation-board-detail" id={detailId} aria-label={`${car.brand} ${car.model} 상세`}>
+    <div className="recommendation-board-detail-main"><div>
+      <div className="recommendation-board-image">{car.image && !imageFailed ? <img src={car.image.src} alt={car.image.alt || `${car.model} 대표 이미지`} loading="lazy" onError={() => setImageFailed(true)} /> : <div><Car size={theme.iconSize.lg} aria-hidden="true" /><p>{imageFailed ? '이미지를 불러오지 못했습니다.' : '등록된 대표 이미지가 없습니다.'}</p></div>}</div>
+      <p className="recommendation-board-image-note">차종 대표 이미지로 색상·연식·트림은 다를 수 있습니다.</p>
+    </div><div><h4>{car.brand} {car.model}</h4><p className="recommendation-board-trim">{car.trim}</p><dl className="recommendation-board-specs">{details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || '미입력'}</dd></div>)}</dl></div></div>
+    {car.seatsNote && <div className="recommendation-board-note"><h4>승차 정원 확인 메모</h4><p>{car.seatsNote}</p></div>}
+    <div className="recommendation-board-source">{link ? <a className="admin-outline-button" href={link} target="_blank" rel="noreferrer">제조사 자료 확인<ExternalLink size={theme.iconSize.sm} aria-hidden="true" /></a> : <p>등록된 제조사 자료 링크가 없습니다.</p>}</div>
+  </section>;
 }

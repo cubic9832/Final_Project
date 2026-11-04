@@ -56,7 +56,7 @@ export const getMailStatus = async (signal) => {
 };
 
 // 추천 서버(FastAPI) 상태 · 정보: 화면이 추천을 받을 때와 같은 길(Vite proxy /api/v2)로 선택지 정보를 불러 본다
-// → { ms: 응답 시간, info: { modelVersion, catalogCount, modelNames, rankerSchema, ... } }. 3초 안에 응답이 없거나 실패하면 오류
+// → { ms: 응답 시간, info: { modelVersion, modelBundle(학습 결과 폴더 이름), catalogCount, modelNames, rankerSchema, ... } }. 3초 안에 응답이 없거나 실패하면 오류
 export const getModelServerInfo = async (signal) => {
   const start = performance.now();
   const res = await client.get('/recommendation-options', { baseURL: '/api/v2', timeout: 3000, signal });
@@ -72,9 +72,23 @@ export const getAdminOverview = async (signal) => {
 
 // 모델 관리: 학습 · 평가 결과(ml 학습 결과 파일) + 모델 버전 기록(DB)
 // → { available, runName, schema, trainedAt, testPairAccuracy, metrics: [{ name, previous, current }], history, versions, ... }
-export const getModelReport = async (signal) => {
-  const res = await client.get('/admin/model-report', { signal });
+// run: 비교 표의 "계열/폴더" (비우면 기본 폴더)
+export const getModelReport = async (signal, run) => {
+  const res = await client.get('/admin/model-report', { params: { run: run || undefined }, signal });
   return res.data.data;
+};
+
+// 모델 비교: 학습 결과 폴더 전체 + 추천 서버 상태 · 트래픽 비율 · 최근 7일 요청 수 · 저장된 진단 수
+// → { models: [{ runId, runName, family, schema, trainedAt, testAccuracy, testLogLoss, baselineLabel, baselineAccuracy,
+//                compatible, servable, weightPercent, requests7Days, diagnoses, ... }], upstreams: [...], trafficConfigured }
+export const getModels = async (signal) => {
+  const res = await client.get('/admin/models', { signal });
+  return res.data.data;
+};
+
+// 총관리자만: 모델별 트래픽 비율 전체 바꾸기. allocations = [{ modelBundle, weightPercent }] (합 100)
+export const updateModelTraffic = async (allocations) => {
+  await client.put('/admin/model-traffic', { allocations });
 };
 
 // 추천 관리: 추천 서버가 쓰는 후보 차량 전체 (학습 결과 폴더의 catalog.json)
@@ -82,4 +96,16 @@ export const getModelReport = async (signal) => {
 export const getRecommendationCandidates = async (signal) => {
   const res = await client.get('/admin/recommendation-candidates', { signal });
   return res.data.data;
+};
+
+// 총관리자만: 그 모델(runId = "계열/폴더")로 추천 서버 켜기 → { port, runName, state: 'STARTING' }
+// 켜는 데 몇 초 걸린다 → 화면이 getModels 를 다시 불러 RUNNING · FAILED 를 확인한다
+export const startModelServer = async (runId) => {
+  const res = await client.post('/admin/model-servers', { runId });
+  return res.data.data;
+};
+
+// 총관리자만: 관리자 화면에서 켠 추천 서버 끄기 (비율이 남아 있으면 409 MODEL_HAS_TRAFFIC)
+export const stopModelServer = async (port) => {
+  await client.delete(`/admin/model-servers/${port}`);
 };

@@ -1,5 +1,4 @@
 @import './AboutPreviewHero.css';
-@import './AboutPreviewBudget.css';
 @import './AboutPreviewDetails.css';
 @import './AboutPreviewMotion.css';
 .about-preview { background: var(--color-background); color: var(--color-text); }
@@ -9,8 +8,8 @@
 .about-preview-kicker { color: var(--color-muted); font-size: var(--font-caption); font-weight: 700; letter-spacing: .12em; margin-bottom: var(--space-24); }
 .about-preview h1 { font-size: var(--font-display); line-height: 1.35; letter-spacing: -.04em; word-break: keep-all; }
 .about-preview h1 span { color: var(--color-primary); }
-.about-preview-cta { display: inline-flex; justify-content: center; align-items: center; gap: var(--space-24); min-height: 48px; padding: var(--space-12) var(--space-24); border-radius: var(--radius-sm); background: var(--color-mint); color: var(--color-primary); font-weight: 700; }
-.about-preview-cta:hover { background: var(--color-mint-hover); }
+.about-preview-cta { display: inline-flex; justify-content: center; align-items: center; gap: var(--space-24); min-height: 48px; padding: var(--space-12) var(--space-24); border-radius: var(--radius-sm); background: var(--color-cta); color: var(--color-cta-text); font-weight: 700; border: 1px solid var(--color-border-input); }
+.about-preview-cta:hover { background: var(--color-cta-hover); }
 .about-preview a:focus-visible { outline: 3px solid var(--color-blue); outline-offset: 4px; }
 .about-preview-text-link { font-weight: 700; font-size: var(--font-body); }
 .about-preview-text-link:hover, .about-preview-version a:hover, .about-preview-footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
@@ -21,11 +20,9 @@
 @media (max-width: 768px) { .about-preview-hero, .about-preview-story-grid, .about-preview-principles-grid { grid-template-columns: 1fr; }.about-preview-hero { padding-block: var(--space-48); }.about-preview-hero-art { max-width: 560px; width: 100%; }.about-preview-journey-list { grid-template-columns: 1fr; }.about-preview-journey-list p { max-width: 56ch; }.about-preview-step-top { margin-bottom: var(--space-16); }.about-preview-story, .about-preview-journey, .about-preview-principles, .about-preview-closing { padding-block: var(--space-48); } }
 @media (max-width: 480px) { .about-preview-version { align-items: flex-start; flex-direction: column; gap: var(--space-8); }.about-preview-hero-art { padding: var(--space-16); }.about-preview-report { padding: var(--space-16); }.about-preview-report-heading { align-items: flex-start; }.about-preview-breakdown { font-size: var(--font-caption); }.about-preview-footer { flex-direction: column; gap: var(--space-8); }.about-preview-footer a { margin-left: 0; }.about-preview-cta { width: 100%; }.about-preview-lead br { display: none; } }
 @media (max-width: 768px) {
-  .about-preview-hero, .about-preview-budget-section { grid-template-columns: 1fr; padding-block: var(--space-24); gap: var(--space-24); }
+  .about-preview-hero { grid-template-columns: 1fr; padding-block: var(--space-24); gap: var(--space-24); }
   .about-preview-vehicle-photo img { height: auto; aspect-ratio: 2.35; }
   .about-preview-vehicle-photo figcaption { padding: var(--space-16); }
-  .about-preview-budget-section .about-preview-report { grid-template-columns: 1fr; }
-  .about-preview-budget-section .about-preview-slider { grid-column: 1; margin-top: var(--space-12); }
   .about-preview-journey, .about-preview-principles, .about-preview-closing { padding-block: var(--space-32); }
 }
 @media (max-width: 768px) {

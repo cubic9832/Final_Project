@@ -9,10 +9,14 @@ export const ACTION_LABELS = {
   CHAT_RESTRICT: '상담 제한',
   CHAT_UNRESTRICT: '상담 제한 풀기',
   CHAT_TRANSFER: '상담 넘기기',
+  CHAT_CLOSE: '상담 종료',
   MEMBER_SUSPEND: '계정 정지',
   MEMBER_UNSUSPEND: '계정 정지 풀기',
   MAIL_SENT: '메일 발송',
   MAIL_FAILED: '메일 발송 실패',
+  MODEL_TRAFFIC_CHANGE: '모델 비율 변경',
+  MODEL_SERVER_START: '모델 켜기',
+  MODEL_SERVER_STOP: '모델 끄기',
 };
 
 // "2026-10-26T17:30:12" → "2026.10.26 17:30"
@@ -28,7 +32,11 @@ export const personName = (nickName, id) => nickName ?? (id ? `탈퇴한 회원 
 // 보완 13: 메일 발송 기록은 서버가 자동으로 남긴다 (관리자 · 대상 회원이 없음)
 const isMailLog = (log) => log.targetType === 'MAIL';
 export const logActor = (log) => (isMailLog(log) ? '서버 (자동)' : personName(log.actorNickName, log.actorId));
-export const logTarget = (log) => (isMailLog(log) ? '인증 메일' : personName(log.targetNickName, log.targetId));
+export const logTarget = (log) => {
+  if (isMailLog(log)) return '인증 메일';
+  if (log.targetType === 'MODEL') return '추천 모델';
+  return personName(log.targetNickName, log.targetId);
+};
 
 // "USER → ADMIN" → "일반 회원 → 관리자" (권한 변경일 때)
 export const describeLog = (log) =>

@@ -1,0 +1,84 @@
+/* 모델 관리 — 트래픽 분배 카드 · 모델 비교 표 · 모델 상세 (나머지는 AdminPage.css 의 admin-* 공통 규칙) */
+
+/* 트래픽 분배 */
+.model-traffic-note { margin-bottom: var(--space-16); }
+.model-traffic-section-title { display: flex; align-items: center; gap: var(--space-8); margin: var(--space-24) 0 var(--space-12); color: var(--color-primary); font-size: var(--font-subtitle); }
+.model-traffic-section-title:first-of-type { margin-top: 0; }
+.model-traffic-section-title span { color: var(--color-muted); font-size: var(--font-caption); font-weight: 400; }
+.model-traffic-bar { display: flex; height: 16px; overflow: hidden; margin-bottom: var(--space-16); border-radius: var(--radius-pill); background: var(--color-background); }
+.model-traffic-bar > span { height: 100%; transition: width .2s ease; }
+.model-traffic-list,.model-add-list { display: flex; flex-direction: column; gap: var(--space-12); margin: 0; padding: 0; list-style: none; }
+.model-traffic-list > li,.model-add-list > li { display: flex; flex-direction: column; gap: var(--space-12); padding: var(--space-16); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.model-add-list > li { background: var(--color-background); }
+.model-traffic-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-8) var(--space-12); }
+.model-traffic-head > strong { color: var(--color-primary); overflow-wrap: anywhere; }
+.model-traffic-head > small { color: var(--color-muted); font-size: var(--font-caption); }
+.model-traffic-name { display: flex; align-items: center; gap: var(--space-8); min-width: 0; }
+.model-traffic-name > i { flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; }
+.model-traffic-name strong { color: var(--color-primary); overflow-wrap: anywhere; }
+.model-traffic-power { margin-left: auto; }
+.model-traffic-control { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: var(--space-16); }
+.model-traffic-control input[type="range"] { width: 100%; accent-color: var(--color-primary); }
+.model-traffic-input { display: inline-flex; align-items: center; gap: var(--space-8); color: var(--color-text-sub); }
+.model-traffic-input input { width: 72px; min-height: 40px; padding: 0 var(--space-8); border: 1px solid var(--color-border-input); border-radius: var(--radius-sm); font-size: var(--font-body); text-align: right; color: var(--color-primary); background: var(--color-surface); }
+.model-traffic-input input:disabled { background: var(--color-background); }
+.model-traffic-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-16); margin-top: var(--space-16); }
+.model-traffic-total { color: var(--color-text-sub); }
+.model-traffic-total strong { font-size: var(--font-figure-md); color: var(--color-primary); }
+.model-traffic-total.is-invalid strong { color: var(--color-danger); }
+.model-traffic-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.model-traffic-error { margin-top: var(--space-12); color: var(--color-danger); font-size: var(--font-caption); overflow-wrap: anywhere; }
+
+/* 비교 지표 (분배 중 · 모델 추가 한 줄씩) */
+.model-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--space-8); margin: 0; }
+.model-metrics > div { padding: var(--space-8) var(--space-12); border-radius: var(--radius-sm); background: var(--color-blue-tint); }
+.model-metrics dt { color: var(--color-muted); font-size: var(--font-caption); }
+.model-metrics dd { margin: var(--space-4) 0 0; color: var(--color-primary); font-weight: 700; }
+
+/* 모델 비교 표 */
+/* 옆으로 스크롤해도 모델 이름은 왼쪽에 고정 */
+.admin-table.model-comparison-table th[scope="row"] { position: sticky; left: 0; z-index: 1; background: var(--color-surface); color: var(--color-primary); box-shadow: 1px 0 0 var(--color-border); }
+.admin-table.model-comparison-table thead th:first-child { position: sticky; left: 0; z-index: 2; }
+.model-comparison-table th[scope="row"] strong { display: block; font-size: var(--font-body); }
+.model-comparison-table th[scope="row"] small { display: block; margin-top: var(--space-4); color: var(--color-muted); font-weight: 400; }
+.admin-table.model-comparison-table td.is-number { text-align: right; font-variant-numeric: tabular-nums; }
+.admin-table.model-comparison-table tr.is-selected > :is(td,th) { background: var(--color-blue-tint); }
+.model-comparison-badges { display: inline-flex; flex-wrap: wrap; gap: var(--space-4); }
+.model-retry { margin-top: var(--space-16); }
+
+/* 모델 상세 — 회원 관리의 회원 상세(.admin-member-detail)와 같은 모양. 표가 옆으로 길어도 상세는 보이는 폭에 맞춘다 */
+.admin-table-wrap:has(.model-comparison-table) { container-type: inline-size; }
+/* AdminPage.css 가 나중에 로드되어 .admin-table td(nowrap · 12px)가 덮지 않도록 선택자를 한 단계 올린다 */
+.admin-table .model-detail-row > td { padding: var(--space-16); background: var(--color-background); white-space: normal; }
+.model-detail { white-space: normal; word-break: keep-all; overflow-wrap: anywhere; position: sticky; left: var(--space-16); box-sizing: border-box; width: calc(100cqi - 2 * var(--space-16)); padding: var(--space-24); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); font-size: var(--font-body); text-align: left; }
+.model-detail .admin-card-heading { margin-bottom: var(--space-16); }
+.model-detail-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-24); margin-bottom: var(--space-24); }
+.model-detail-section { min-width: 0; }
+.model-detail-section h4 { display: flex; align-items: center; gap: var(--space-8); margin-bottom: var(--space-16); color: var(--color-primary); font-size: var(--font-subtitle); }
+.model-detail-section h4 span { color: var(--color-muted); font-size: var(--font-caption); font-weight: 400; }
+.model-detail .admin-model-version { margin-bottom: var(--space-16); }
+.model-detail .admin-detail-list > div { grid-template-columns: 112px minmax(0,1fr); }
+.model-detail .admin-detail-list dd { font-size: var(--font-body); }
+.model-detail-figures { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--space-12); margin: 0 0 var(--space-16); }
+.model-detail-figures > div { padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.model-detail-figures dt { color: var(--color-muted); font-size: var(--font-caption); }
+.model-detail-figures dd { margin: var(--space-4) 0; color: var(--color-primary); font-size: var(--font-figure-md); font-weight: 700; }
+.model-detail-figures small { color: var(--color-muted); font-size: var(--font-caption); }
+.model-history-wrap { max-height: 320px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.model-detail .model-history-table th { position: sticky; top: 0; z-index: 1; }
+.model-detail .model-history-table :is(th,td) { text-align: right; font-variant-numeric: tabular-nums; }
+.model-detail .model-history-table :is(th,td):first-child { text-align: left; }
+
+@media(max-width:1024px) {
+  .model-detail-grid { grid-template-columns: 1fr; }
+  .model-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:768px) {
+  .model-traffic-footer { align-items: stretch; flex-direction: column; }
+  .model-traffic-actions > button { flex: 1; }
+  .model-detail { padding: var(--space-16); }
+}
+@media(max-width:480px) {
+  .model-detail-figures { grid-template-columns: 1fr; }
+  .model-traffic-power { margin-left: 0; }
+}

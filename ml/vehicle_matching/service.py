@@ -11,6 +11,12 @@ from vehicle_matching.height_preferences import matches_height
 from vehicle_matching.recommendation_policy import POLICY, seating_status, ranking_key, preference_penalties
 
 
+def public_cost_fields(cost):
+    # Installment details are internal unless the user chose an income-ratio installment.
+    hidden = () if cost.get('monthly_vehicle_cap') is not None and cost['financing_months'] else ('principal', 'monthly_payment')
+    return {key: value for key, value in cost.items() if not key.startswith('stress_') and key not in hidden}
+
+
 class CandidateService:
     def __init__(self, ranker, vehicles, *, ml_only=False):
         self.ranker = ranker
@@ -82,6 +88,10 @@ class CandidateService:
                        f"예상 월 유지비 {cost['monthly_running_cost']:,.0f}원 (보험·세금·정비·에너지비 포함)"]
             affordability=assessments[vehicle.id]['monthlyAffordability']
             reasons.append(f"최소 여유자금을 남긴 월 가용자금 중 유지비 비중 {affordability['runningCostRatio']*100:.1f}%")
+            if cost['monthly_vehicle_cap'] is not None:
+                installment_text = f"할부 월 {cost['monthly_payment']:,.0f}원({cost['financing_months']}개월) + " if cost['monthly_payment'] else ''
+                reasons.append(f"월 소득의 {profile.vehicle_income_ratio}% 한도 {cost['monthly_vehicle_cap']:,.0f}원 안에서 "
+                               f"{installment_text}유지비 {cost['monthly_running_cost']:,.0f}원")
             reasons.append('구매·유지비와 최소 인원을 충족한 후보 중 학습한 모델 점수순으로 추천' if self.ml_only else
                            '구매·유지비와 최소 인원을 충족한 후보 중 중요한 선호 조건을 우선하고, 같은 조건에서는 모델 점수순으로 추천')
             if profile.preferred_fuel == vehicle.fuel:
@@ -98,7 +108,7 @@ class CandidateService:
                 continue
             vehicle_data = asdict(vehicle)
             vehicle_data['assumed_seat_range'] = [2, 4] if assumes_standard_seating(vehicle) else None
-            public_cost = {key: value for key, value in cost.items() if not key.startswith('stress_') and key not in ('principal', 'monthly_payment')}
+            public_cost = public_cost_fields(cost)
             target.append({'vehicle': vehicle_data, 'rankingScore': score, 'cost': public_cost,
                            'rankingScoreType': 'ml-raw',
                            'rankingPolicy': self.policy,
@@ -136,7 +146,7 @@ class CandidateService:
             for item in evidence['preferences']:
                 if item['key'] == 'seating': item['status'] = 'unknown'
             conditional.append({'vehicle':asdict(v),'rankingScore':score,'rankingScoreType':'ml-raw','rankingPolicy':self.policy,
-                'cost':{key:value for key,value in costs[v.id].items() if not key.startswith('stress_') and key not in ('principal','monthly_payment')},
+                'cost':public_cost_fields(costs[v.id]),
                 'preferenceAssessment':assessment,'decisionEvidence':evidence,'seatingVerificationRequired':True,
                 'lengthVerificationRequired':v.length_mm is None,'preferenceGaps':['seats-unverified'],
                 'reasons':['기본 정원 또는 사양 충돌을 확인하기 전에는 최소 인원 충족을 보장할 수 없습니다.'],

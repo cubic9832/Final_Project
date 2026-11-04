@@ -364,10 +364,12 @@ export default function ProfilePage() {
               {changed.length
                 ? <>바꾼 항목 <strong>{changed.length}개</strong>: {changed.map((key) => FIELD_LABELS[key]).join(' · ')}</>
                 : '바꾼 항목만 저장됩니다. 아래 세 영역을 한 번에 저장합니다.'}
+              {' '}<span className="form-required" aria-hidden="true">*</span> 표시는 필수 항목입니다.
             </p>
-            {saveError && <p className="profile-save-error" role="alert">{saveError}</p>}
           </div>
           <div className="profile-edit-buttons">
+            {/* 11-03: 저장 실패 문구는 버튼 왼쪽 같은 줄 — 설명 아래에 끼면 아래 입력칸이 모두 밀렸다 */}
+            {saveError && <p className="profile-save-error" role="alert">{saveError}</p>}
             <Link className="my-outline-button profile-small-button" to="/mypage">취소</Link>
             <button className="profile-dark-button" type="submit" disabled={saving || changed.length === 0}>
               {saving ? '저장 중…' : '저장'}
@@ -395,7 +397,10 @@ export default function ProfilePage() {
                   <p className="profile-error" id="profile-nickname-msg">{errors.nickname}</p>
                 ) : checkedNickname && checkedNickname === form.nickname.trim() ? (
                   <p className="profile-ok" id="profile-nickname-msg" role="status">사용할 수 있는 닉네임입니다.</p>
-                ) : null}
+                ) : (
+                  // 11-03: 안내 줄을 늘 두어 경고 · 확인 문구가 떠도 아래 칸이 움직이지 않게 (생년월일 · 전화번호와 같은 방식)
+                  <p className="profile-hint" id="profile-nickname-msg">바꾸면 [중복 확인]을 눌러 주세요.</p>
+                )}
               </div>
             </div>
 

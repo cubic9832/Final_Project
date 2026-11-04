@@ -18,6 +18,7 @@ import FinancialEnvironmentPage from './features/financial/pages/environment/Fin
 import FinancialVehiclePage from './features/financial/pages/vehicle/FinancialVehiclePage';
 import FinancialReviewPage from './features/financial/pages/review/FinancialReviewPage';
 import FinancialResultPage from './features/financial/pages/result/FinancialResultPage';
+import RecommendationDetailsPage from './features/financial/pages/recommendations/RecommendationDetailsPage';
 import FinancialRecommendationsPage from './features/financial/pages/recommendations/FinancialRecommendationsPage';
 import AdminPage from './pages/admin/AdminPage';
 import ConsultationPage from './pages/consultation/ConsultationPage';
@@ -81,6 +82,7 @@ function App() {
         <Route path="/financial/vehicle" element={<FinancialVehiclePage />} />
         <Route path="/financial/review" element={<FinancialReviewPage />} />
         <Route path="/financial/result" element={<FinancialResultPage />} />
+        <Route path="/financial/recommendations/details" element={<RecommendationDetailsPage />} />
         <Route path="/financial/recommendations" element={<FinancialRecommendationsPage />} />
         <Route path="/companies" element={<CompanyListPage />} />
         <Route path="/companies/:code" element={<CompanyDetailPage />} />

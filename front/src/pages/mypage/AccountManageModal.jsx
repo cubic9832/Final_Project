@@ -89,11 +89,10 @@ export default function AccountManageModal({ socialOnly = false, onWithdraw, onC
           disabled={withdrawing}
         />
         )}
-        {error && (
-          <p className="account-manage-error" role="alert">
-            {error}
-          </p>
-        )}
+        {/* 11-03: 경고 자리를 늘 비워 둔다(내용만 바뀜) → 경고가 떠도 팝업 크기 · 입력칸이 움직이지 않음 */}
+        <p className="account-manage-error" role="alert">
+          {error}
+        </p>
       </section>
 
       <div className="auth-modal-actions">

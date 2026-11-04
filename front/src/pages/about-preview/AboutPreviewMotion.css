@@ -16,3 +16,22 @@
     transition: none;
   }
 }
+/* 첫 진입: 배경과 카드 틀은 유지하고 소개 콘텐츠가 차분하게 나타난다. */
+#about-preview-intro > .about-preview-hero-copy {
+  animation:about-intro-fade-in 700ms ease-out both;
+}
+#about-preview-intro > .about-preview-vehicle-photo {
+  animation:about-vehicle-drop-in 1500ms cubic-bezier(.22, 1, .36, 1) 120ms both;
+}
+@keyframes about-intro-fade-in {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+@keyframes about-vehicle-drop-in {
+  from { opacity:0; transform:translateY(-40px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@media(prefers-reduced-motion:reduce) {
+  #about-preview-intro > .about-preview-hero-copy,
+  #about-preview-intro > .about-preview-vehicle-photo { animation:none; }
+}

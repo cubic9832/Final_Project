@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +40,12 @@ public class DiagnosisApiController {
     public ApiResponse<List<DiagnosisSummary>> recent(@AuthenticationPrincipal Long userId,
                                                       @RequestParam(defaultValue = "3") int size) {
         return ApiResponse.ok(diagnosisService.getRecent(userId, Math.min(Math.max(size, 1), 20)));
+    }
+
+    // GET /api/v1/members/me/diagnoses/{analysisId} — 진단 한 건 자세히 (11-04). 호출: MyPage.jsx 재무 진단 [자세히 보기] → memberApi.getDiagnosisDetail
+    @GetMapping("/{analysisId}")
+    public ApiResponse<DiagnosisSummary> detail(@AuthenticationPrincipal Long userId,
+                                                @PathVariable Long analysisId) {
+        return ApiResponse.ok(diagnosisService.getDetail(userId, analysisId));
     }
 }

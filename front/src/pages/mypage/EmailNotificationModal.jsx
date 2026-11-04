@@ -55,7 +55,8 @@ export default function EmailNotificationModal({ currentValue, onSave, onClose }
             ))}
           </fieldset>
 
-          {error && <p className="notification-error" role="alert">{error}</p>}
+          {/* 11-03: 경고 자리를 늘 비워 둔다(내용만 바뀜) → 경고가 떠도 팝업 크기 · 입력칸이 움직이지 않음 */}
+          <p className="notification-error" role="alert">{error}</p>
           <div className="auth-modal-actions">
             <button className="auth-modal-button" type="button" onClick={requestClose} disabled={saving}>
               취소

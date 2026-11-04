@@ -160,7 +160,8 @@ export default function PasswordResetModal({ initialEmail = '', mode = 'reset', 
     );
   }
 
-  const errorText = error && (
+  // 11-03: 경고 자리를 늘 비워 둔다(내용만 바뀜) → 경고가 떠도 팝업 크기 · 입력칸이 움직이지 않음
+  const errorText = (
     <p className="auth-modal-error" role="alert">
       {error}
     </p>

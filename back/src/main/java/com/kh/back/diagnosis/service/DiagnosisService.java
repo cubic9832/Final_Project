@@ -12,4 +12,7 @@ public interface DiagnosisService {
 
     // 최근 진단 (최신 순, size 건)
     List<DiagnosisSummary> getRecent(Long userId, int size);
+
+    // 진단 한 건 자세히 (소득 · 지출 · 대출 포함) — 본인 기록이 아니면 404
+    DiagnosisSummary getDetail(Long userId, Long analysisId);
 }

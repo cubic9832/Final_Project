@@ -28,7 +28,7 @@ export default function FinancialVehiclePage() {
   const { notice, recommending, showRecommendations } = useCandidateRecommendations(diagnosis);
   useEffect(() => { saveFinancialSession({ vehicle }); }, [vehicle]);
   if (!state?.values) return <Navigate to="/financial" replace />;
-  const conditions = environmentQuestions(scenarioMode);
+  const conditions = environmentQuestions(scenarioMode, vehicle);
   const editSummary = id => {
     if (id in financialSummarySteps) { navigate('/financial', { state: { ...diagnosis, financialStep: financialSummarySteps[id] } }); return; }
     const conditionIndex = conditions.findIndex(item => item.id === id);
@@ -39,10 +39,10 @@ export default function FinancialVehiclePage() {
     onChange={value => setVehicle(previous => recordSurveyAnswer(previous, question.id, value))}
     onBack={() => index ? setStep(index - 1) : navigate('/financial/environment', { state: { ...diagnosis, environmentStep: conditions.length - 1 } })}
     onNext={() => { if (reviewing) showRecommendations(); else setStep(index + 1); }} nextLabel={reviewing ? '내게 맞는 차량 찾기' : index === questions.length - 1 ? '선택한 답 확인하기' : '다음'}
-    busy={recommending} disabled={reviewing && !options} error={error || notice} loading={!options && !error} diagnosis={diagnosis} summaryItems={surveySummary([...conditions, ...questions], vehicle)} onEditSummary={editSummary}>
+    busy={recommending} disabled={reviewing && !options} error={error || notice} loading={!options && !error} diagnosis={diagnosis} summaryItems={surveySummary([...questions, ...conditions], vehicle)} onEditSummary={editSummary}>
     {question.id === 'exteriorAngularity' && <VehicleTastePreview preference={question.id} value={vehicle[question.id]} />}
     {question.id === 'accelerationPreference' && <AccelerationPreview value={vehicle[question.id]} />}
-    {reviewing && <SurveyPages key={question.id}>{[...conditions, ...questions].map(item => {
+    {reviewing && <SurveyPages key={question.id}>{[...questions, ...conditions].map(item => {
       const conditionIndex = conditions.findIndex(condition => condition.id === item.id);
       const answer = item.options.find(option => String(option.value) === String(vehicle[item.id]));
       return <li key={item.id}><span><small>{item.title}</small><strong>{answer?.label ?? '선택 안 함'}</strong></span><button type="button" disabled={recommending} aria-label={`${item.title} 답변 수정`} onClick={() => conditionIndex >= 0 ? navigate('/financial/environment', { state: { ...diagnosis, environmentStep: conditionIndex } }) : setStep(questions.findIndex(q => q.id === item.id))}>수정</button></li>;

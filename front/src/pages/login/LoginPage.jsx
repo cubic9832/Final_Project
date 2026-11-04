@@ -227,14 +227,17 @@ export default function LoginPage() {
               </>
             )}
 
-            {loginError && (
-              <p className="login-error login-failed" role="alert">
-                {loginError}
-              </p>
-            )}
-            <button className="login-submit" type="submit" disabled={submitting}>
-              {submitting ? '로그인 중…' : '로그인'}
-            </button>
+            {/* 11-03: 로그인 실패 문구는 버튼 오른쪽 같은 줄 — 버튼 위에 끼면 버튼이 아래로 밀렸다 */}
+            <div className="login-submit-row">
+              <button className="login-submit" type="submit" disabled={submitting}>
+                {submitting ? '로그인 중…' : '로그인'}
+              </button>
+              {loginError && (
+                <p className="login-error login-failed" role="alert">
+                  {loginError}
+                </p>
+              )}
+            </div>
           </form>
 
           {/* 보완 8: 구글 로그인 */}
@@ -251,12 +254,6 @@ export default function LoginPage() {
           </p>
         </section>
       </div>
-
-      <footer className="login-footer">
-        <strong>CreditCompass</strong>
-        <p>첫차 구매 전, 감당 가능한 비용부터 확인하세요.</p>
-        <small>본 서비스는 교육·시연용이며 실제 NICE·KCB 신용점수나 금융기관 심사 결과를 의미하지 않습니다.</small>
-      </footer>
 
       {/* 비밀번호 찾기 팝업. 로그인 칸에 적은 이메일을 미리 채워 준다 */}
       {isResetOpen && (

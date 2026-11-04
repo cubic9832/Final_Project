@@ -24,9 +24,9 @@ public class ChatHistoryRepository {
     public record MessagePage(List<ChatHistoryResponse.Message> messages, boolean hasMore, boolean hasNewer) {}
     public record Exchange(long answerId, long conversationId, long userId, String userName, String question, String answer,
                            String questionSource, String guideId, String answerType, String provider,
-                           String model, String rating, LocalDateTime createdAt, long number) {}
+                           String model, String rating, LocalDateTime createdAt, long number, Long promptVersionId, String promptVersion) {}
     public record RatingCounts(long likes, long dislikes, long unrated) {}
-    public record ExchangePage(List<Exchange> items, boolean hasMore, int page, long total, long totalPages, RatingCounts ratingCounts) {}
+    public record ExchangePage(List<Exchange> items, boolean hasMore, int page, long total, long totalPages, RatingCounts ratingCounts, String promptVersion) {}
 
     private final RowMapper<ChatHistoryResponse.Message> messageMapper = (rs, index) -> new ChatHistoryResponse.Message(
         rs.getLong("id"), rs.getString("role").equals("USER") ? "user" : "model",
@@ -39,6 +39,11 @@ public class ChatHistoryRepository {
 
     public StoredPair savePair(long userId, String question, String answer, String source, String guideId,
                                String answerType, String provider, String model) {
+        return savePair(userId, question, answer, source, guideId, answerType, provider, model, null);
+    }
+
+    public StoredPair savePair(long userId, String question, String answer, String source, String guideId,
+                               String answerType, String provider, String model, Long promptVersionId) {
         return transactions.execute(status -> {
             // Serialize creation/reset for this member, including concurrent application instances.
             lockMember(userId);
@@ -47,8 +52,8 @@ public class ChatHistoryRepository {
                 ? insert("INSERT INTO chatbot_conversations(user_id) VALUES(?)", userId) : current;
             long questionId = insert("INSERT INTO chatbot_messages(conversation_id,role,content,question_source,guide_id) VALUES(?,'USER',?,?,?)",
                 conversation, PiiMasker.mask(question), source, guideId);
-            long answerId = insert("INSERT INTO chatbot_messages(conversation_id,role,content,reply_to_message_id,answer_type,provider,model) VALUES(?,'ASSISTANT',?,?,?,?,?)",
-                conversation, PiiMasker.mask(answer), questionId, answerType, provider, model);
+            long answerId = insert("INSERT INTO chatbot_messages(conversation_id,role,content,reply_to_message_id,answer_type,provider,model,prompt_version_id) VALUES(?,'ASSISTANT',?,?,?,?,?,?)",
+                conversation, PiiMasker.mask(answer), questionId, answerType, provider, model, promptVersionId);
             jdbc.update("UPDATE chatbot_conversations SET updated_at=CURRENT_TIMESTAMP(6) WHERE id=?", conversation);
             return new StoredPair(questionId, answerId);
         });
@@ -97,6 +102,10 @@ public class ChatHistoryRepository {
     }
 
     public ExchangePage exchanges(String rating, int page, String keyword, String sort, String direction) {
+        return exchanges(rating, page, keyword, sort, direction, null);
+    }
+
+    public ExchangePage exchanges(String rating, int page, String keyword, String sort, String direction, Long promptVersionId) {
         // SQL identifiers and directions are selected only from this allowlist.
         String column = switch (sort) {
             case "number" -> "a.id";
@@ -118,19 +127,44 @@ public class ChatHistoryRepository {
         };
         var parameters = new ArrayList<Object>();
         if (rating.equals("LIKE") || rating.equals("DISLIKE")) parameters.add(rating);
+        String searchedVersion = null;
+        var words = new ArrayList<String>();
+        var registeredVersions = jdbc.queryForList("SELECT version FROM chatbot_prompt_versions", String.class);
+        for (String word : keyword.strip().split("\\s+")) {
+            if (word.isBlank()) continue;
+            boolean versionWord = word.matches("(?i)v[0-9]+(?:[._-][a-z0-9]+)*")
+                || registeredVersions.stream().anyMatch(version -> version.equalsIgnoreCase(word));
+            if (versionWord) {
+                if (searchedVersion != null && !searchedVersion.equalsIgnoreCase(word))
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "CHAT_INVALID", "프롬프트 버전은 한 번에 하나씩 검색해 주세요.");
+                searchedVersion = registeredVersions.stream().filter(version -> version.equalsIgnoreCase(word)).findFirst().orElse(word);
+            } else words.add(word);
+        }
+        keyword = String.join(" ", words);
+        if (searchedVersion != null) {
+            filter += " AND a.answer_type='AI' AND p.version=?";
+            parameters.add(searchedVersion);
+        }
         if (!keyword.isBlank()) {
             filter += " AND (q.content LIKE ? ESCAPE '!' OR u.nick_name LIKE ? ESCAPE '!')";
             parameters.add("%" + keyword.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
             parameters.add("%" + keyword.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
         }
-        String from = " FROM chatbot_messages a JOIN chatbot_messages q ON q.id=a.reply_to_message_id JOIN chatbot_conversations c ON c.id=a.conversation_id JOIN users u ON u.id=c.user_id LEFT JOIN chatbot_feedback f ON f.answer_message_id=a.id WHERE a.role='ASSISTANT'" + filter;
+        if (promptVersionId != null) {
+            filter += promptVersionId == 0 ? " AND a.answer_type='AI' AND a.prompt_version_id IS NULL" : " AND a.answer_type='AI' AND a.prompt_version_id=?";
+            if (promptVersionId != 0) parameters.add(promptVersionId);
+        }
+        if (promptVersionId != null && searchedVersion == null && promptVersionId > 0) {
+            searchedVersion = jdbc.queryForList("SELECT version FROM chatbot_prompt_versions WHERE id=?", String.class, promptVersionId).stream().findFirst().orElse(null);
+        }
+        String from = " FROM chatbot_messages a JOIN chatbot_messages q ON q.id=a.reply_to_message_id JOIN chatbot_conversations c ON c.id=a.conversation_id JOIN users u ON u.id=c.user_id LEFT JOIN chatbot_feedback f ON f.answer_message_id=a.id LEFT JOIN chatbot_prompt_versions p ON p.id=a.prompt_version_id WHERE a.role='ASSISTANT'" + filter;
         RatingCounts counts = Objects.requireNonNull(jdbc.queryForObject("SELECT COUNT(CASE WHEN f.rating='LIKE' THEN 1 END) AS likes,COUNT(CASE WHEN f.rating='DISLIKE' THEN 1 END) AS dislikes,COUNT(CASE WHEN f.id IS NULL THEN 1 END) AS unrated" + from,
             (rs, n) -> new RatingCounts(rs.getLong("likes"), rs.getLong("dislikes"), rs.getLong("unrated")), parameters.toArray()));
         long total = counts.likes() + counts.dislikes() + counts.unrated();
         parameters.add(page * 20);
-        var rows = jdbc.query("SELECT ROW_NUMBER() OVER (ORDER BY a.id ASC) AS row_ordinal,a.id,a.conversation_id,c.user_id,u.nick_name AS user_name,q.content AS question,a.content AS answer,q.question_source,q.guide_id,a.answer_type,a.provider,a.model,f.rating,a.created_at" + from + " ORDER BY " + order + " LIMIT 20 OFFSET ?",
-            (rs, n) -> new Exchange(rs.getLong("id"),rs.getLong("conversation_id"),rs.getLong("user_id"),rs.getString("user_name"),PiiMasker.mask(rs.getString("question")),PiiMasker.mask(rs.getString("answer")),rs.getString("question_source"),rs.getString("guide_id"),rs.getString("answer_type"),rs.getString("provider"),rs.getString("model"),rs.getString("rating"),rs.getTimestamp("created_at").toLocalDateTime(),rs.getLong("row_ordinal")), parameters.toArray());
-        return new ExchangePage(List.copyOf(rows), (page + 1L) * 20 < total, page, total, Math.max(1, (total + 19) / 20), counts);
+        var rows = jdbc.query("SELECT ROW_NUMBER() OVER (ORDER BY a.id ASC) AS row_ordinal,a.id,a.conversation_id,c.user_id,u.nick_name AS user_name,q.content AS question,a.content AS answer,q.question_source,q.guide_id,a.answer_type,a.provider,a.model,f.rating,a.created_at,a.prompt_version_id,p.version AS prompt_version" + from + " ORDER BY " + order + " LIMIT 20 OFFSET ?",
+            (rs, n) -> new Exchange(rs.getLong("id"),rs.getLong("conversation_id"),rs.getLong("user_id"),rs.getString("user_name"),PiiMasker.mask(rs.getString("question")),PiiMasker.mask(rs.getString("answer")),rs.getString("question_source"),rs.getString("guide_id"),rs.getString("answer_type"),rs.getString("provider"),rs.getString("model"),rs.getString("rating"),rs.getTimestamp("created_at").toLocalDateTime(),rs.getLong("row_ordinal"),rs.getObject("prompt_version_id",Long.class),rs.getString("prompt_version")), parameters.toArray());
+        return new ExchangePage(List.copyOf(rows), (page + 1L) * 20 < total, page, total, Math.max(1, (total + 19) / 20), counts, searchedVersion);
     }
 
     private void lockMember(long userId) {

@@ -20,7 +20,17 @@ const dateLabel = (value) => {
 // viewer: 'member' 면 내 말 = USER, 'admin' 이면 내 말 = ADMIN. 상대 이름: 회원 화면은 "상담원", 관리자 화면은 회원 닉네임
 // canSend 가 false 면 입력칸을 막고 disabledText 를 보여 준다 (종료된 상담 · 담당이 아닌 관리자)
 // quickReplies: true 면 입력칸 왼쪽에 [자주 쓰는 문구 ▾] (상담원만) — 고르면 입력칸에 넣고 커서를 옮긴다 (고쳐 보낼 수 있게)
-export default function ChatThread({ messages, viewer, memberName, connected, error, canSend, disabledText, onSend, quickReplies = false }) {
+// 메시지 통로(WebSocket) 상태 — 상담 상태 배지(대기 · 진행 중)와 헷갈리지 않게 작게, "연결" 대신 "수신"
+// 회원 상담 화면은 [상담 종료] 버튼 왼쪽, 관리자 상담 탭은 회원 이름 줄 오른쪽에 따로 놓는다(둘 다 showConnection=false)
+export function ConnectionStatus({ connected }) {
+  return (
+    <p className={`chat-live${connected ? ' is-on' : ''}`} role="status">
+      {connected ? '● 실시간 수신 중' : '● 연결이 끊겨 다시 연결하는 중…'}
+    </p>
+  );
+}
+
+export default function ChatThread({ messages, viewer, memberName, connected, error, canSend, disabledText, onSend, quickReplies = false, showConnection = true }) {
   const [text, setText] = useState('');
   const boardRef = useRef(null);
   const inputRef = useRef(null);
@@ -43,10 +53,7 @@ export default function ChatThread({ messages, viewer, memberName, connected, er
 
   return (
     <div className="chat-thread">
-      {/* 메시지 통로(WebSocket) 상태 — 상담 상태 배지(대기 · 진행 중)와 헷갈리지 않게 대화창 오른쪽 위에 작게, "연결" 대신 "수신" */}
-      <p className={`chat-connection${connected ? ' is-on' : ''}`} role="status">
-        {connected ? '● 실시간 수신 중' : '● 연결이 끊겨 다시 연결하는 중…'}
-      </p>
+      {showConnection && <ConnectionStatus connected={connected} />}
       <ul className="chat-board" ref={boardRef} aria-label="상담 대화" aria-live="polite">
         {messages.length === 0 && <li className="chat-empty">아직 대화가 없습니다.</li>}
         {messages.map((m, index) => (
@@ -67,7 +74,6 @@ export default function ChatThread({ messages, viewer, memberName, connected, er
           </Fragment>
         ))}
       </ul>
-      {error && <p className="chat-error" role="alert">{error}</p>}
       {canSend ? (
         <form className="chat-send" onSubmit={handleSubmit}>
           {quickReplies && (
@@ -85,6 +91,8 @@ export default function ChatThread({ messages, viewer, memberName, connected, er
           <button type="submit" disabled={!connected || !text.trim()}>보내기</button>
         </form>
       ) : <p className="chat-disabled">{disabledText}</p>}
+      {/* 보내지 못한 이유(욕설 등)는 입력칸 아래 — 대화창 위에 끼면 대화창이 아래로 밀렸다 내려왔다 한다 */}
+      {error && <p className="chat-error" role="alert">{error}</p>}
     </div>
   );
 }

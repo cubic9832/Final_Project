@@ -45,13 +45,15 @@ def preference_evidence(profile, vehicle, components):
 def candidate_evidence(profile, vehicle, cost, score):
     available = profile.monthly_income - profile.monthly_expenses - profile.existing_monthly_payment - profile.monthly_savings
     funds = profile.liquid_assets - profile.emergency_reserve
+    # A user-chosen installment repays this principal monthly, not out of savings.
+    financed = cost.get('principal', 0) if cost.get('monthly_vehicle_cap') is not None and cost.get('financing_months') else 0
     return {
         'vehicleId': vehicle.id,
         'preferences': preference_evidence(profile, vehicle, score['components']),
         'financial': {
             'eligible': cost['eligible'], 'purchaseFunds': funds,
             'purchaseCost': cost['total_purchase_cost'],
-            'cashAfterPurchase': round(funds - cost['total_purchase_cost'], 2),
+            'cashAfterPurchase': round(funds - cost['total_purchase_cost'] + financed, 2),
             'monthlyAvailable': available, 'monthlyRunningCost': cost['monthly_running_cost'],
             'remainingMonthly': cost['remaining_monthly'],
             'fundingSource': cost.get('funding_source', 'income'),
@@ -59,7 +61,9 @@ def candidate_evidence(profile, vehicle, cost, score):
             'assetRunwayMonths': cost.get('asset_runway_months'),
             'requiredAssetCoverageMonths': cost.get('required_asset_coverage_months'),
             'minimumMonthlyBuffer': profile.minimum_buffer,
-            'financing': 'cash-only', 'includesAcquisitionFees': False,
+            'financing': 'installment' if financed else 'cash-only', 'financedPrincipal': financed,
+            'monthlyPayment': cost.get('monthly_payment') or 0, 'financingMonths': cost.get('financing_months', 0),
+            'monthlyVehicleCap': cost.get('monthly_vehicle_cap'), 'includesAcquisitionFees': False,
         },
     }
 

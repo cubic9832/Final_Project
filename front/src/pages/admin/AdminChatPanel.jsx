@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import ChatConfirmModal from '../../features/chat/components/ChatConfirmModal';
-import ChatThread from '../../features/chat/components/ChatThread';
+import ChatThread, { ConnectionStatus } from '../../features/chat/components/ChatThread';
 import ChoiceWithOther from '../../features/chat/components/ChoiceWithOther';
 import { choiceText, OTHER } from '../../features/chat/choice';
 import {
@@ -14,6 +14,7 @@ import useChatRoom from '../../features/chat/useChatRoom';
 import { ROLE_LABELS } from '../../features/auth/roles';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
+import useActionLock from '../../features/admin/useActionLock';
 import './AdminChatPanel.css';
 
 const FILTERS = [
@@ -29,7 +30,7 @@ const shortTime = (value) => (value ? `${value.slice(5, 10).replace('-', '.')} $
 
 // 8단계: 관리자 대시보드 [1:1 상담] 탭 — 왼쪽 상담 목록, 오른쪽 대화
 // 목록은 /topic/admin/chat 알림(새 상담 · 맡기 · 넘기기 · 종료 · 새 메시지)을 받으면 다시 불러온다 → 새로고침 없이 대기 목록이 바뀐다
-// 관리자 · 총관리자 모두 [맡기] 가능(먼저 누른 사람이 담당), 답장은 담당자만, 넘기기 · 종료는 담당자 또는 총관리자
+// 관리자 · 총관리자 모두 [맡기] 가능(먼저 누른 사람이 담당), 답장은 담당자만, 넘기기 · 종료 · 경고 · 제한은 관리자 누구나 (11-03)
 export default function AdminChatPanel() {
   const me = useAuthStore((state) => state.member);
   const isSuper = me?.role === 'SUPER_ADMIN';
@@ -116,25 +117,26 @@ export default function AdminChatPanel() {
 function RoomDetail({ room, meId, isSuper, onChanged }) {
   const navigate = useNavigate();
   const chat = useChatRoom(room.id, onChanged);
-  const [busy, setBusy] = useState(false);
+  // 한 번만 보내고, 성공하면 목록을 다시 불러와 이 상담(room)이 바뀔 때까지 잠근다 (맡기 · 종료 등이 두 번 가지 않게)
+  const lock = useActionLock(room);
+  const busy = lock.locked;
   const [openForm, setOpenForm] = useState(''); // 'transfer' · 'warn' · 'restrict' · '' (한 번에 하나만 펼친다)
   const mine = room.assignedAdminId === meId;
-  const canManage = mine || isSuper; // 넘기기 · 종료 · 상담 제한
+  // 11-03: 넘기기 · 종료 · 경고 · 상담 제한 · 제한 풀기는 관리자 · 총관리자 누구나 (이 화면은 관리자만 들어온다)
+  // 총관리자 전용(isSuper)은 상담원 모니터링 — 만족도 · 신고 보기만
+  const canManage = true;
   const toggleForm = (name) => setOpenForm((open) => (open === name ? '' : name));
   // 확인 팝업 (상담 종료 · 제한 · 제한 풀기) — { title, message, confirmLabel, danger, onConfirm } 또는 null
   const [confirm, setConfirm] = useState(null);
 
   async function run(action, done) {
-    setBusy(true);
     try {
-      await action();
+      if (!(await lock.run(action))) return;
       showToast(done);
       onChanged();
     } catch (error) {
       showToast(chatErrorMessage(error, '처리하지 못했습니다. 목록을 새로고침해 주세요.'));
       onChanged();
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -147,7 +149,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
   return (
     <>
       <div className="admin-chat-head">
-        <div>
+        <div className="admin-chat-who">
           <h3>{room.userNickName}</h3>
           <p>
             {STATUS_LABELS[room.status]} · 담당 {room.assignedAdminNickName ? (mine ? '나' : room.assignedAdminNickName) : '없음'}
@@ -166,7 +168,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
           {room.status === 'ACTIVE' && canManage && (
             <button type="button" className="admin-outline-button" disabled={busy} onClick={() => toggleForm('transfer')}>넘기기</button>
           )}
-          {room.status !== 'CLOSED' && (room.status === 'ACTIVE' ? canManage : isSuper) && (
+          {room.status !== 'CLOSED' && canManage && (
             <button type="button" className="admin-outline-button" disabled={busy}
               onClick={() => setConfirm({
                 title: '상담 종료',
@@ -183,8 +185,8 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
           {canManage && !room.restricted && (
             <button type="button" className="admin-outline-button admin-chat-danger" disabled={busy} onClick={() => toggleForm('restrict')}>상담 제한</button>
           )}
-          {/* 제한 풀기는 총관리자만 (채팅 기록을 보고 판단) */}
-          {isSuper && room.restricted && (
+          {/* 제한 풀기 (잘못 제한했을 때) — 누가 풀었는지는 운영 로그에 남는다 */}
+          {canManage && room.restricted && (
             <button type="button" className="admin-outline-button" disabled={busy}
               onClick={() => setConfirm({
                 title: '상담 제한 풀기',
@@ -194,8 +196,25 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
               })}>제한 풀기</button>
           )}
         </div>
+        {/* 11-04: 수신 상태는 버튼 줄 오른쪽 끝(대화창 바로 위) — 대화창 위 따로 한 줄을 대화 공간으로 돌린다 */}
+        <ConnectionStatus connected={chat.connected} />
       </div>
 
+      {confirm && <ChatConfirmModal {...confirm} onClose={() => setConfirm(null)} />}
+
+      <ChatThread
+        messages={chat.messages}
+        viewer="admin"
+        memberName={room.userNickName}
+        connected={chat.connected}
+        error={chat.error}
+        canSend={room.status === 'ACTIVE' && mine}
+        disabledText={disabledText}
+        onSend={chat.send}
+        quickReplies
+        showConnection={false}
+      />
+      {/* 11-04: 넘기기 · 경고 · 상담 제한 입력칸은 대화창 아래 — 펼쳐도 대화창 크기 · 입력칸 위치가 그대로 (카드가 아래로 늘어난다) */}
       {openForm === 'transfer' && (
         <TransferForm
           room={room}
@@ -215,7 +234,6 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
       {openForm === 'restrict' && (
         <RestrictForm
           busy={busy}
-          isSuper={isSuper}
           onCancel={() => setOpenForm('')}
           onSubmit={(days, reason) => setConfirm({
             title: '상담 제한',
@@ -227,19 +245,6 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
           })}
         />
       )}
-      {confirm && <ChatConfirmModal {...confirm} onClose={() => setConfirm(null)} />}
-
-      <ChatThread
-        messages={chat.messages}
-        viewer="admin"
-        memberName={room.userNickName}
-        connected={chat.connected}
-        error={chat.error}
-        canSend={room.status === 'ACTIVE' && mine}
-        disabledText={disabledText}
-        onSend={chat.send}
-        quickReplies
-      />
       {isSuper && <RoomFeedback roomId={room.id} reportCount={room.reportCount} />}
     </>
   );
@@ -417,13 +422,13 @@ function ReasonField({ label, note = '운영 로그에만 남아요', ...props }
 }
 
 // 상담 제한: 기간 + 사유. 진행 중이면 종료되고, 회원은 기간이 끝날 때까지 새 상담을 못 한다
-// 영구(0)는 총관리자만 — 서버도 한 번 더 확인한다
+// 영구(0)도 관리자 · 총관리자 누구나 (11-03)
 const RESTRICT_DAYS = [
   { value: 1, label: '1일' }, { value: 3, label: '3일' }, { value: 7, label: '7일' }, { value: 30, label: '30일' },
-  { value: 0, label: '영구 (총관리자)', superOnly: true },
+  { value: 0, label: '영구' },
 ];
 
-function RestrictForm({ busy, isSuper, onCancel, onSubmit }) {
+function RestrictForm({ busy, onCancel, onSubmit }) {
   const [days, setDays] = useState(3);
   const [choice, setChoice] = useState('');
   const [other, setOther] = useState('');
@@ -439,7 +444,7 @@ function RestrictForm({ busy, isSuper, onCancel, onSubmit }) {
       <label>
         제한 기간
         <select value={days} onChange={(event) => setDays(Number(event.target.value))}>
-          {RESTRICT_DAYS.filter((option) => isSuper || !option.superOnly)
+          {RESTRICT_DAYS
             .map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
       </label>

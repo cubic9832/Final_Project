@@ -21,7 +21,7 @@ import './AdminPage.css';
 const sections = [
   { id: 'overview', label: '운영 현황', icon: LayoutDashboard, description: '데이터와 서비스 상태를 한눈에 살펴보세요.', panel: AdminOverviewPanel },
   { id: 'vehicles', label: '차량 관리', icon: Car, description: '차량을 등록하고 제원·가격·공개 상태를 관리합니다.', panel: AdminVehiclesPanel },
-  { id: 'recommendations', label: '추천 관리', icon: ListChecks, description: '추천 서버가 고르는 후보 차량의 가격 출처와 확인 상태를 검수합니다.', panel: AdminRecommendationsPanel },
+  { id: 'recommendations', label: '추천 관리', icon: ListChecks, description: '추천 후보의 가격 출처와 제원 확인 상태를 살펴봅니다.', panel: AdminRecommendationsPanel },
   { id: 'members', label: '회원 관리', icon: Users, description: '가입 현황과 회원 상태, 운영 권한을 확인합니다.', panel: AdminMembersPanel },
   // 8단계: 1:1 상담 — 대기 목록은 실시간(WebSocket), 먼저 [맡기] 를 누른 관리자가 답한다
   { id: 'chat', label: '1:1 상담', icon: MessagesSquare, description: '회원의 상담 요청을 맡아 실시간으로 답합니다.', panel: AdminChatPanel },

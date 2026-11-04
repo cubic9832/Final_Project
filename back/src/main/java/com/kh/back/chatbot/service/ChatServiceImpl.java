@@ -75,12 +75,13 @@ public class ChatServiceImpl implements ChatService {
             var context = knowledge.search(lastQuestion + " " + masked);
             // Free Gemini receives public guidance only, never automatic private financial context.
             String personal = provider.equals("openai") ? userContext.build(memberId) : "개인 결과는 제공되지 않음. 마이페이지에서 확인하도록 안내하세요.";
-            String instruction = prompt.build(personal, context);
+            var builtPrompt = prompt.build(personal, context);
+            String instruction = builtPrompt.instruction();
             String answer = PiiMasker.mask(provider.equals("openai")
                     ? openai.generate(instruction, masked, previous)
                     : gemini.generate(masked, previous.stream().map(item -> new ChatRequest.Turn(item instanceof UserMessage ? "user" : "model", item.getText())).toList(), instruction));
             var pair = history.savePair(memberId, masked, answer, "DIRECT_INPUT", null, "AI", provider,
-                provider.equals("openai") ? openaiModel : geminiModel);
+                provider.equals("openai") ? openaiModel : geminiModel, builtPrompt.versionId());
             // Store complete masked pairs only after success, keeping failed calls out of memory.
             memory.add(id(memberId), List.of(new UserMessage(masked), new AssistantMessage(answer)));
             return new ChatResponse(answer, masked, 29 - used, context.stream()
