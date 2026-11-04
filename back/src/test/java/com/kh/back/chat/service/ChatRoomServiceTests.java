@@ -158,6 +158,8 @@ class ChatRoomServiceTests {
         verify(chatMapper).transfer(ROOM, OTHER_ADMIN, ADMIN);
         when(chatMapper.close(ROOM)).thenReturn(1);
         service.closeByAdmin(ADMIN, ROOM);
+        // 11-04: 누가 종료했는지 운영 로그에 (그때 담당자 포함)
+        verify(adminAuditLogMapper).insert(ADMIN, "CHAT_CLOSE", "MEMBER", MEMBER, "상담 종료 (담당 #" + OTHER_ADMIN + ")");
         assertCode(() -> service.closeByAdmin(MEMBER, ROOM), "CHAT_FORBIDDEN"); // 회원은 안 됨
     }
 

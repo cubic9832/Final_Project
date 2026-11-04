@@ -59,7 +59,7 @@ export default function AdminLogsPanel() {
   return (
     <section className="admin-card">
       <div className="admin-card-heading">
-        <div><h3>운영 이력</h3><p>관리자 작업 기록 (최근 순). 권한 주기 · 빼기, 잠금 해제, 상담 경고 · 제한 등이 기록됩니다. 인증 메일 발송 기록은 [작업] 에서 골라 봅니다.</p></div>
+        <div><h3>운영 이력</h3><p>관리자 작업 기록 (최근 순). 권한 주기 · 빼기, 잠금 해제, 상담 경고 · 제한 · 넘기기 · 종료 등이 기록됩니다. 인증 메일 발송 기록은 [작업] 에서 골라 봅니다.</p></div>
         <button type="button" className="admin-outline-button" disabled={!logs.length} onClick={() => downloadCsv(logs)}>
           <Download size={theme.iconSize.sm} aria-hidden="true" />CSV 내보내기
         </button>
@@ -76,6 +76,7 @@ export default function AdminLogsPanel() {
             <option value="CHAT_RESTRICT">상담 제한</option>
             <option value="CHAT_UNRESTRICT">상담 제한 풀기</option>
             <option value="CHAT_TRANSFER">상담 넘기기</option>
+            <option value="CHAT_CLOSE">상담 종료</option>
             <option value="MEMBER_SUSPEND">계정 정지</option>
             <option value="MEMBER_UNSUSPEND">계정 정지 풀기</option>
             <option value="MODEL_TRAFFIC_CHANGE">모델 비율 변경</option>

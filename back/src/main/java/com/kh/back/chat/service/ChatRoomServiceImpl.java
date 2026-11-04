@@ -180,7 +180,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         broadcaster.roomChanged(roomId, ChatRoomDto.ACTIVE);
     }
 
-    // [넘기기]: 담당 관리자는 내 상담만, 총관리자는 어느 상담이든. 받는 사람의 수락 없이 바로 넘어간다
+    // [넘기기]: 관리자 · 총관리자 누구나, 남이 맡은 상담도 (11-03). 받는 사람의 수락 없이 바로 넘어간다
     // 이유는 운영 로그에만 (회원에게는 "상담원이 바뀌었습니다")
     @Override
     @Transactional
@@ -208,12 +208,15 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     // [상담 종료] (관리자): 관리자 · 총관리자 누구나 (11-03: 총관리자에게 몰린 일을 일반 관리자도 — 대기 중인 상담 포함)
+    // 11-04: 남이 맡은 상담도 끊을 수 있어서, 넘기기 · 제한처럼 누가 종료했는지 운영 로그에 남긴다 (내용 = 그때 담당자)
     @Override
     @Transactional
     public void closeByAdmin(Long actorId, Long roomId) {
         ChatRoomDto room = requireRoom(roomId);
         requireAdminActor(actorId, "관리자만 상담을 종료할 수 있습니다.");
         closeRoom(roomId, "상담원이 상담을 종료했습니다.");
+        String assignee = room.getAssignedAdminId() == null ? "없음" : "#" + room.getAssignedAdminId();
+        adminAuditLogMapper.insert(actorId, "CHAT_CLOSE", "MEMBER", room.getUserId(), "상담 종료 (담당 " + assignee + ")");
     }
 
     // [상담 제한]: 욕설 등 → 진행 중이면 종료하고, days 일 동안 새 상담 불가 (0 = 영구). 관리자 · 총관리자 누구나 (11-03)

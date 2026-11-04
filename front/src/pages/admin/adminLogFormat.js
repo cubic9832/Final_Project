@@ -9,6 +9,7 @@ export const ACTION_LABELS = {
   CHAT_RESTRICT: '상담 제한',
   CHAT_UNRESTRICT: '상담 제한 풀기',
   CHAT_TRANSFER: '상담 넘기기',
+  CHAT_CLOSE: '상담 종료',
   MEMBER_SUSPEND: '계정 정지',
   MEMBER_UNSUSPEND: '계정 정지 풀기',
   MAIL_SENT: '메일 발송',
