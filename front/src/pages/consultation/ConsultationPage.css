@@ -224,3 +224,10 @@
 .consult-submit-row .consult-error {
   margin: 0;
 }
+
+/* 11-04: 회원 상담 화면은 들어오자마자 입력칸까지 보이게 — 대화창 높이 = 화면 높이 − (헤더 · 제목 · 상태 줄 · 입력칸)
+   관리자 상담 탭은 ChatThread.css 의 52vh 그대로 */
+.consult-card .chat-thread .chat-board {
+  height: calc(100vh - 430px);
+  min-height: 240px;
+}
