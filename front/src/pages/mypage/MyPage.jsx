@@ -309,7 +309,7 @@ function TasteCard({ state }) {
             {state.data.type?.description && <p>{state.data.type.description}</p>}
           </Link>
           <p className="my-taste-how">
-            취향이 바뀌었다면 테스트를 다시 하세요. 결과 화면에서 &quot;현재 취향을 바꿀까요?&quot;를 확인하면 새 결과로 바뀝니다.
+            취향이 바뀌었다면 테스트를 다시 해 보세요. 새 결과를 저장하면 여기 내 취향도 바뀌어요.
           </p>
           <Link className="my-outline-button" to="/taste-test" onClick={() => startNewTaste(memberId, state.data)}>취향 바꾸기 (테스트 다시 하기)</Link>
         </>
