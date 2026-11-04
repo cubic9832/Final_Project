@@ -13,6 +13,7 @@ import com.kh.back.admin.dto.AdminModelReport.SplitProfiles;
 import com.kh.back.admin.dto.ModelVersionRow;
 import com.kh.back.admin.mapper.AdminModelMapper;
 import com.kh.back.common.exception.ApiException;
+import com.kh.back.recommendation.RecommendationServerLauncher;
 import com.kh.back.recommendation.RecommendationTrafficMapper;
 import com.kh.back.recommendation.RecommendationUpstreamRegistry;
 import com.kh.back.recommendation.RecommendationUpstreamRegistry.Upstream;
@@ -31,6 +32,7 @@ class AdminModelServiceTests {
     private final AdminModelMapper adminModelMapper = mock(AdminModelMapper.class);
     private final RecommendationTrafficMapper trafficMapper = mock(RecommendationTrafficMapper.class);
     private final RecommendationUpstreamRegistry registry = mock(RecommendationUpstreamRegistry.class);
+    private final RecommendationServerLauncher launcher = mock(RecommendationServerLauncher.class);
 
     @TempDir
     Path runDir;
@@ -40,8 +42,8 @@ class AdminModelServiceTests {
 
     private AdminModelService service() {
         when(adminModelMapper.findVersions()).thenReturn(List.of());
-        return new AdminModelServiceImpl(adminModelMapper, trafficMapper, registry, JsonMapper.builder().build(),
-                runDir.toString(), modelRoot.toString());
+        return new AdminModelServiceImpl(adminModelMapper, trafficMapper, registry, new ModelRunLocator(modelRoot.toString()),
+                launcher, JsonMapper.builder().build(), runDir.toString());
     }
 
     private Path run(String family, String name, String schema, String reportFile, String report) throws Exception {

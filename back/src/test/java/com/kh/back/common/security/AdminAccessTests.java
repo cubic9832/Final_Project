@@ -1,7 +1,9 @@
 package com.kh.back.common.security;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -157,6 +159,26 @@ class AdminAccessTests {
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(3L, "SUPER_ADMIN")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("TRAFFIC_TOTAL_INVALID"));
+    }
+
+    // 추천 서버 켜기 · 끄기는 총관리자만: 관리자 403, 총관리자는 서비스까지 가서 없는 모델 404 · 켜는 포트가 아니면 400
+    @Test
+    void 추천_서버_켜기_끄기는_총관리자만() throws Exception {
+        String body = "{\"runId\":\"scenario-choices/no-such-model\"}";
+        mvc.perform(post("/api/v1/admin/model-servers").contentType("application/json").content(body)
+                        .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
+                .andExpect(status().isForbidden());
+        mvc.perform(delete("/api/v1/admin/model-servers/8003")
+                        .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/admin/model-servers").contentType("application/json").content(body)
+                        .header("Authorization", "Bearer " + jwtProvider.createAccessToken(3L, "SUPER_ADMIN")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("MODEL_RUN_NOT_FOUND"));
+        mvc.perform(delete("/api/v1/admin/model-servers/8002")
+                        .header("Authorization", "Bearer " + jwtProvider.createAccessToken(3L, "SUPER_ADMIN")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("SERVER_NOT_MANAGED"));
     }
 
     // 재무 진단 추천은 비회원도 받는다: 로그인 없이 보안을 통과한다 (추천 서버가 켜져 있으면 200, 꺼져 있으면 503)

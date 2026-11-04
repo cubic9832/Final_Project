@@ -3,7 +3,10 @@ package com.kh.back.admin.controller;
 import com.kh.back.admin.dto.AdminCandidate;
 import com.kh.back.admin.dto.AdminModelComparison;
 import com.kh.back.admin.dto.AdminModelReport;
+import com.kh.back.admin.dto.ModelServerRequest;
+import com.kh.back.admin.dto.ModelServerResponse;
 import com.kh.back.admin.dto.ModelTrafficRequest;
+import com.kh.back.admin.service.AdminModelServerService;
 import com.kh.back.admin.service.AdminModelService;
 import com.kh.back.admin.service.AdminModelTrafficService;
 import com.kh.back.common.dto.ApiResponse;
@@ -11,7 +14,12 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,6 +37,7 @@ public class AdminModelApiController {
 
     private final AdminModelService adminModelService;
     private final AdminModelTrafficService adminModelTrafficService;
+    private final AdminModelServerService adminModelServerService;
 
     // GET /api/v1/admin/model-report?run=계열/폴더 — run 이 없으면 기본 폴더. 호출: AdminModelsPanel.jsx → adminApi.getModelReport
     @GetMapping("/model-report")
@@ -55,5 +64,22 @@ public class AdminModelApiController {
     @GetMapping("/recommendation-candidates")
     public ApiResponse<List<AdminCandidate>> candidates() {
         return ApiResponse.ok(adminModelService.getCandidates());
+    }
+
+    // POST /api/v1/admin/model-servers { runId } — 그 모델로 추천 서버 켜기 (총관리자만). 켜는 데 몇 초 걸려 202 + STARTING
+    // 호출: ModelTrafficCard.jsx [켜기] → adminApi.startModelServer
+    @PostMapping("/model-servers")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ApiResponse<ModelServerResponse> startServer(@AuthenticationPrincipal Long userId,
+                                                        @Valid @RequestBody ModelServerRequest request) {
+        return ApiResponse.ok(adminModelServerService.start(userId, request.runId()));
+    }
+
+    // DELETE /api/v1/admin/model-servers/{port} — 관리자 화면에서 켠 추천 서버 끄기 (총관리자만). 비율이 남아 있으면 409
+    // 호출: ModelTrafficCard.jsx [끄기] → adminApi.stopModelServer
+    @DeleteMapping("/model-servers/{port}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void stopServer(@AuthenticationPrincipal Long userId, @PathVariable int port) {
+        adminModelServerService.stop(userId, port);
     }
 }

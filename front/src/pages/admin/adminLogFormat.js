@@ -14,6 +14,8 @@ export const ACTION_LABELS = {
   MAIL_SENT: '메일 발송',
   MAIL_FAILED: '메일 발송 실패',
   MODEL_TRAFFIC_CHANGE: '모델 비율 변경',
+  MODEL_SERVER_START: '모델 켜기',
+  MODEL_SERVER_STOP: '모델 끄기',
 };
 
 // "2026-10-26T17:30:12" → "2026.10.26 17:30"

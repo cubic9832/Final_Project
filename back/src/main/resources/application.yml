@@ -113,6 +113,12 @@ admin:
 # dev.sh 는 ML_EXTRA_RUNS 로 추가로 띄운 서버 주소까지 넣어 준다
 recommendation:
   upstreams: ${RECOMMENDATION_UPSTREAMS:http://127.0.0.1:8002}
+  # 관리자 화면(모델 관리 · 트래픽 분배)에서 추천 서버를 켜고 끄기 — 개발 · 시연용 (Spring 과 ML 이 같은 PC).
+  # 배포 서버에서는 RECOMMENDATION_LAUNCHER_ENABLED=false. 켠 서버는 ports 중 빈 포트를 쓰고, python 을 비우면 ml/.venv 를 쓴다
+  launcher:
+    enabled: ${RECOMMENDATION_LAUNCHER_ENABLED:true}
+    ports: ${RECOMMENDATION_LAUNCHER_PORTS:8003-8010}
+    python: ${RECOMMENDATION_LAUNCHER_PYTHON:}
 
 logging:
   level:

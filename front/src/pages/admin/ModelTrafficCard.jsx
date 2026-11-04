@@ -1,48 +1,67 @@
-import { useMemo, useState } from 'react';
-import { Info, Shuffle } from 'lucide-react';
+import { useState } from 'react';
+import { Info, Power, PowerOff, Shuffle } from 'lucide-react';
 import theme from '../../styles/theme';
-import { updateModelTraffic } from '../../features/admin/adminApi';
+import { startModelServer, stopModelServer, updateModelTraffic } from '../../features/admin/adminApi';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
+import { formatLogTime } from './adminLogFormat';
+import { baselineGap, count, logLoss, percent } from './modelMetricFormat';
 
-// 모델 관리 — 트래픽 분배: 여러 추천 모델에 사용자를 몇 %씩 보낼지 정한다 (PUT /admin/model-traffic, 총관리자만)
+// 모델 관리 — 트래픽 분배 (총관리자만 바꾼다, 서버도 확인)
+// ① 분배 중인 모델: 켜진 추천 서버의 모델 + 저장된 비율이 남은 모델 → 비교 지표를 보며 비율을 정한다 (PUT /admin/model-traffic)
+// ② 모델 추가: 화면 입력과 맞지만 꺼진 모델 → [켜기] 로 추천 서버를 띄운다 (POST /admin/model-servers). 켜지면 ①에 0%로 들어온다
 // 같은 사용자는 같은 모델을 받는다 (회원 번호 · 비회원 익명 ID 기준, 서버 RecommendationTrafficRouter)
-// 비율을 줄 수 있는 모델 = 켜진 추천 서버가 쓰고 있고, 지금 화면 입력과 맞는 모델. 저장한 비율이 남은 꺼진 모델은 0%로 낮출 수만 있다
 
 // 막대 · 목록 표시 색 (순서대로). 테마 색만 쓴다
 const SEGMENT_COLORS = [theme.colors.primary, theme.colors.mint, theme.colors.blue, theme.colors.muted, theme.colors.blueStrong, theme.colors.mintStrong];
+const errorMessage = (error, fallback) => error.response?.data?.error?.message ?? fallback;
 
-const initialDraft = (rows) => Object.fromEntries(rows.map((row) => [row.runName, row.weightPercent]));
+// 비교 지표 한 줄 (분배 중 · 모델 추가 모두 같은 순서)
+function ModelMetrics({ row }) {
+  return (
+    <dl className="model-metrics">
+      <div><dt>시험 정확도</dt><dd>{percent(row.testAccuracy)}</dd></div>
+      <div><dt>log loss</dt><dd>{logLoss(row.testLogLoss)}</dd></div>
+      <div><dt>{row.baselineLabel ? `${row.baselineLabel} 대비` : '기준 대비'}</dt><dd>{baselineGap(row)}</dd></div>
+      <div><dt>최근 7일 요청</dt><dd>{count(row.requests7Days)}건</dd></div>
+    </dl>
+  );
+}
 
-export default function ModelTrafficCard({ models, upstreams, trafficConfigured, onSaved }) {
+export default function ModelTrafficCard({ models, upstreams, trafficConfigured, launcherEnabled, onChanged }) {
   const isSuperAdmin = useAuthStore((state) => state.member?.role === 'SUPER_ADMIN');
-  // 분배 대상: 비율을 줄 수 있는 모델 + 저장된 비율이 남아 있는 모델
-  const rows = useMemo(() => models.filter((row) => (row.servable && row.compatible) || row.weightPercent > 0), [models]);
-  const [draft, setDraft] = useState(() => initialDraft(rows));
-  const [busy, setBusy] = useState(false);
+  // 저장하지 않은 비율만 기억한다 → 새 모델이 켜져 목록이 바뀌어도 입력 중인 값이 남는다
+  const [draft, setDraft] = useState({});
+  const [busy, setBusy] = useState(''); // 'save' 또는 켜고 끄는 중인 모델 이름
   const [error, setError] = useState('');
 
   const canWeight = (row) => row.servable && row.compatible;
-  const total = rows.reduce((sum, row) => sum + (Number(draft[row.runName]) || 0), 0);
-  const changed = rows.some((row) => (Number(draft[row.runName]) || 0) !== row.weightPercent);
-  const blocked = rows.find((row) => !canWeight(row) && (Number(draft[row.runName]) || 0) > 0);
+  const active = models.filter((row) => canWeight(row) || row.weightPercent > 0);
+  const addable = models.filter((row) => row.runId && row.compatible && !row.servable && row.weightPercent === 0);
+  const incompatible = models.filter((row) => !row.compatible && !row.servable).length;
+
+  const weightOf = (row) => draft[row.runName] ?? row.weightPercent;
+  const total = active.reduce((sum, row) => sum + weightOf(row), 0);
+  const changed = active.some((row) => weightOf(row) !== row.weightPercent);
+  const blocked = active.find((row) => !canWeight(row) && weightOf(row) > 0);
   const colorOf = (index) => SEGMENT_COLORS[index % SEGMENT_COLORS.length];
   const defaultServer = upstreams.find((upstream) => upstream.up);
+  const locked = !isSuperAdmin || Boolean(busy);
 
-  function setWeight(runName, value, row) {
+  function setWeight(row, value) {
     const parsed = Math.round(Number(value));
     const limit = canWeight(row) ? 100 : row.weightPercent; // 꺼진 모델은 낮추기만
-    setDraft((current) => ({ ...current, [runName]: Number.isFinite(parsed) ? Math.min(limit, Math.max(0, parsed)) : 0 }));
+    setDraft((current) => ({ ...current, [row.runName]: Number.isFinite(parsed) ? Math.min(limit, Math.max(0, parsed)) : 0 }));
     setError('');
   }
 
   // 비율을 줄 수 있는 모델에 똑같이 나누고, 나머지는 앞에서부터 1%씩
   function splitEvenly() {
-    const targets = rows.filter(canWeight);
+    const targets = active.filter(canWeight);
     if (targets.length === 0) return;
     const base = Math.floor(100 / targets.length);
     let rest = 100 - base * targets.length;
-    setDraft(Object.fromEntries(rows.map((row) => {
+    setDraft(Object.fromEntries(active.map((row) => {
       if (!canWeight(row)) return [row.runName, 0];
       const extra = rest > 0 ? 1 : 0;
       rest -= extra;
@@ -51,31 +70,46 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
     setError('');
   }
 
-  async function save() {
+  // 서버 요청 하나를 감싸서: 진행 중 표시 · 성공하면 알림 + 다시 불러오기, 실패하면 카드 안에 문구
+  async function run(key, request, done, fallback) {
     if (busy) return;
+    setBusy(key);
+    setError('');
+    try {
+      await request();
+      showToast(done);
+      onChanged();
+      return true;
+    } catch (err) {
+      setError(errorMessage(err, fallback));
+      return false;
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function save() {
     if (total !== 100) {
       setError(`비율 합이 100%가 되어야 합니다. (지금 ${total}%)`);
       return;
     }
-    setBusy(true);
-    setError('');
-    try {
-      await updateModelTraffic(rows.map((row) => ({ modelBundle: row.runName, weightPercent: Number(draft[row.runName]) || 0 })));
-      showToast('모델별 트래픽 비율을 저장했습니다.');
-      onSaved();
-    } catch (err) {
-      setError(err.response?.data?.error?.message ?? '비율을 저장하지 못했습니다. 다시 시도해 주세요.');
-    } finally {
-      setBusy(false);
-    }
+    const saved = await run('save',
+      () => updateModelTraffic(active.map((row) => ({ modelBundle: row.runName, weightPercent: weightOf(row) }))),
+      '모델별 트래픽 비율을 저장했습니다.', '비율을 저장하지 못했습니다. 다시 시도해 주세요.');
+    if (saved) setDraft({});
   }
+
+  const start = (row) => run(row.runName, () => startModelServer(row.runId),
+    `${row.runName} 모델을 켜는 중입니다. 몇 초 뒤 분배 목록에 들어옵니다.`, '모델을 켜지 못했습니다.');
+  const stop = (row) => run(row.runName, () => stopModelServer(row.serverPort),
+    `${row.runName} 모델을 껐습니다.`, '모델을 끄지 못했습니다.');
 
   return (
     <section className="admin-card" aria-labelledby="model-traffic-title">
       <div className="admin-card-heading">
         <div>
           <h3 id="model-traffic-title">트래픽 분배</h3>
-          <p>사용자를 모델별 비율로 나눠 추천합니다. 같은 사용자는 계속 같은 모델을 받습니다.</p>
+          <p>여러 모델을 켜고, 비교 지표를 보며 사용자를 비율대로 나눠 추천합니다. 같은 사용자는 계속 같은 모델을 받습니다.</p>
         </div>
         <Shuffle size={theme.iconSize.md} aria-hidden="true" />
       </div>
@@ -87,39 +121,49 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
         </div>
       )}
 
-      {rows.length === 0 ? (
-        <p className="admin-empty" role="status">비율을 줄 수 있는 모델이 없습니다. 추천 서버가 켜져 있는지 확인해 주세요.</p>
+      <h4 className="model-traffic-section-title">분배 중인 모델 <span>{active.length}개</span></h4>
+      {active.length === 0 ? (
+        <p className="admin-empty" role="status">켜진 모델이 없습니다. 아래 모델 추가에서 모델을 켜 주세요.</p>
       ) : (
         <>
           <div className="model-traffic-bar" aria-hidden="true">
-            {rows.map((row, index) => {
-              const weight = Number(draft[row.runName]) || 0;
-              return weight > 0 && <span key={row.runName} style={{ width: `${weight}%`, background: colorOf(index) }} />;
-            })}
+            {active.map((row, index) => weightOf(row) > 0
+              && <span key={row.runName} style={{ width: `${weightOf(row)}%`, background: colorOf(index) }} />)}
           </div>
-
           <ul className="model-traffic-list">
-            {rows.map((row, index) => {
-              const weight = Number(draft[row.runName]) || 0;
+            {active.map((row, index) => {
               const inputId = `model-traffic-${index}`;
-              const readOnly = !isSuperAdmin || busy;
+              const hasSavedTraffic = row.weightPercent > 0;
               return (
                 <li key={row.runName}>
-                  <label htmlFor={inputId} className="model-traffic-name">
-                    <i style={{ background: colorOf(index) }} aria-hidden="true" />
-                    <span>
+                  <div className="model-traffic-head">
+                    <label htmlFor={inputId} className="model-traffic-name">
+                      <i style={{ background: colorOf(index) }} aria-hidden="true" />
                       <strong>{row.runName}</strong>
-                      {!row.servable && <small className="admin-status is-check">추천 서버 꺼짐 · 0%로만 바꿀 수 있음</small>}
-                      {row.servable && !row.compatible && <small className="admin-status is-check">화면 입력과 다른 모델 · 0%로만 바꿀 수 있음</small>}
+                    </label>
+                    {!row.servable && <span className="admin-status is-check">추천 서버 꺼짐 · 0%로만 바꿀 수 있음</span>}
+                    {row.servable && !row.compatible && <span className="admin-status is-check">화면 입력과 다른 모델 · 0%로만 바꿀 수 있음</span>}
+                    {isSuperAdmin && launcherEnabled && row.stoppable && (
+                      <button type="button" className="admin-text-button model-traffic-power" onClick={() => stop(row)}
+                        disabled={Boolean(busy) || hasSavedTraffic}
+                        title={hasSavedTraffic ? '비율을 0%로 저장한 뒤 끌 수 있습니다' : undefined}>
+                        <PowerOff size={theme.iconSize.sm} aria-hidden="true" />{busy === row.runName ? '끄는 중…' : '끄기'}
+                      </button>
+                    )}
+                  </div>
+                  <ModelMetrics row={row} />
+                  <div className="model-traffic-control">
+                    <input type="range" min="0" max="100" step="1" value={weightOf(row)} disabled={locked}
+                      aria-label={`${row.runName} 비율 조절`} onChange={(event) => setWeight(row, event.target.value)} />
+                    <span className="model-traffic-input">
+                      <input id={inputId} type="number" inputMode="numeric" min="0" max="100" step="1" value={weightOf(row)}
+                        disabled={locked} onChange={(event) => setWeight(row, event.target.value)} />
+                      <span aria-hidden="true">%</span>
                     </span>
-                  </label>
-                  <input type="range" min="0" max="100" step="1" value={weight} disabled={readOnly}
-                    aria-label={`${row.runName} 비율 조절`} onChange={(event) => setWeight(row.runName, event.target.value, row)} />
-                  <span className="model-traffic-input">
-                    <input id={inputId} type="number" inputMode="numeric" min="0" max="100" step="1" value={weight}
-                      disabled={readOnly} onChange={(event) => setWeight(row.runName, event.target.value, row)} />
-                    <span aria-hidden="true">%</span>
-                  </span>
+                  </div>
+                  {isSuperAdmin && row.stoppable && hasSavedTraffic && (
+                    <p className="admin-feedback">끄려면 먼저 비율을 0%로 저장해 주세요.</p>
+                  )}
                 </li>
               );
             })}
@@ -131,19 +175,58 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
             </p>
             {isSuperAdmin ? (
               <div className="model-traffic-actions">
-                <button type="button" className="admin-outline-button" onClick={splitEvenly} disabled={busy}>똑같이 나누기</button>
-                <button type="button" className="admin-outline-button" onClick={() => { setDraft(initialDraft(rows)); setError(''); }}
-                  disabled={busy || !changed}>되돌리기</button>
+                <button type="button" className="admin-outline-button" onClick={splitEvenly} disabled={Boolean(busy)}>똑같이 나누기</button>
+                <button type="button" className="admin-outline-button" onClick={() => { setDraft({}); setError(''); }}
+                  disabled={Boolean(busy) || !changed}>되돌리기</button>
                 <button type="button" className="admin-primary-button" onClick={save}
-                  disabled={busy || !changed || total !== 100 || Boolean(blocked)}>{busy ? '저장 중…' : '비율 저장'}</button>
+                  disabled={Boolean(busy) || !changed || total !== 100 || Boolean(blocked)}>{busy === 'save' ? '저장 중…' : '비율 저장'}</button>
               </div>
             ) : (
-              <p className="admin-feedback">비율은 총관리자만 바꿀 수 있습니다.</p>
+              <p className="admin-feedback">비율 변경 · 모델 켜기와 끄기는 총관리자만 할 수 있습니다.</p>
             )}
           </div>
           {blocked && <p className="model-traffic-error" role="alert">{blocked.runName} 모델은 지금 비율을 줄 수 없습니다. 0%로 바꿔 주세요.</p>}
-          {error && <p className="model-traffic-error" role="alert">{error}</p>}
         </>
+      )}
+      {error && <p className="model-traffic-error" role="alert">{error}</p>}
+
+      <h4 className="model-traffic-section-title">모델 추가 <span>{addable.length}개</span></h4>
+      {!launcherEnabled ? (
+        <div className="admin-inline-note">
+          <Info size={theme.iconSize.sm} aria-hidden="true" />
+          <span>이 서버에서는 화면으로 모델을 켤 수 없습니다. 개발 PC 에서는 ML_EXTRA_RUNS="&lt;폴더&gt;@&lt;포트&gt;" ./dev.sh 로 추천 서버를 더 띄워 주세요.</span>
+        </div>
+      ) : addable.length === 0 ? (
+        <p className="admin-empty" role="status">더 켤 수 있는 모델이 없습니다.</p>
+      ) : (
+        <ul className="model-add-list">
+          {addable.map((row) => {
+            const starting = row.serverState === 'STARTING';
+            const failed = row.serverState === 'FAILED';
+            return (
+              <li key={row.runId}>
+                <div className="model-traffic-head">
+                  <strong>{row.runName}</strong>
+                  <small>{row.trainedAt ? `학습 ${formatLogTime(row.trainedAt)}` : '학습일 -'} · 가상 가구 {count(row.profiles)}</small>
+                  {starting && <span className="admin-status is-neutral" role="status">켜는 중… (포트 {row.serverPort})</span>}
+                  {failed && <span className="admin-status is-check">켜기 실패</span>}
+                  {isSuperAdmin && (
+                    <button type="button" className="admin-outline-button model-traffic-power" onClick={() => start(row)}
+                      disabled={Boolean(busy) || starting}>
+                      <Power size={theme.iconSize.sm} aria-hidden="true" />
+                      {busy === row.runName ? '요청 중…' : starting ? '켜는 중…' : failed ? '다시 켜기' : '켜기'}
+                    </button>
+                  )}
+                </div>
+                <ModelMetrics row={row} />
+                {failed && row.serverError && <p className="model-traffic-error">실패 사유: {row.serverError}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {incompatible > 0 && (
+        <p className="admin-result-count">입력 구조가 지금 화면과 달라 추가할 수 없는 모델 {incompatible}개는 아래 모델 비교 표에서 볼 수 있습니다.</p>
       )}
     </section>
   );

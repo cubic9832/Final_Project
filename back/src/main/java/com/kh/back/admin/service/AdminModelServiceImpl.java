@@ -10,13 +10,14 @@ import com.kh.back.admin.dto.AdminModelReport.SplitProfiles;
 import com.kh.back.admin.dto.AdminModelReport.Version;
 import com.kh.back.admin.dto.ModelVersionRow;
 import com.kh.back.admin.mapper.AdminModelMapper;
-import com.kh.back.common.exception.ApiException;
+import com.kh.back.recommendation.RecommendationServerLauncher;
+import com.kh.back.recommendation.RecommendationServerLauncher.Server;
+import com.kh.back.recommendation.RecommendationServerLauncher.State;
 import com.kh.back.recommendation.RecommendationTrafficMapper;
 import com.kh.back.recommendation.RecommendationUpstreamRegistry;
 import com.kh.back.recommendation.RecommendationUpstreamRegistry.Upstream;
 import com.kh.back.recommendation.TrafficRow;
 import com.kh.back.recommendation.UsageRow;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -28,11 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -53,31 +51,32 @@ public class AdminModelServiceImpl implements AdminModelService {
             new String[] {"fuel_match_at_3", "연료 일치@3"});
 
     // 학습 결과 파일 이름: 새 형식(scenario-choices) · 옛 형식(candidate-preferences)
-    private static final String SCENARIO_REPORT = "training_report.json";
-    private static final String PREFERENCE_REPORT = "report.json";
+    private static final String SCENARIO_REPORT = ModelRunLocator.SCENARIO_REPORT;
+    private static final String PREFERENCE_REPORT = ModelRunLocator.PREFERENCE_REPORT;
 
     // 추천 서버(ml/vehicle_matching/api.py)가 scenarioSupported = true 로 응답하는 입력 구조 = 지금 재무 진단 화면과 맞는 모델
     static final Set<String> SCENARIO_SCHEMAS = Set.of("scenario-ranker-v1", "ui-scenario-ranker-v1", "ui-scenario-height-ranker-v2");
-    private static final Pattern RUN_ID = Pattern.compile("^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$");
     private static final int USAGE_DAYS = 7;
 
     private final AdminModelMapper adminModelMapper;
     private final RecommendationTrafficMapper trafficMapper;
     private final RecommendationUpstreamRegistry registry;
     private final ObjectMapper objectMapper;
+    private final ModelRunLocator locator;
+    private final RecommendationServerLauncher launcher;
     private final String runDir;
-    private final String modelRoot;
 
     public AdminModelServiceImpl(AdminModelMapper adminModelMapper, RecommendationTrafficMapper trafficMapper,
-                                 RecommendationUpstreamRegistry registry, ObjectMapper objectMapper,
-                                 @Value("${admin.model-run-dir}") String runDir,
-                                 @Value("${admin.model-root}") String modelRoot) {
+                                 RecommendationUpstreamRegistry registry, ModelRunLocator locator,
+                                 RecommendationServerLauncher launcher, ObjectMapper objectMapper,
+                                 @Value("${admin.model-run-dir}") String runDir) {
         this.adminModelMapper = adminModelMapper;
         this.trafficMapper = trafficMapper;
         this.registry = registry;
+        this.locator = locator;
+        this.launcher = launcher;
         this.objectMapper = objectMapper;
         this.runDir = runDir;
-        this.modelRoot = modelRoot;
     }
 
     // 비교 표 한 줄의 학습 · 평가 값. 계열마다 파일 모양이 달라 summarize 가 맞춰 읽는다
@@ -90,25 +89,18 @@ public class AdminModelServiceImpl implements AdminModelService {
         return report(findRunDir());
     }
 
-    // runId = "계열/폴더" (비교 표의 한 줄). 모델 위치 밖을 가리키거나 없는 폴더면 404
+    // runId = "계열/폴더" (비교 표의 한 줄). 모델 위치 밖을 가리키거나 없는 폴더면 404 (ModelRunLocator)
     @Override
     public AdminModelReport getReport(String runId) {
         if (runId == null || runId.isBlank()) {
             return getReport();
         }
-        Path root = findModelRoot();
-        if (root == null || !RUN_ID.matcher(runId).matches()) {
-            throw runNotFound();
-        }
-        Path dir = root.resolve(runId).normalize();
-        if (!dir.startsWith(root) || !isRunDir(dir)) {
-            throw runNotFound();
-        }
-        return report(dir);
+        return report(locator.resolve(runId));
     }
 
     @Override
     public AdminModelComparison getComparison() {
+        List<Server> launched = launcher.servers(); // 켜는 중인 서버가 있으면 추천 서버 상태도 바로 다시 확인한다
         List<Upstream> upstreams = registry.upstreams();
         Map<String, Integer> weights = new HashMap<>();
         for (TrafficRow row : trafficMapper.findAllocations()) {
@@ -118,48 +110,87 @@ public class AdminModelServiceImpl implements AdminModelService {
         for (UsageRow row : trafficMapper.sumUsage(USAGE_DAYS)) {
             requests.put(row.getModelBundle(), row.getRequests());
         }
+        List<ModelVersionRow> versionRows = adminModelMapper.findVersions();
         Map<String, Integer> diagnoses = new HashMap<>();
-        for (ModelVersionRow row : adminModelMapper.findVersions()) {
+        for (ModelVersionRow row : versionRows) {
             diagnoses.merge(row.getVersionLabel(), row.getDiagnoses(), Integer::sum);
         }
-        Set<String> serving = new HashSet<>();
-        for (Upstream upstream : upstreams) {
-            if (upstream.up()) {
-                serving.add(upstream.modelBundle());
-            }
-        }
+        Map<String, ServerInfo> servers = serverInfo(launched, upstreams);
 
         List<ModelRow> rows = new ArrayList<>();
         Set<String> listed = new HashSet<>();
-        Path root = findModelRoot();
-        for (Path dir : runDirs(root)) {
+        for (Path dir : locator.runDirs()) {
             String runName = dir.getFileName().toString();
             listed.add(runName);
             Summary summary = summarize(dir);
-            rows.add(new ModelRow(root.relativize(dir).toString().replace('\\', '/'), runName,
+            ServerInfo server = servers.getOrDefault(runName, ServerInfo.OFF);
+            rows.add(new ModelRow(locator.runId(dir), runName,
                     dir.getParent().getFileName().toString(), summary.schema(), summary.trainedAt(), summary.profiles(),
                     summary.comparisons(), summary.metricKind(), summary.testAccuracy(), summary.testLogLoss(),
                     summary.baselineLabel(), summary.baselineAccuracy(), SCENARIO_SCHEMAS.contains(summary.schema()),
-                    serving.contains(runName), weights.getOrDefault(runName, 0), requests.getOrDefault(runName, 0L),
-                    diagnoses.getOrDefault(runName, 0)));
+                    server.running(), weights.getOrDefault(runName, 0), requests.getOrDefault(runName, 0L),
+                    diagnoses.getOrDefault(runName, 0), server.state(), server.port(), server.error(), server.stoppable()));
         }
         // 추천 서버가 쓰지만 학습 결과 폴더를 찾지 못한 모델도 비율을 정할 수 있게 보여 준다
         for (Upstream upstream : upstreams) {
             if (upstream.up() && listed.add(upstream.modelBundle())) {
                 String bundle = upstream.modelBundle();
+                ServerInfo server = servers.getOrDefault(bundle, ServerInfo.OFF);
                 rows.add(new ModelRow(null, bundle, null, upstream.rankerSchema(), null, null, null, null, null, null,
                         null, null, upstream.scenarioSupported(), true, weights.getOrDefault(bundle, 0),
-                        requests.getOrDefault(bundle, 0L), diagnoses.getOrDefault(bundle, 0)));
+                        requests.getOrDefault(bundle, 0L), diagnoses.getOrDefault(bundle, 0), server.state(),
+                        server.port(), server.error(), server.stoppable()));
             }
         }
         rows.sort(Comparator.comparing(ModelRow::trainedAt, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(ModelRow::runName));
 
-        List<AdminModelComparison.Upstream> servers = upstreams.stream()
+        List<AdminModelComparison.Upstream> upstreamRows = upstreams.stream()
                 .map(u -> new AdminModelComparison.Upstream(u.baseUrl(), u.up(), u.modelBundle(), u.rankerSchema(),
                         u.catalogCount(), u.modelNames()))
                 .toList();
-        return new AdminModelComparison(rows, servers, !weights.isEmpty());
+        List<Version> versions = versionRows.stream()
+                .map(row -> new Version(row.getVersionLabel(), row.getExecutionType(), row.getCreatedAt(), row.getDiagnoses()))
+                .toList();
+        return new AdminModelComparison(rows, upstreamRows, !weights.isEmpty(), launcher.enabled(), versions);
+    }
+
+    // 모델 이름별 추천 서버 상태. 관리자 화면에서 켠 서버(켜는 중 · 실패 포함)가 고정 서버보다 먼저
+    private record ServerInfo(String state, Integer port, String error, boolean stoppable) {
+        static final ServerInfo OFF = new ServerInfo("OFF", null, null, false);
+
+        boolean running() {
+            return "RUNNING".equals(state);
+        }
+    }
+
+    private Map<String, ServerInfo> serverInfo(List<Server> launched, List<Upstream> upstreams) {
+        Map<String, ServerInfo> info = new HashMap<>();
+        for (Upstream upstream : upstreams) {
+            if (upstream.up() && !registry.isPoolUrl(upstream.baseUrl())) {
+                info.putIfAbsent(upstream.modelBundle(), new ServerInfo("RUNNING", port(upstream.baseUrl()), null, false));
+            }
+        }
+        for (Server server : launched) {
+            if (server.runName() == null) {
+                continue;
+            }
+            String state = server.state() == State.EXTERNAL ? "RUNNING" : server.state().name();
+            ServerInfo current = info.get(server.runName());
+            // 같은 모델이 고정 서버로 이미 켜져 있으면 그 상태를 우선 (실패한 추가 켜기 때문에 꺼진 것처럼 보이지 않게)
+            if (current == null || !current.running()) {
+                info.put(server.runName(), new ServerInfo(state, server.port(), server.error(), true));
+            }
+        }
+        return info;
+    }
+
+    private static Integer port(String baseUrl) {
+        try {
+            return Integer.valueOf(baseUrl.substring(baseUrl.lastIndexOf(':') + 1));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private AdminModelReport report(Path dir) {
@@ -278,38 +309,6 @@ public class AdminModelServiceImpl implements AdminModelService {
         return null;
     }
 
-    private Path findModelRoot() {
-        for (Path candidate : List.of(Path.of(modelRoot), Path.of("..").resolve(modelRoot))) {
-            if (Files.isDirectory(candidate)) {
-                return candidate.toAbsolutePath().normalize();
-            }
-        }
-        return null;
-    }
-
-    // <모델 위치>/<계열>/<폴더> 중 학습 결과 파일이 있는 폴더 (이름순)
-    private List<Path> runDirs(Path root) {
-        if (root == null) {
-            return List.of();
-        }
-        List<Path> dirs = new ArrayList<>();
-        try (Stream<Path> families = Files.list(root)) {
-            for (Path family : families.filter(Files::isDirectory).sorted().toList()) {
-                try (Stream<Path> runs = Files.list(family)) {
-                    runs.filter(this::isRunDir).sorted().forEach(dirs::add);
-                }
-            }
-        } catch (IOException e) {
-            log.warn("admin model comparison: cannot list {}: {}", root, e.getMessage());
-        }
-        return dirs;
-    }
-
-    private boolean isRunDir(Path dir) {
-        return Files.isDirectory(dir) && Files.exists(dir.resolve("metadata.json"))
-                && (Files.exists(dir.resolve(SCENARIO_REPORT)) || Files.exists(dir.resolve(PREFERENCE_REPORT)));
-    }
-
     /*
      * 계열별 학습 결과 파일 모양:
      *  - 화면 시나리오(ui-scenario-*): training_report.json results.mlp · results.linear, validation.profiles
@@ -355,10 +354,6 @@ public class AdminModelServiceImpl implements AdminModelService {
             log.warn("admin model comparison: cannot read {}: {}", dir, e.getMessage());
             return new Summary(schema, trainedAt, null, null, null, null, null, null, null);
         }
-    }
-
-    private static ApiException runNotFound() {
-        return new ApiException(HttpStatus.NOT_FOUND, "MODEL_RUN_NOT_FOUND", "학습 결과 폴더를 찾지 못했습니다.");
     }
 
     private static Double doubleOrNull(JsonNode node) {

@@ -97,3 +97,15 @@ export const getRecommendationCandidates = async (signal) => {
   const res = await client.get('/admin/recommendation-candidates', { signal });
   return res.data.data;
 };
+
+// 총관리자만: 그 모델(runId = "계열/폴더")로 추천 서버 켜기 → { port, runName, state: 'STARTING' }
+// 켜는 데 몇 초 걸린다 → 화면이 getModels 를 다시 불러 RUNNING · FAILED 를 확인한다
+export const startModelServer = async (runId) => {
+  const res = await client.post('/admin/model-servers', { runId });
+  return res.data.data;
+};
+
+// 총관리자만: 관리자 화면에서 켠 추천 서버 끄기 (비율이 남아 있으면 409 MODEL_HAS_TRAFFIC)
+export const stopModelServer = async (port) => {
+  await client.delete(`/admin/model-servers/${port}`);
+};
