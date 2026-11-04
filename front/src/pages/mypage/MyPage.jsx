@@ -181,11 +181,6 @@ function FavoritesCard({ state }) {
       {state.status === 'done' && state.data.length === 0 && (
         <>
           <p className="my-empty">아직 저장한 관심차량이 없어요. 차량 상세에서 [관심차량 저장]을 눌러 보세요.</p>
-          {/* 관심차량이 없어도 비교 화면에서 차를 골라 비교할 수 있다 — 이때 주 버튼은 [차량 찾기] */}
-          <div className="my-fav-actions">
-            <Link className="my-outline-button" to="/search">차량 찾기</Link>
-            <Link className="my-outline-button my-soft-button" to="/vehicles/compare">비교하기</Link>
-          </div>
         </>
       )}
       {state.status === 'done' && state.data.length > 0 && (
@@ -201,12 +196,15 @@ function FavoritesCard({ state }) {
               </li>
             ))}
           </ul>
-          {/* 저장한 뒤에도 더 찾아볼 수 있게 [차량 찾기] 와 [비교하기] 를 함께 */}
-          <div className="my-fav-actions">
-            <Link className="my-outline-button" to="/vehicles/compare">비교하기</Link>
-            <Link className="my-outline-button my-soft-button" to="/search">차량 찾기</Link>
-          </div>
         </>
+      )}
+      {/* 관심차량이 있든 없든 같은 두 버튼 (비교 화면은 관심차량 없이도 차를 골라 비교할 수 있다).
+          주 버튼(남색)은 늘 [차량 찾기] — 관심차량을 모으는 출발점이라 */}
+      {state.status === 'done' && (
+        <div className="my-fav-actions">
+          <Link className="my-outline-button" to="/search">차량 찾기</Link>
+          <Link className="my-outline-button my-soft-button" to="/vehicles/compare">비교하기</Link>
+        </div>
       )}
     </section>
   );
