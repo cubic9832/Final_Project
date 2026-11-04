@@ -275,7 +275,7 @@
   .savings-main-grid .savings-goal-card { grid-column:2; grid-row:1; min-height:0; }
   .savings-main-content > .savings-flow-actions { grid-column:1; grid-row:2; margin-top:0; align-self:start; }
   .savings-main-content > .savings-history { grid-column:1; margin-top:0; }
-  .savings-main-grid .savings-recurring { grid-column:2; grid-row:2 / span 2; align-self:start; }
+  .savings-main-grid .savings-recurring { grid-column:2; grid-row:3; align-self:start; }
   .savings-main-grid .savings-sidebar-note { grid-column:2; align-self:start; }
 }
 .savings-goal-card .savings-goal-vehicle { padding-bottom:var(--space-24); }
@@ -329,7 +329,7 @@
 .savings-overview > .savings-chart-toolbar,
 .savings-overview > .savings-chart-scroll,
 .savings-overview > .savings-chart-detail,
-.savings-goal-card > * { animation:savings-content-fade-in 180ms ease-out; }
+.savings-goal-card > * { animation:savings-content-fade-in 400ms ease-out; }
 @keyframes savings-content-fade-in { from { opacity:0; } to { opacity:1; } }
 @media(prefers-reduced-motion:reduce) {
   .savings-progress-heading,

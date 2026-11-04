@@ -43,9 +43,6 @@ function DreamCarPlannerPageContent({ catalog }) {
   const { state: navigationState } = useLocation();
   const [currentStep, setStep] = useState(() => navigationState?.returnToSummary ? 2 : 0);
   const step = Math.min(currentStep, 2);
-  const initialStep = useRef(step);
-  const [hasChangedStep, setHasChangedStep] = useState(false);
-  useEffect(() => { if (step !== initialStep.current) setHasChangedStep(true); }, [step]);
   const [costsOpen, setCostsOpen] = useState(false);
   const steps = ['나의 드림카', '자금·저축 계획', '종합 계획'];
   useEffect(() => { heading.current?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }, [step]);
@@ -92,7 +89,7 @@ function DreamCarPlannerPageContent({ catalog }) {
   return <div className="dream-page dream-planner-flow">
     <DreamCarPageHeader title="드림카, 꿈에서 내 차로." description="갖고 싶은 차를 고르면, 준비해야 할 돈과 시간이 보입니다." />
     <div className="dream-primary-grid">
-      <section key={step} className={`dream-card dream-flow-input${hasChangedStep ? ' is-step-transition' : ''}`} aria-labelledby="dream-step-title">
+      <section key={step} className="dream-card dream-flow-input" aria-labelledby="dream-step-title">
         <div className="dream-section-title"><span>0{step + 1}</span><h2 id="dream-step-title" ref={heading} tabIndex={-1}>{steps[step]}</h2><StepIcon size={theme.iconSize.lg} aria-hidden /></div>
         <p className="dream-flow-description">{descriptions[step]}</p>
         {step === 0 && <>

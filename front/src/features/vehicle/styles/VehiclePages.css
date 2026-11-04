@@ -33,7 +33,7 @@
 .summary-item strong { display: block; margin-top: var(--space-4); }
 .vehicle-button { display: inline-flex; justify-content: center; align-items: center; gap: var(--space-8); border: 1px solid var(--color-border-input); background: var(--color-surface); color: var(--color-primary); border-radius: var(--radius-sm); min-height: var(--layout-control-height); padding: var(--space-8) var(--space-24); font-size: var(--font-body); font-weight: 700; }
 .vehicle-button.primary { background: var(--color-primary); color: var(--color-surface); border-color: var(--color-primary); }
-.vehicle-button.cta { background: var(--color-mint); color: var(--color-primary); border: 0; margin-top: auto; min-height: 48px; }
+.vehicle-button.cta { background: var(--color-cta); color: var(--color-cta-text); border: 1px solid var(--color-border-input); margin-top: auto; min-height: 48px; }
 .vehicle-button:hover { border-color: var(--color-blue); background: var(--color-blue-tint); color: var(--color-primary); }
 .vehicle-button:disabled { opacity: .5; cursor: not-allowed; }
 .vehicle-button[aria-pressed='true'] { background: var(--color-mint-tint); color: var(--color-mint-strong); }
