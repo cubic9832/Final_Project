@@ -181,7 +181,11 @@ function FavoritesCard({ state }) {
       {state.status === 'done' && state.data.length === 0 && (
         <>
           <p className="my-empty">아직 저장한 관심차량이 없어요. 차량 상세에서 [관심차량 저장]을 눌러 보세요.</p>
-          <Link className="my-outline-button" to="/search">차량 찾기</Link>
+          {/* 관심차량이 없어도 비교 화면에서 차를 골라 비교할 수 있다 — 이때 주 버튼은 [차량 찾기] */}
+          <div className="my-fav-actions">
+            <Link className="my-outline-button" to="/search">차량 찾기</Link>
+            <Link className="my-outline-button my-soft-button" to="/vehicles/compare">비교하기</Link>
+          </div>
         </>
       )}
       {state.status === 'done' && state.data.length > 0 && (
