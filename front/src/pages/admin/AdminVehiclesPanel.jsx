@@ -1,3 +1,4 @@
+import AdminListHeader from './components/AdminListHeader.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuthStore from '../../stores/useAuthStore.js';
@@ -6,6 +7,7 @@ import theme from '../../styles/theme';
 import VehicleEditor from './vehicles/VehicleEditor.jsx';
 import VehicleBoard from './vehicles/VehicleBoard.jsx';
 import { sortVehicleRows } from './vehicles/vehicleBoardSort.js';
+import { nextTableSort, paginateTableRows } from './adminTableData.js';
 import Pagination from '../../components/Pagination.jsx';
 import { filterVehicleRows } from './vehicles/vehicleBoardSearch.js';
 import { listAdminVehicles, saveAdminVehicle, adminVehicleError, changeVehicleDeleted } from './vehicles/adminVehicleApi.js';
@@ -45,15 +47,13 @@ export default function AdminVehiclesPanel() {
   const [notice, setNotice] = useState('');
   const addButton = useRef(null);
   const rows = filterVehicleRows(vehicles, keyword, trash);
-  const pageSize = 20;
   const boardRows = sortVehicleRows(rows, sort);
-  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
-  const currentPage = Math.min(page, pageCount);
-  const visibleRows = boardRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const { page: boardPage, totalPages: pageCount, rows: visibleRows } = paginateTableRows(boardRows, page - 1);
+  const currentPage = boardPage + 1;
   const applySearch = value => { setKeyword(value); setPage(1); setExpandedId(null); };
   const resetSearch = () => { setKeyword(''); setSearchText(''); setPage(1); setExpandedId(null); };
   function sortBy(column) {
-    setSort(current => ({ column: current.column === column && current.direction === 'DESC' ? '' : column, direction: current.column === column && current.direction === 'ASC' ? 'DESC' : 'ASC' }));
+    setSort(current => nextTableSort(current, column));
     setPage(1); setExpandedId(null);
   }
   function openEditor(vehicle = null, duplicate = false) {
@@ -97,7 +97,7 @@ export default function AdminVehiclesPanel() {
     {deletion && <section className="admin-card" aria-label="차량 삭제 확인"><h3>{deletion.model} {deletion.trim} 차량을 삭제할까요?</h3><p>휴지통으로 이동하며 추천에서 제외됩니다. 나중에 작성 중 상태로 복구할 수 있습니다.</p><button type="button" className="admin-outline-button" disabled={busy} onClick={() => setDeletion(null)}>취소</button><button type="button" className="admin-primary-button" disabled={busy} onClick={() => updateDeletion(deletion, true)}>{busy ? '처리 중' : '휴지통으로 이동'}</button></section>}
 
 
-    <section className="admin-card"><div className="vehicle-board-heading"><h3>{trash ? '차량 휴지통' : '차량 목록'}</h3><div className="vehicle-board-heading-actions"><form className="vehicle-board-search" onSubmit={event => { event.preventDefault(); applySearch(searchText.trim()); }}><div className="admin-search-field form-focus-group"><input type="search" aria-label="브랜드, 차량명, 트림, 연료 또는 관리 상태 검색" placeholder="브랜드·차량명·연료·상태 검색" maxLength={50} value={searchText} onChange={event => setSearchText(event.target.value)} /><button type="submit" aria-label="차량 검색"><Search size={theme.iconSize.md} aria-hidden="true" /></button></div></form><button ref={addButton} type="button" className="admin-primary-button" onClick={() => openEditor()}><Plus size={theme.iconSize.sm} aria-hidden="true" />차량 등록</button></div></div>
+    <section className="admin-card"><AdminListHeader className="vehicle-board-heading" title={trash ? '차량 휴지통' : '차량 목록'}><div className="vehicle-board-heading-actions"><form className="vehicle-board-search" onSubmit={event => { event.preventDefault(); applySearch(searchText.trim()); }}><div className="admin-search-field form-focus-group"><input type="search" aria-label="브랜드, 차량명, 트림, 연료 또는 관리 상태 검색" placeholder="브랜드·차량명·연료·상태 검색" maxLength={50} value={searchText} onChange={event => setSearchText(event.target.value)} /><button type="submit" aria-label="차량 검색"><Search size={theme.iconSize.md} aria-hidden="true" /></button></div></form><button ref={addButton} type="button" className="admin-primary-button" onClick={() => openEditor()}><Plus size={theme.iconSize.sm} aria-hidden="true" />차량 등록</button></div></AdminListHeader>
       <div className="vehicle-board-summary"><p role="status">차량 모델 {new Set(rows.map(vehicle => JSON.stringify([vehicle.brand, vehicle.model]))).size.toLocaleString()}개<span>국산 {rows.filter(vehicle => vehicle.origin === '국산').length.toLocaleString()}건</span><span>수입 {rows.filter(vehicle => vehicle.origin === '수입').length.toLocaleString()}건</span></p></div>
       <VehicleBoard rows={visibleRows} sort={sort} onSort={sortBy} expandedId={expandedId} onExpand={setExpandedId} onEdit={openEditor} onDelete={vehicle => { setDeletion(vehicle); setActionError(''); }} onRestore={vehicle => updateDeletion(vehicle, false)} busy={busy} />
       {!rows.length && <div className="admin-empty"><Car size={theme.iconSize.lg} aria-hidden="true" /><strong>조건에 맞는 차량이 없어요.</strong><p>검색어를 변경하거나 지운 뒤 검색해 주세요.</p></div>}
