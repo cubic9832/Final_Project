@@ -4,6 +4,7 @@ import theme from '../../styles/theme';
 import { sendChatMessage, sendChatGuide, getChatHistory, clearChatHistory } from './chatApi';
 import useChatStore from './useChatStore';
 import ChatFeedback from './ChatFeedback';
+import ConsultationLink from '../chat/components/ConsultationLink';
 import './ChatWidget.css';
 
 const categories = [
@@ -173,7 +174,7 @@ export default function ChatWidget() {
       if (!mounted.current) return;
       setRemaining(result.remaining);
       setMessages((current) => [...current, { id: result.questionId, role: 'user', text: result.question },
-        { id: result.answerId, role: 'model', text: result.answer, rating: null }]);
+        { id: result.answerId, role: 'model', text: result.answer, rating: null, consultSuggested: result.consultSuggested }]);
     } catch (failure) {
       if (mounted.current) {
         if (!guideId) setDraft(question);
@@ -274,6 +275,8 @@ export default function ChatWidget() {
                 <p>{message.text}</p>
                 {message.role === 'model' && <ChatFeedback message={message} onRated={(id, rating) =>
                   setMessages((current) => current.map((item) => item.id === id ? { ...item, rating } : item))} />}
+                {/* 11-05: 원하는 답을 못 얻었을 때(서버 판단 또는 [싫어요]) 1:1 상담으로 — 누르면 콤파를 닫고 상담 화면 */}
+                {message.role === 'model' && (message.consultSuggested || message.rating === 'DISLIKE') && <ConsultationLink onNavigate={close} />}
               </div>
             ))}
             {pending && <div className="chat-progress" role="status">

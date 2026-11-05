@@ -85,7 +85,8 @@ public class ChatServiceImpl implements ChatService {
             // Store complete masked pairs only after success, keeping failed calls out of memory.
             memory.add(id(memberId), List.of(new UserMessage(masked), new AssistantMessage(answer)));
             return new ChatResponse(answer, masked, 29 - used, context.stream()
-                    .map(chunk -> new ChatResponse.Source(chunk.id(), chunk.title(), chunk.text())).toList(), pair.questionId(), pair.answerId());
+                    .map(chunk -> new ChatResponse.Source(chunk.id(), chunk.title(), chunk.text())).toList(), pair.questionId(), pair.answerId(),
+                    ConsultSuggestion.needed(masked, answer)); // 11-05: 답하지 못했으면 1:1 상담 버튼
         } finally {
             if (acquired) capacity.release();
             lock.unlock();
@@ -106,7 +107,7 @@ public class ChatServiceImpl implements ChatService {
         try {
             var pair = history.savePair(memberId, guide.question(), guide.answer(), source, request.guideId(), "FIXED", null, null);
             memory.add(id(memberId), List.of(new UserMessage(guide.question()), new AssistantMessage(guide.answer())));
-            return new ChatResponse(guide.answer(), guide.question(), remaining(memberId), List.of(), pair.questionId(), pair.answerId());
+            return new ChatResponse(guide.answer(), guide.question(), remaining(memberId), List.of(), pair.questionId(), pair.answerId(), false);
         } finally { lock.unlock(); }
     }
 
