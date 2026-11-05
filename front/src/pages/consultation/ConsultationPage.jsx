@@ -187,7 +187,7 @@ function FeedbackForm({ onDone }) {
         onChoice={(choice) => setComment((prev) => ({ ...prev, choice }))} onOther={(other) => setComment((prev) => ({ ...prev, other }))} />
       <label className="consult-report-check">
         <input type="checkbox" checked={reported} onChange={(event) => setReported(event.target.checked)} />
-        상담원의 응대를 신고합니다 (운영 관리자만 확인해요)
+        상담원의 응대를 신고합니다
       </label>
       {reported && (
         <ChoiceWithOther label="신고 사유" options={REPORT_REASONS} choice={reason.choice} other={reason.other}

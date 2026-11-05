@@ -37,7 +37,7 @@ export default function GoogleSignupPage() {
 
   if (!pending?.signupToken) {
     return (
-      <div className="signup-page">
+      <div className="signup-page is-narrow">
         <section className="signup-form-card">
           <h2>구글로 가입하기</h2>
           <p className="signup-subtitle">로그인 화면에서 [Google 계정으로 계속하기]를 먼저 눌러 주세요.</p>
@@ -112,7 +112,7 @@ export default function GoogleSignupPage() {
   }
 
   return (
-    <div className="signup-page">
+    <div className="signup-page is-narrow">
       <header className="signup-heading">
         <h1>구글로 가입하기</h1>
         <p>처음 오셨네요. 가입을 마치려면 아래 정보를 입력해 주세요.</p>

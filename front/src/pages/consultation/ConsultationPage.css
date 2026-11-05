@@ -231,3 +231,10 @@
   height: calc(100vh - 430px);
   min-height: 240px;
 }
+
+/* 11-05: 대화 화면은 좌우가 너무 길면 말풍선이 멀어 읽기 불편 → 가운데 880px (위치 표시 · 제목 · 상담 카드 같은 폭) */
+.consult-page {
+  max-width: 880px;
+  width: 100%;
+  margin-inline: auto;
+}
