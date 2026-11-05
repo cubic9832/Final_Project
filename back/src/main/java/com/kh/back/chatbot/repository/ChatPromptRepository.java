@@ -5,6 +5,7 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,7 +23,10 @@ public class ChatPromptRepository {
 
     public record Version(long id, String version, String content, String description, boolean active,
                           LocalDateTime createdAt, LocalDateTime activatedAt) {}
-    public record Statistics(Version prompt, long answers, long likes, long dislikes, long unrated) {}
+    public record ModelUsage(String provider, String model, long answers) {}
+    private record VersionModelUsage(long versionId, ModelUsage usage) {}
+    public record Statistics(Version prompt, long answers, long likes, long dislikes, long unrated,
+                             List<ModelUsage> models) {}
 
     private static final org.springframework.jdbc.core.RowMapper<Version> MAPPER = (rs, n) -> new Version(
         rs.getLong("id"), rs.getString("version"), rs.getString("content"), rs.getString("description"),
@@ -33,7 +38,21 @@ public class ChatPromptRepository {
             .orElseThrow(() -> new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "CHAT_PROMPT_MISSING", "적용된 프롬프트가 없습니다. 관리자에게 문의해 주세요."));
     }
 
+    @Transactional(readOnly = true)
     public List<Statistics> statistics() {
+        // A version can have answers from several models. Count stored answer metadata,
+        // independently of feedback, so unrated answers are included exactly once.
+        var models = jdbc.query("""
+            SELECT prompt_version_id,NULLIF(TRIM(provider),'') provider,NULLIF(TRIM(model),'') model,
+                   COUNT(*) answers
+            FROM chatbot_messages
+            WHERE role='ASSISTANT' AND answer_type='AI' AND prompt_version_id IS NOT NULL
+            GROUP BY prompt_version_id,NULLIF(TRIM(provider),''),NULLIF(TRIM(model),'')
+            ORDER BY prompt_version_id,answers DESC,provider,model
+            """, (rs, n) -> new VersionModelUsage(rs.getLong("prompt_version_id"),
+                new ModelUsage(rs.getString("provider"), rs.getString("model"), rs.getLong("answers"))))
+            .stream().collect(Collectors.groupingBy(VersionModelUsage::versionId,
+                Collectors.mapping(VersionModelUsage::usage, Collectors.toList())));
         return jdbc.query("""
             SELECT p.*,COALESCE(s.answers,0) answers,COALESCE(s.likes,0) likes,
                    COALESCE(s.dislikes,0) dislikes,COALESCE(s.unrated,0) unrated
@@ -46,7 +65,7 @@ public class ChatPromptRepository {
                 WHERE a.role='ASSISTANT' AND a.answer_type='AI' GROUP BY a.prompt_version_id
             ) s ON s.prompt_version_id=p.id ORDER BY p.id DESC
             """, (rs, n) -> new Statistics(MAPPER.mapRow(rs, n), rs.getLong("answers"), rs.getLong("likes"),
-                rs.getLong("dislikes"), rs.getLong("unrated")));
+                rs.getLong("dislikes"), rs.getLong("unrated"), models.getOrDefault(rs.getLong("id"), List.of())));
     }
 
     public Version create(String version, String content, String description, long actor) {
