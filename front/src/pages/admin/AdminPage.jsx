@@ -27,7 +27,7 @@ const sections = [
   { id: 'chat', label: '1:1 상담', icon: MessagesSquare, description: '회원의 상담 요청을 맡아 실시간으로 답합니다.', panel: AdminChatPanel },
   { id: 'chatbot', label: '콤파 대화·평가', icon: MessagesSquare, description: '콤파의 질문·답변과 좋아요·싫어요 평가를 확인합니다.', panel: AdminChatbotPanel },
   { id: 'models', label: '모델 관리', icon: Cpu, description: '적용 중인 모델의 평가 결과와 학습 기록을 확인합니다.', panel: AdminModelsPanel },
-  { id: 'logs', label: '운영 로그', icon: ScrollText, description: '관리자 변경 이력과 서비스 오류를 추적합니다.', panel: AdminLogsPanel },
+  { id: 'logs', label: '운영 로그', icon: ScrollText, description: '관리자의 주요 작업 이력을 확인합니다.', panel: AdminLogsPanel },
 ];
 
 // 관리자 대시보드. 7단계: 회원 관리 · 운영 로그 탭, 운영 현황의 회원 · 차량 수 · 서비스 연결 상태 · 최근 이력은 실제 데이터(/api/v1/admin/**)

@@ -13,6 +13,7 @@ import lombok.Setter;
 public class AdminAuditLogResponse {
 
     private Long id;
+    private Long listNumber;
     private Long actorId;
     private String actorNickName;
     private String action;      // ROLE_CHANGE

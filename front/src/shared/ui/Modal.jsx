@@ -1,15 +1,15 @@
-// 로그인·회원가입·마이페이지 팝업이 함께 쓰는 틀
+// 여러 기능의 팝업이 함께 쓰는 공용 틀
 // 어두운 배경, 제목·닫기 버튼, Esc·바깥 클릭 닫기, 포커스 이동, 변경 폐기 확인을 맡는다.
 // 각 팝업은 이 틀 안에 내용(children)만 넣는다.
 // children 을 함수로 넘기면 requestClose 를 받아 "취소" 버튼에도 같은 닫기 규칙을 쓸 수 있다.
 import { useEffect, useId, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import theme from '../../../styles/theme';
-import './AuthModal.css';
+import theme from '../../styles/theme';
+import './Modal.css';
 
 const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])';
 
-export default function AuthModal({
+export default function Modal({
   title,
   subtitle,
   onClose,

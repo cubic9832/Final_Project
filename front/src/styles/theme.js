@@ -3,6 +3,9 @@ const theme = {
   colors: {
     primary: '#203960',
     primaryHover: '#2d4d7c',
+    cta: '#dce9fa',
+    ctaHover: '#c8dcf5',
+    ctaText: '#203960',
     mint: '#54b19d',
     mintHover: '#6bbfac',
     mintStrong: '#2f8371', // 14px 이하 글자용

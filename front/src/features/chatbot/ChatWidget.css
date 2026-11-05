@@ -52,8 +52,8 @@
 .compa-load-older { align-self: center; min-height: 40px; padding: var(--space-8) var(--space-16); border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-primary); cursor: pointer; font-size: var(--font-caption); }
 .chat-form { border-top: 1px solid var(--color-border); padding: var(--space-12); display: flex; align-items: center; gap: var(--space-8); }
 .chat-form textarea { flex: 1; min-width: 0; height: 48px; min-height: 48px; max-height: 48px; line-height: 24px; overflow-y: auto; resize: none; border: 1px solid var(--color-border-input); border-radius: var(--radius-sm); padding: 11px var(--space-12); background: var(--color-surface); color: var(--color-text); }
-.chat-form button { width: 48px; height: 48px; flex-shrink: 0; display: grid; place-items: center; border: 0; border-radius: var(--radius-sm); background: var(--color-mint); color: var(--color-primary); cursor: pointer; }
-.chat-form button:hover:not(:disabled) { background: var(--color-mint-hover); }
+.chat-form button { width: 48px; height: 48px; flex-shrink: 0; display: grid; place-items: center; border: 1px solid var(--color-border-input); border-radius: var(--radius-sm); background: var(--color-cta); color: var(--color-cta-text); cursor: pointer; }
+.chat-form button:hover:not(:disabled) { background: var(--color-cta-hover); }
 .chat-input-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 480px) {
   .chat-widget { right: var(--space-16); bottom: var(--space-16); }

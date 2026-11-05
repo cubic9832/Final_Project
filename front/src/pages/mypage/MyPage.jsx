@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getSessions } from '../../features/auth/authApi';
-import AuthModal from '../../features/auth/components/AuthModal';
+import Modal from '../../shared/ui/Modal.jsx';
 import { getDiagnosisDetail, getMe, getRecentDiagnoses } from '../../features/auth/memberApi';
 import { isAdminRole, ROLE_LABELS } from '../../features/auth/roles';
 import { getCurrentTaste, getTasteCatalog } from '../../features/taste-test/tasteApi';
@@ -383,7 +383,7 @@ function DiagnosisDetailModal({ analysisId, onClose }) {
   const loanTotal = detail?.loans?.reduce((sum, loan) => sum + loan.payment, 0) ?? 0;
 
   return (
-    <AuthModal title="재무 진단 자세히" subtitle={detail ? `${formatDateTime(detail.completedAt)} 진단` : undefined} onClose={onClose}>
+    <Modal title="재무 진단 자세히" subtitle={detail ? `${formatDateTime(detail.completedAt)} 진단` : undefined} onClose={onClose}>
       {state.status === 'loading' && <CardLoading label="진단 기록을 불러오는 중…" />}
       {state.status === 'error' && <CardError message="진단 기록을 불러오지 못했어요." onRetry={state.reload} />}
       {detail && (
@@ -416,7 +416,7 @@ function DiagnosisDetailModal({ analysisId, onClose }) {
           <p className="my-empty">추천받은 차량은 저장하지 않아요. 다시 보려면 새로 진단해 주세요.</p>
         </>
       )}
-    </AuthModal>
+    </Modal>
   );
 }
 

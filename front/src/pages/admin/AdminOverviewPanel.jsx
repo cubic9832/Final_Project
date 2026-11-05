@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Cpu, Database, Lock, Mail, Server, UserRoundPen } from 'lucide-react';
+import { ArrowRight, ScrollText, Cpu, Database, Lock, Mail, Server, UserRoundPen } from 'lucide-react';
 import theme from '../../styles/theme';
 import { describeLog, formatLogTime, personName } from './adminLogFormat';
 import { getAdminOverview, getAuditLogs, getMailStatus, getMemberSummary, getModelServerInfo, getSystemStatus } from '../../features/admin/adminApi';
@@ -139,6 +139,6 @@ export default function AdminOverviewPanel() {
         <ol className="admin-member-trend" aria-label="최근 7일 날짜별 진단 수">{stats.daily.map(day => <li key={day.date}><span className="admin-member-trend-count">{day.count}</span><span className="admin-member-trend-bar" style={{ height: `${(day.count / maxDaily) * 100}%` }} /><span className="admin-member-trend-date">{day.date.slice(5).replace('-', '.')}</span></li>)}</ol>
       </div>}
     </section>
-    <section className="admin-card"><div className="admin-card-heading"><div><h3>최근 운영 이력</h3><p>관리자 작업과 서비스 변경 기록</p></div><Link className="admin-text-button" to="/console?tab=logs">전체 이력 보기<ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></div><div className="admin-activity-list">{logs === undefined && <p className="admin-empty" role="status">불러오는 중…</p>}{(logs === null || logs?.length === 0) && <p className="admin-empty">아직 기록된 관리자 작업이 없습니다.</p>}{logs?.map(log => <div className="admin-activity" key={log.id}><CheckCircle2 size={theme.iconSize.sm} aria-hidden="true" /><div><strong>{personName(log.targetNickName, log.targetId)} · {describeLog(log)}</strong><span>{personName(log.actorNickName, log.actorId)}</span></div><time>{formatLogTime(log.createdAt)}</time></div>)}</div></section>
+    <section className="admin-card"><div className="admin-card-heading"><div><h3>최근 운영 이력</h3><p>최근 관리자 작업 내역을 확인합니다.</p></div><Link className="admin-text-button" to="/console?tab=logs">전체 이력 보기<ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></div><div className="admin-activity-list">{logs === undefined && <p className="admin-empty" role="status">불러오는 중…</p>}{(logs === null || logs?.length === 0) && <p className="admin-empty">아직 기록된 관리자 작업이 없습니다.</p>}{logs?.map(log => <div className="admin-activity" key={log.id}><ScrollText size={theme.iconSize.sm} aria-hidden="true" /><div><strong>{personName(log.targetNickName, log.targetId)} · {describeLog(log)}</strong><span>{personName(log.actorNickName, log.actorId)}</span></div><time>{formatLogTime(log.createdAt)}</time></div>)}</div></section>
   </div>;
 }

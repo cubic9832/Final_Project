@@ -1,0 +1,2 @@
+.admin-list-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-16); margin-bottom: var(--space-24); }
+.admin-list-header > h3 { color: var(--color-primary); font-size: var(--font-card-title); }
