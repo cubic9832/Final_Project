@@ -75,15 +75,6 @@ export default function CandidateComparisonTable({ views, canToggleVehicles }) {
   ];
 
   return <>
-    {canToggleVehicles && <div className="financial-recommendations-actions" role="group" aria-label="비교할 차량 선택">
-      {views.map(({ id, candidate: { vehicle } }) => {
-        const included = !excludedIds.includes(id);
-        return <button key={id} type="button" className="candidate-comparison-remove" onClick={() => toggleVehicle(id)} aria-pressed={included}>
-          <Check size={theme.iconSize.sm} aria-hidden="true" style={{ visibility: included ? 'visible' : 'hidden' }} />
-          {vehicle.brand} {vehicle.model} {vehicle.trim}
-        </button>;
-      })}
-    </div>}
     {includedViews.length ? <div className="candidate-comparison-table-wrap" tabIndex={0} role="region" aria-label="추천 후보 공통 지표 비교표">
     <table className="candidate-comparison-table"><caption className="sr-only">차량 비용 및 제원 비교</caption>
       <thead><tr><th scope="col">비교 항목</th>{includedViews.map(({ id, candidate: { vehicle } }) => {
@@ -99,6 +90,15 @@ export default function CandidateComparisonTable({ views, canToggleVehicles }) {
         {items.map(([label, value]) => <tr key={label}><th scope="row">{label}</th>{includedViews.map(view => <td key={view.id}>{value(view)}</td>)}</tr>)}
       </tbody>)}
     </table>
-    </div> : <p role="status">위에서 차량을 선택하면 비교 정보가 표시됩니다.</p>}
+    </div> : <p role="status">아래에서 차량을 선택하면 비교 정보가 표시됩니다.</p>}
+    {canToggleVehicles && <div className="financial-recommendations-actions" role="group" aria-label="비교할 차량 선택">
+      {views.map(({ id, candidate: { vehicle } }) => {
+        const included = !excludedIds.includes(id);
+        return <button key={id} type="button" className="candidate-comparison-remove" onClick={() => toggleVehicle(id)} aria-pressed={included}>
+          <Check size={theme.iconSize.sm} aria-hidden="true" style={{ visibility: included ? 'visible' : 'hidden' }} />
+          {vehicle.brand} {vehicle.model} {vehicle.trim}
+        </button>;
+      })}
+    </div>}
   </>;
 }
