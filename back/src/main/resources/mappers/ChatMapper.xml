@@ -179,6 +179,10 @@
         UPDATE chat_room SET last_message_at = NOW() WHERE id = #{roomId}
     </update>
 
+    <select id="findLastMessageId" resultType="long">
+        SELECT MAX(id) FROM chat_message WHERE room_id = #{roomId} AND sender_type = #{senderType}
+    </select>
+
     <select id="findMessageById" resultType="com.kh.back.chat.dto.ChatMessageDto">
         SELECT id, room_id, sender_type, sender_id, content, created_at
         FROM chat_message WHERE id = #{messageId}

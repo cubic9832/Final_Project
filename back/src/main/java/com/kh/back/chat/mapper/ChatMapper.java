@@ -73,6 +73,9 @@ public interface ChatMapper {
 
     void touchLastMessage(@Param("roomId") Long roomId);
 
+    // 11-05: 이 방에서 senderType 이 보낸 마지막 메시지 번호 (없으면 null) — 상담원 답장 알림을 회원 질문 하나에 한 번만
+    Long findLastMessageId(@Param("roomId") Long roomId, @Param("senderType") String senderType);
+
     ChatMessageDto findMessageById(@Param("messageId") Long messageId);
 
     List<ChatMessageDto> findMessages(@Param("roomId") Long roomId, @Param("beforeId") Long beforeId, @Param("size") int size);

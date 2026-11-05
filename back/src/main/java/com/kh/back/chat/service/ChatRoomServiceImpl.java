@@ -11,6 +11,8 @@ import com.kh.back.common.security.CurrentRoleLookup;
 import com.kh.back.member.dto.MemberDto;
 import com.kh.back.member.mapper.MemberMapper;
 import com.kh.back.member.service.AccountSuspension;
+import com.kh.back.notification.SavingsNotificationRequest;
+import com.kh.back.notification.SavingsNotificationService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -50,6 +52,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final AdminAuditLogMapper adminAuditLogMapper;
     private final ChatContentFilter contentFilter;
     private final MemberMapper memberMapper; // 9단계: 정지된 회원인지
+    private final SavingsNotificationService notificationService; // 11-05: 헤더 종 알림 (형철님 알림센터)
 
     // ───────────── 회원 ─────────────
 
@@ -160,6 +163,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
         ChatMessageDto saved = save(roomId, senderType, senderId, text);
         broadcaster.roomChanged(roomId, room.getStatus());
+        if (ChatMessageDto.ADMIN.equals(senderType)) {
+            notifyReply(room);
+        }
         return saved;
     }
 
@@ -334,9 +340,22 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             }
         }
         for (Long roomId : chatMapper.findIdleRoomIds(ChatMessageDto.ADMIN, null, IDLE_WARN_MINUTES)) {
-            system(roomId, IDLE_WARNING);
+            ChatMessageDto warning = system(roomId, IDLE_WARNING);
             broadcaster.roomChanged(roomId, ChatRoomDto.ACTIVE);
+            // 화면을 떠난 회원도 알 수 있게 헤더 종에도 (경고 메시지마다 한 번)
+            ChatRoomDto room = chatMapper.findRoomById(roomId);
+            notificationService.notifyChat(room.getUserId(), SavingsNotificationRequest.Type.CHAT_IDLE_WARNING,
+                    "chat-idle:" + roomId + ":" + warning.getId(), "상담이 곧 자동으로 종료돼요",
+                    IDLE_CLOSE_MINUTES + "분 안에 답이 없으면 상담이 종료됩니다. 1:1 상담에서 답해 주세요.");
         }
+    }
+
+    // 11-05: 상담원 답장 → 회원의 헤더 종 알림. 회원의 마지막 질문 하나에 한 번만 (상담원이 연달아 보내도 알림은 1개)
+    private void notifyReply(ChatRoomDto room) {
+        Long lastQuestion = chatMapper.findLastMessageId(room.getId(), ChatMessageDto.USER);
+        notificationService.notifyChat(room.getUserId(), SavingsNotificationRequest.Type.CHAT_REPLY,
+                "chat-reply:" + room.getId() + ":" + (lastQuestion == null ? 0 : lastQuestion),
+                "상담원이 답했어요", "1:1 상담에서 답변을 확인해 보세요.");
     }
 
     // 회원의 대기 · 진행 중 상담을 닫고 안내 문구를 남긴다 (이미 종료됐거나 상담이 없으면 아무것도 안 함)
@@ -371,8 +390,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     // 연결 · 넘김 · 종료 안내 → 방에 SYSTEM 메시지로 남기고 실시간으로 보낸다 (회원 화면은 이걸 보고 상태를 다시 읽는다)
-    private void system(Long roomId, String content) {
-        save(roomId, ChatMessageDto.SYSTEM, null, content);
+    private ChatMessageDto system(Long roomId, String content) {
+        return save(roomId, ChatMessageDto.SYSTEM, null, content);
     }
 
     // 저장 → 마지막 메시지 시각 → 저장된 모양(번호 · 시각)으로 다시 읽어 방 구독자에게 보낸다

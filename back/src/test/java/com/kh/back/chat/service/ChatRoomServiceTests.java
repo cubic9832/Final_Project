@@ -19,6 +19,8 @@ import com.kh.back.common.exception.ApiException;
 import com.kh.back.common.security.CurrentRoleLookup;
 import com.kh.back.member.dto.MemberDto;
 import com.kh.back.member.mapper.MemberMapper;
+import com.kh.back.notification.SavingsNotificationRequest;
+import com.kh.back.notification.SavingsNotificationService;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +49,7 @@ class ChatRoomServiceTests {
     @Mock AdminAuditLogMapper adminAuditLogMapper;
     @Mock MemberMapper memberMapper; // 9단계: 정지 여부 — 기본은 정지 안 된 회원 (보완 15: null 이면 탈퇴 회원 → MEMBER_NOT_FOUND)
     @Spy ChatContentFilter contentFilter = new ChatContentFilter(); // 진짜 금칙어 목록으로 검사
+    @Mock SavingsNotificationService notificationService; // 11-05: 헤더 종 알림
     @InjectMocks ChatRoomServiceImpl service;
 
     @BeforeEach
@@ -119,8 +122,15 @@ class ChatRoomServiceTests {
                 .thenReturn(List.of(11L));
         when(chatMapper.findIdleRoomIds(ChatMessageDto.ADMIN, null, ChatRoomServiceImpl.IDLE_WARN_MINUTES)).thenReturn(List.of(12L));
         when(chatMapper.close(11L)).thenReturn(1);
+        ChatRoomDto quiet = new ChatRoomDto();
+        quiet.setId(12L);
+        quiet.setUserId(OTHER_MEMBER);
+        when(chatMapper.findRoomById(12L)).thenReturn(quiet);
 
         service.handleIdleRooms();
+
+        // 11-05: 경고는 회원의 헤더 종에도 (형철님 알림센터)
+        verify(notificationService).notifyChat(eq(OTHER_MEMBER), eq(SavingsNotificationRequest.Type.CHAT_IDLE_WARNING), anyString(), anyString(), anyString());
 
         verify(broadcaster).roomChanged(11L, ChatRoomDto.CLOSED); // 경고받은 방 → 종료
         verify(broadcaster).roomChanged(12L, ChatRoomDto.ACTIVE); // 새로 조용해진 방 → 경고만
@@ -187,6 +197,23 @@ class ChatRoomServiceTests {
         ArgumentCaptor<ChatMessageDto> saved = ArgumentCaptor.forClass(ChatMessageDto.class);
         verify(chatMapper).insertMessage(saved.capture());
         assertThat(saved.getValue().getSenderType()).isEqualTo(ChatMessageDto.ADMIN);
+    }
+
+    @Test
+    void 상담원이_답하면_회원_헤더_종에_알림을_보내고_같은_질문에는_한_번만() { // 11-05
+        room(ChatRoomDto.ACTIVE, ADMIN);
+        when(chatMapper.findLastMessageId(ROOM, ChatMessageDto.USER)).thenReturn(55L);
+        service.sendMessage(ADMIN, ROOM, "첫 번째 답");
+        service.sendMessage(ADMIN, ROOM, "두 번째 답");
+        // 같은 eventKey 로 두 번 → 알림 표의 고유 키가 한 번만 저장한다
+        verify(notificationService, org.mockito.Mockito.times(2)).notifyChat(eq(MEMBER), eq(SavingsNotificationRequest.Type.CHAT_REPLY), eq("chat-reply:" + ROOM + ":55"), anyString(), anyString());
+    }
+
+    @Test
+    void 회원이_보낸_메시지는_알림을_만들지_않는다() {
+        room(ChatRoomDto.ACTIVE, ADMIN);
+        service.sendMessage(MEMBER, ROOM, "질문 있어요");
+        verify(notificationService, never()).notifyChat(anyLong(), any(), anyString(), anyString(), anyString());
     }
 
     @Test
