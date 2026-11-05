@@ -2,7 +2,7 @@
 // 현재 비밀번호 확인 → 새 비밀번호(회원가입과 같은 규칙) → 저장. 바꾸면 다른 기기 로그인은 끊기고 이 기기는 그대로
 // 닫을 때 "저장하지 않고 닫을까요?" 를 묻지 않는다 — 비밀번호 칸은 남겨 둘 내용이 아니라 [취소] · X 로 바로 닫는다
 import { useState } from 'react';
-import AuthModal from '../../features/auth/components/AuthModal';
+import Modal from '../../shared/ui/Modal.jsx';
 import PasswordInput from '../../features/auth/components/PasswordInput';
 import { getPasswordRules, PASSWORD_MAX, validatePassword } from '../../features/auth/passwordPolicy';
 import './PasswordChangeModal.css';
@@ -40,7 +40,7 @@ export default function PasswordChangeModal({ email, onChange, onClose }) {
   }
 
   return (
-    <AuthModal
+    <Modal
       title="비밀번호 변경"
       subtitle="바꾸면 다른 기기의 로그인은 끊기고, 지금 기기는 유지돼요."
       onClose={onClose}
@@ -108,6 +108,6 @@ export default function PasswordChangeModal({ email, onChange, onClose }) {
           </div>
         </form>
       )}
-    </AuthModal>
+    </Modal>
   );
 }

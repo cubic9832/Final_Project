@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import AuthModal from '../../auth/components/AuthModal.jsx';
+import Modal from '../../../shared/ui/Modal.jsx';
 import theme from '../../../styles/theme.js';
 import FinancialBudgetSummary from './FinancialBudgetSummary.jsx';
 import { calculateFinancialSummary } from '../calculateFinancialSummary.js';
@@ -49,11 +49,11 @@ export default function SurveySummary({ diagnosis, items = [], mode = 'budget', 
           <div className="survey-conditions-heading"><h2 id="survey-conditions-title">선택한 조건</h2>
             <button type="button" className="survey-conditions-toggle" aria-label={`선택한 조건 ${conditionsExpanded ? '접기' : '펼치기'}`} aria-expanded={conditionsExpanded} aria-haspopup="dialog" onClick={() => setConditionsExpanded(true)}><ChevronDown size={theme.iconSize.sm} aria-hidden /></button>
           </div>
-          {conditionsExpanded && <AuthModal title="선택한 조건" onClose={() => setConditionsExpanded(false)} size="lg">
+          {conditionsExpanded && <Modal title="선택한 조건" onClose={() => setConditionsExpanded(false)} size="lg">
             <div className="survey-conditions-modal">
             {items.length ? <dl aria-live="polite">{items.map(item => <div key={item.id}><dt><span className="survey-summary-label">{item.label}</span>{onEdit && <button type="button" className="survey-summary-edit" disabled={editingDisabled} aria-label={`${item.label} 수정`} onClick={() => { setConditionsExpanded(false); onEdit(item.id); }}>수정</button>}</dt><dd>{item.value}</dd></div>)}</dl> : <p>답을 고르면 여기에 정리해 드려요.</p>}
             </div>
-          </AuthModal>}
+          </Modal>}
         </section>
         </>}
       </div>

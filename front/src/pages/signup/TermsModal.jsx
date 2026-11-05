@@ -1,7 +1,7 @@
 // 약관 보기 팝업 (Figma에는 없음. 회원가입 약관 옆 "보기" 버튼용으로 추가)
 // 확정된 약관 문구가 없어 서비스 이용약관 · 마케팅 동의는 준비 중 안내만 보여 준다. 약관 문구를 지어내지 않는다.
 // 보완 5 추가(10-20): 개인정보 수집·이용은 "이 서비스가 실제로 받는 항목 · 쓰는 곳 · 지우는 때" 만 표로 보여 준다
-import AuthModal from '../../features/auth/components/AuthModal';
+import Modal from '../../shared/ui/Modal.jsx';
 import './TermsModal.css';
 
 // 코드에서 실제로 저장하는 항목 기준 (V1 users · V8 user_profiles · V9 email_verifications · social_accounts)
@@ -52,7 +52,7 @@ function PrivacyBody() {
 
 export default function TermsModal({ term, agreed, onAgree, onClose }) {
   return (
-    <AuthModal title={`[${term.required ? '필수' : '선택'}] ${term.title}`} onClose={onClose} size="lg">
+    <Modal title={`[${term.required ? '필수' : '선택'}] ${term.title}`} onClose={onClose} size="lg">
       <div className="terms-body" tabIndex={0} aria-label={`${term.title} 본문`}>
         {term.id === 'privacy' ? (
           <PrivacyBody />
@@ -78,6 +78,6 @@ export default function TermsModal({ term, agreed, onAgree, onClose }) {
           {agreed ? '동의함' : '동의하고 닫기'}
         </button>
       </div>
-    </AuthModal>
+    </Modal>
   );
 }
