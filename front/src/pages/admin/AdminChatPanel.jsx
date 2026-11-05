@@ -294,6 +294,7 @@ function FeedbackSummary({ version }) {
   const [rows, setRows] = useState(null);
   const [sort, setSort] = useState('latest');
   const [reportedOnly, setReportedOnly] = useState(false);
+  const [adminId, setAdminId] = useState(null); // 11-05: 상담원별로 보기 (null = 모든 상담원)
   const [items, setItems] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -306,16 +307,16 @@ function FeedbackSummary({ version }) {
   // 받은 개수가 한 번에 읽는 개수와 같으면 뒤에 더 있을 수 있다 → [더 보기]
   useEffect(() => {
     if (!open) return;
-    getAllFeedback(sort, reportedOnly)
+    getAllFeedback(sort, reportedOnly, 0, adminId)
       .then((list) => { setItems(list); setHasMore(list.length === FEEDBACK_PAGE_SIZE); })
       .catch(() => { setItems([]); setHasMore(false); });
-  }, [open, sort, reportedOnly, version]);
+  }, [open, sort, reportedOnly, adminId, version]);
 
   // 보완 13: [더 보기] — 이미 받은 개수만큼 건너뛰고 다음 50개를 뒤에 붙인다
   // items?.length: React Compiler 가 화면을 그릴 때 이 값을 미리 읽는다 → 아직 안 불러온(null) 때도 오류 없게
   function loadMore() {
     setLoadingMore(true);
-    getAllFeedback(sort, reportedOnly, items?.length ?? 0)
+    getAllFeedback(sort, reportedOnly, items?.length ?? 0, adminId)
       .then((list) => { setItems((prev) => [...prev, ...list]); setHasMore(list.length === FEEDBACK_PAGE_SIZE); })
       .catch(() => setHasMore(false))
       .finally(() => setLoadingMore(false));
@@ -341,9 +342,15 @@ function FeedbackSummary({ version }) {
               <table>
                 <thead><tr><th>상담원</th><th>평가 수</th><th>평균 별점</th><th>신고</th></tr></thead>
                 <tbody>
+                  {/* 11-05: 상담원 이름을 누르면 아래 전체 평가가 그 상담원 것만 (한 번 더 누르면 전체) */}
                   {rows.map((row) => (
-                    <tr key={row.adminId ?? 'none'}>
-                      <td>{row.nickName}</td>
+                    <tr key={row.adminId ?? 'none'} className={row.adminId != null && row.adminId === adminId ? 'is-selected' : undefined}>
+                      <td>
+                        {row.adminId == null ? row.nickName : (
+                          <button type="button" className="admin-chat-admin-link" aria-pressed={row.adminId === adminId}
+                            onClick={() => setAdminId((current) => (current === row.adminId ? null : row.adminId))}>{row.nickName}</button>
+                        )}
+                      </td>
                       <td>{row.count}</td>
                       <td>★ {row.averageRating}</td>
                       <td className={row.reportCount > 0 ? 'is-reported' : undefined}>{row.reportCount}</td>
@@ -354,6 +361,10 @@ function FeedbackSummary({ version }) {
 
               <div className="admin-chat-feedback-tools">
                 <strong>전체 평가</strong>
+                <select value={adminId ?? ''} onChange={(event) => setAdminId(event.target.value ? Number(event.target.value) : null)} aria-label="상담원">
+                  <option value="">모든 상담원</option>
+                  {rows.filter((row) => row.adminId != null).map((row) => <option key={row.adminId} value={row.adminId}>{row.nickName}</option>)}
+                </select>
                 <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="정렬">
                   {FEEDBACK_SORTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>

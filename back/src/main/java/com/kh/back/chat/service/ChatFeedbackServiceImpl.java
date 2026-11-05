@@ -77,9 +77,9 @@ public class ChatFeedbackServiceImpl implements ChatFeedbackService {
     // 전체 평가 목록: sort = low(평점 낮은순) · high(높은순) · latest(최신순, 모르는 값도 최신순)
     // 보완 13: PAGE_SIZE 개씩. 화면은 받은 개수가 PAGE_SIZE 와 같으면 [더 보기]를 보여 주고 offset 을 늘려 다시 부른다
     @Override
-    public List<ChatFeedbackDto> getFeedback(Long actorId, String sort, boolean reportedOnly, int offset) {
+    public List<ChatFeedbackDto> getFeedback(Long actorId, String sort, boolean reportedOnly, int offset, Long adminId) {
         requireSuper(actorId);
-        return chatMapper.findFeedback(sort, reportedOnly, Math.max(0, offset), PAGE_SIZE);
+        return chatMapper.findFeedback(sort, reportedOnly, adminId, Math.max(0, offset), PAGE_SIZE);
     }
 
     private void requireSuper(Long actorId) {

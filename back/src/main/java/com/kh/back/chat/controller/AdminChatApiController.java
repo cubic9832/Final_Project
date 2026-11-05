@@ -52,13 +52,15 @@ public class AdminChatApiController {
         return ApiResponse.ok(chatFeedbackService.getSummary(userId));
     }
 
-    // GET /api/v1/admin/chat/feedback?sort=low&reportedOnly=true&offset=50 — 전체 평가 목록 (총관리자만, 50개씩 · 보완 13)
+    // GET /api/v1/admin/chat/feedback?sort=low&reportedOnly=true&offset=50&adminId=3 — 전체 평가 목록 (총관리자만, 50개씩 · 보완 13)
+    // 11-05: adminId 가 있으면 그 상담원이 받은 평가만
     @GetMapping("/feedback")
     public ApiResponse<List<ChatFeedbackDto>> feedback(@AuthenticationPrincipal Long userId,
                                                        @RequestParam(defaultValue = "latest") String sort,
                                                        @RequestParam(defaultValue = "false") boolean reportedOnly,
-                                                       @RequestParam(defaultValue = "0") int offset) {
-        return ApiResponse.ok(chatFeedbackService.getFeedback(userId, sort, reportedOnly, offset));
+                                                       @RequestParam(defaultValue = "0") int offset,
+                                                       @RequestParam(required = false) Long adminId) {
+        return ApiResponse.ok(chatFeedbackService.getFeedback(userId, sort, reportedOnly, offset, adminId));
     }
 
     // GET /api/v1/admin/chat/rooms/{id}/feedback — 이 회원이 남긴 만족도 · 신고 (총관리자만)

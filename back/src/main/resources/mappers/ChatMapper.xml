@@ -117,7 +117,7 @@
         ORDER BY f.id DESC
     </select>
 
-    <!-- 전체 평가 목록 — 총관리자 (정렬: low 평점 낮은순 · high 높은순 · 그 밖은 최신순, reportedOnly 면 신고만)
+    <!-- 전체 평가 목록 — 총관리자 (정렬: low 평점 낮은순 · high 높은순 · 그 밖은 최신순, reportedOnly 면 신고만, adminId 면 그 상담원만)
          보완 13: 한 번에 size 개씩, offset 만큼 건너뛰고 ([더 보기]) -->
 
     <select id="findFeedback" resultType="com.kh.back.chat.dto.ChatFeedbackDto">
@@ -129,6 +129,8 @@
         LEFT JOIN users a ON a.id = f.admin_id
         <where>
             <if test="reportedOnly">f.reported</if>
+            <!-- 11-05: 상담원 한 명만 -->
+            <if test="adminId != null">AND f.admin_id = #{adminId}</if>
         </where>
         <choose>
             <when test="sort == 'low'">ORDER BY f.rating, f.id DESC</when>
