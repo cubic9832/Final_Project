@@ -66,10 +66,14 @@ export default function AdminChatPanel() {
     getAdminRooms('').then((rooms) => setSelected(rooms.find((room) => room.id === selectedId) ?? null)).catch(() => {});
   }, [selectedId, version]);
 
-  // 11-05: 내가 맡은 진행 중 상담은 맨 위에 모아 둔다 (여러 개 맡으면 찾기 어려워서). 각 묶음 안은 서버 순서(최근 메시지 순) 그대로
-  const isMine = (room) => room.status === 'ACTIVE' && room.assignedAdminId === me?.id;
-  const mineRooms = list.rooms.filter(isMine);
-  const otherRooms = list.rooms.filter((room) => !isMine(room));
+  // 11-05: 내 상담(내가 맡은 진행 중 상담 · 내가 맡았다 끝난 상담)은 맨 위에 모아 둔다 (여러 개 맡으면 찾기 어려워서)
+  // 종료돼도 담당자(assignedAdminId)는 남는다 — [새로 상담하기] 로 대기가 될 때 비워진다. 대기 중 상담은 담당이 없어 늘 "다른 상담"
+  // 각 묶음 안은 서버 순서(최근 메시지 순), [전체] 에서만 진행 중 → 대기 → 종료 순으로 한 번 더 나눈다 (sort 는 같은 순위면 순서 유지)
+  const isMine = (room) => room.assignedAdminId != null && room.assignedAdminId === me?.id;
+  const STATUS_ORDER = { ACTIVE: 0, WAITING: 1, CLOSED: 2 };
+  const ordered = filter === '' ? [...list.rooms].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]) : list.rooms;
+  const mineRooms = ordered.filter(isMine);
+  const otherRooms = ordered.filter((room) => !isMine(room));
 
   function renderRoom(room) {
     return (
@@ -113,7 +117,7 @@ export default function AdminChatPanel() {
           {/* 내 상담이 있을 때만 묶음 이름을 단다 (없으면 예전처럼 목록만) */}
           {mineRooms.length > 0 && <li className="admin-chat-group">내 상담 {mineRooms.length}</li>}
           {mineRooms.map(renderRoom)}
-          {mineRooms.length > 0 && otherRooms.length > 0 && <li className="admin-chat-group">다른 상담</li>}
+          {mineRooms.length > 0 && otherRooms.length > 0 && <li className="admin-chat-group">다른 상담 {otherRooms.length}</li>}
           {otherRooms.map(renderRoom)}
         </ul>
       </section>
