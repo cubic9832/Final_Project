@@ -174,3 +174,11 @@
 .vehicle-card .vehicle-metrics > div { min-width: 0; }
 .vehicle-card .vehicle-metrics strong { overflow-wrap: anywhere; }
 .vehicle-card > .compare-check { align-self: end; margin-top: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .vehicle-content-fade { animation: vehicle-content-fade-in 320ms ease-out; }
+}
+
+@keyframes vehicle-content-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
