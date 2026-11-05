@@ -11,7 +11,8 @@
 
     <!-- 닉네임은 지금 users 에서 이어 붙인다 (탈퇴했으면 NULL → 화면에서 "탈퇴한 회원") -->
     <select id="findRecent" resultType="com.kh.back.admin.dto.AdminAuditLogResponse">
-        SELECT l.id, l.actor_id, a.nick_name AS actor_nick_name, l.action, l.target_type, l.target_id,
+        SELECT ROW_NUMBER() OVER (ORDER BY l.id ASC) AS list_number,
+               l.id, l.actor_id, a.nick_name AS actor_nick_name, l.action, l.target_type, l.target_id,
                t.nick_name AS target_nick_name, l.detail, l.created_at
         FROM admin_audit_logs l
         LEFT JOIN users a ON a.id = l.actor_id
@@ -21,7 +22,51 @@
             <!-- 보완 13: 메일 발송 기록은 회원가입 인증마다 쌓여서 "전체" 에서는 빼고, 작업 고르기로만 본다 -->
             <if test="action == null">l.target_type &lt;&gt; 'MAIL'</if>
         </where>
-        ORDER BY l.id DESC
+        ORDER BY
+        <choose>
+            <when test="sort == null or sort == ''">l.id DESC</when>
+            <otherwise>
+                <!-- Only fixed SQL expressions are selected; request values are never SQL identifiers. -->
+                <choose>
+                    <when test="sort == 'number'">l.id</when>
+                    <when test="sort == 'createdAt'">l.created_at</when>
+                    <when test="sort == 'actor'">
+                        CASE WHEN l.target_type = 'MAIL' THEN '서버 (자동)'
+                        ELSE COALESCE(a.nick_name, CONCAT('탈퇴한 회원 #', l.actor_id), '탈퇴한 회원') END
+                    </when>
+                    <when test="sort == 'target'">
+                        CASE WHEN l.target_type = 'MAIL' THEN '인증 메일'
+                             WHEN l.target_type = 'MODEL' THEN '추천 모델'
+                             ELSE COALESCE(t.nick_name, CONCAT('탈퇴한 회원 #', l.target_id), '탈퇴한 회원') END
+                    </when>
+                    <when test="sort == 'action'">
+                        CASE l.action
+                            WHEN 'ROLE_CHANGE' THEN '권한 변경'
+                            WHEN 'LOGIN_UNLOCK' THEN '잠금 해제'
+                            WHEN 'CHAT_WARN' THEN '상담 경고'
+                            WHEN 'CHAT_RESTRICT' THEN '상담 제한'
+                            WHEN 'CHAT_UNRESTRICT' THEN '상담 제한 풀기'
+                            WHEN 'CHAT_TRANSFER' THEN '상담 넘기기'
+                            WHEN 'CHAT_CLOSE' THEN '상담 종료'
+                            WHEN 'MEMBER_SUSPEND' THEN '계정 정지'
+                            WHEN 'MEMBER_UNSUSPEND' THEN '계정 정지 풀기'
+                            WHEN 'MAIL_SENT' THEN '메일 발송'
+                            WHEN 'MAIL_FAILED' THEN '메일 발송 실패'
+                            WHEN 'MODEL_TRAFFIC_CHANGE' THEN '모델 비율 변경'
+                            WHEN 'MODEL_SERVER_START' THEN '모델 켜기'
+                            WHEN 'MODEL_SERVER_STOP' THEN '모델 끄기'
+                            ELSE l.action END
+                    </when>
+                    <when test="sort == 'detail'">
+                        CASE WHEN l.action = 'ROLE_CHANGE'
+                        THEN REPLACE(REPLACE(REPLACE(l.detail, 'SUPER_ADMIN', '총관리자'), 'ADMIN', '관리자'), 'USER', '일반 회원')
+                        ELSE l.detail END
+                    </when>
+                    <otherwise>l.id</otherwise>
+                </choose>
+                <choose><when test="direction == 'ASC'">ASC</when><otherwise>DESC</otherwise></choose>, l.id DESC
+            </otherwise>
+        </choose>
         LIMIT #{size} OFFSET #{offset}
     </select>
 
