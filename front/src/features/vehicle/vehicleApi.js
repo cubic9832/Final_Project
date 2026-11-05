@@ -1,3 +1,5 @@
+import { koreanVehicleBrand, koreanVehicleModel, vehicleBodyLabels } from './vehicleDisplayNames.js';
+import { resolvePlanningEfficiency } from './resolvePlanningEfficiency.js';
 import client from '../../shared/api/client.js';
 import { resolveVehicleImage } from './resolveVehicleImage.js';
 
@@ -10,23 +12,38 @@ const classLabels = {
   MIDSIZE_SUV: '중형 SUV',
   LARGE_SUV: '대형 SUV',
   FULLSIZE_SEDAN: '대형 세단',
-  MPV: '승합',
+  MPV: '승합차',
 };
 
 // DB 금액은 원, 화면의 비용 계산은 만 원 단위로 통일한다.
 export function toVehicle(row) {
-  if (!['GASOLINE', 'HYBRID'].includes(row.fuelCode) || row.efficiencyUnit !== 'km/L'
-      || !(Number(row.price) > 0) || !(Number(row.efficiencyValue) > 0)) return null;
+  if (!(Number(row.price) > 0)) return null;
+  const bodyType = row.classCode?.includes('SUV') ? 'SUV' : row.classCode === 'MPV' ? 'MPV' : row.classCode;
+  const efficiencyInfo = resolvePlanningEfficiency({
+    id: String(row.id), brand: row.brand, model: row.name, trim: row.trimName,
+    year: String(row.modelYear ?? ''), fuel: row.fuelCode, price: Number(row.price),
+    efficiency: row.efficiencyValue == null ? null : Number(row.efficiencyValue),
+    body_type: bodyType, source_url: row.sourceUrl,
+  });
   return {
     id: String(row.id),
-    name: `${row.brand} ${row.name}`,
-    brand: row.brand,
-    type: classLabels[row.classCode] ?? row.classCode ?? '기타',
+    name: `${koreanVehicleBrand(row.brand)} ${koreanVehicleModel(row.name)}`,
+    catalogName: `${row.brand} ${row.name}`,
+    brand: koreanVehicleBrand(row.brand),
+    type: classLabels[row.classCode] ?? vehicleBodyLabels[row.classCode] ?? row.classCode ?? '기타',
     condition: row.conditionCode === 'NEW' ? '신차' : row.conditionCode === 'USED' ? '중고차' : '미확인',
+    trimName: row.trimName,
+    powertrain: row.powertrain,
+    modelYear: row.modelYear,
     trim: [row.trimName, row.powertrain, row.modelYear && `${row.modelYear}년형`].filter(Boolean).join(' · '),
     price: Number(row.price) / 10000,
     priceBeforeIncentive: row.priceBeforeIncentive == null ? null : Number(row.priceBeforeIncentive) / 10000,
-    efficiency: Number(row.efficiencyValue),
+    fuel: row.fuelCode,
+    efficiency: efficiencyInfo.value,
+    efficiencyUnit: efficiencyInfo.unit,
+    efficiencyEstimated: efficiencyInfo.estimated,
+    efficiencyBasis: efficiencyInfo.basis,
+    efficiencySource: efficiencyInfo.sourceUrl,
     cityEfficiency: row.cityEfficiency == null ? null : Number(row.cityEfficiency),
     highwayEfficiency: row.highwayEfficiency == null ? null : Number(row.highwayEfficiency),
     displacementCc: row.displacementCc == null ? null : Number(row.displacementCc),

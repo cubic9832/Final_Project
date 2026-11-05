@@ -17,4 +17,5 @@ data/households/synthetic/seating-verified-v1-20261027/* -text whitespace=cr-at-
 ml/outputs/models/scenario-choices/20261030-ui-v1-10k/** -text
 ml/outputs/models/scenario-choices/20261102-height-high-value-3m/** -text
 ml/outputs/models/scenario-choices/20261103-unified-managed-3m/** -text
+ml/outputs/models/scenario-choices/20261104-specifications-completed/** -text
 data/households/synthetic/unified-managed-3m-20261103/** -text

@@ -6,7 +6,7 @@ import FinancialBudgetSummary from './FinancialBudgetSummary.jsx';
 import { calculateFinancialSummary } from '../calculateFinancialSummary.js';
 import { formatFinancialMoney } from '../formatFinancialMoney.js';
 
-export default function SurveySummary({ diagnosis, items = [], mode = 'budget', onEdit, editingDisabled = false }) {
+export default function SurveySummary({ diagnosis, items = [], mode = 'budget', onEdit, editingDisabled = false, onBudgetChange }) {
   const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 769px)').matches);
   const [expanded, setExpanded] = useState(false);
   const [conditionsExpanded, setConditionsExpanded] = useState(false);
@@ -42,9 +42,9 @@ export default function SurveySummary({ diagnosis, items = [], mode = 'budget', 
           <p>입력한 금액을 바탕으로 계산했어요.</p>
           <dl><div><dt>월 총수령액</dt><dd>{money(totals.income)}</dd></div><div><dt>생활비 차감</dt><dd>− {money(totals.expenses - totals.loanPayment)}</dd></div><div><dt>대출 상환액 차감</dt><dd>− {money(totals.loanPayment)}</dd></div></dl>
           <div className="survey-cashflow-result"><span>월 유지비로 쓸 수 있는 돈</span><strong>{money(totals.available)}</strong></div>
-          <p>{totals.available > 0 ? '이 금액을 기준으로 차량 유지비를 비교해요. 다음 단계에서는 이용 조건과 취향을 골라 주세요.' : '매달 지출을 충당할 여유가 부족해요. 차량 구매 후 남는 예금도 함께 확인해야 해요.'}</p>
+          <p>{totals.available > 0 ? '이 금액을 기준으로 차량 유지비를 비교해요. 다음 단계에서는 이용 조건과 취향을 골라 주세요.' : '매달 지출을 충당할 여유가 부족해요. 차량 구매 후 남는 목돈도 함께 확인해야 해요.'}</p>
         </section> : <>
-        <FinancialBudgetSummary values={diagnosis.values} assets={diagnosis.assets} loans={diagnosis.loans} onEdit={onEdit} editingDisabled={editingDisabled} />
+        <FinancialBudgetSummary values={diagnosis.values} assets={diagnosis.assets} loans={diagnosis.loans} onEdit={onEdit} editingDisabled={editingDisabled} onBudgetChange={onBudgetChange} diagnosis={diagnosis} />
         <section className="survey-selected-conditions" aria-labelledby="survey-conditions-title">
           <div className="survey-conditions-heading"><h2 id="survey-conditions-title">선택한 조건</h2>
             <button type="button" className="survey-conditions-toggle" aria-label={`선택한 조건 ${conditionsExpanded ? '접기' : '펼치기'}`} aria-expanded={conditionsExpanded} aria-haspopup="dialog" onClick={() => setConditionsExpanded(true)}><ChevronDown size={theme.iconSize.sm} aria-hidden /></button>

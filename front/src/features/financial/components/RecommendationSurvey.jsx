@@ -4,13 +4,14 @@ import theme from '../../../styles/theme.js';
 import SurveySummary from './SurveySummary.jsx';
 import './RecommendationSurvey.css';
 
-export default function RecommendationSurvey({ phase, index, total, question, value, onChange, onBack, onNext, nextLabel = '다음', busy = false, disabled = false, error, loading, diagnosis, children, formRef, canGoBack = true, summaryItems = [], summaryMode = 'budget', onEditSummary }) {
+export default function RecommendationSurvey({ phase, index, total, question, value, onChange, onBack, onNext, nextLabel = '다음', busy = false, disabled = false, error, loading, diagnosis, children, formRef, canGoBack = true, summaryItems = [], summaryMode = 'budget', onEditSummary, onBudgetChange }) {
   const heading = useRef(null);
   const [optionPagination, setOptionPagination] = useState({ questionId: question.id, page: 0 });
   const optionPage = optionPagination.questionId === question.id ? optionPagination.page : 0;
   const setOptionPage = page => setOptionPagination({ questionId: question.id, page });
   useEffect(() => { heading.current?.focus({ preventScroll: true }); }, [index, question.id]);
-  const optionPageSize = question.compact ? 9 : 4;
+  const defaultOptionPageSize = question.compact ? 9 : 4;
+  const optionPageSize = question.showAllOptions ? Math.max(1, question.options?.length ?? 0) : defaultOptionPageSize;
   const optionPageCount = Math.ceil((question.options?.length ?? 0) / optionPageSize);
   const currentOptionPage = Math.min(optionPage, Math.max(0, optionPageCount - 1));
   return <div className="recommendation-survey">
@@ -26,7 +27,7 @@ export default function RecommendationSurvey({ phase, index, total, question, va
         <p className="survey-eyebrow">{question.category}</p>
         <h2 id="survey-title" ref={heading} tabIndex={-1}>{question.title}</h2>
         <p id="survey-description" className="survey-description">{question.description}</p>
-        <div className="survey-answer-content">
+        <div className={`survey-answer-content${question.showAllOptions ? ' survey-answer-content-wide' : ''}`}>
         {question.options && <fieldset className={`survey-options${question.compact ? ' survey-options-grid' : ''}`} disabled={busy} aria-describedby="survey-description">
           <legend className="survey-sr-only">{question.title}</legend>
           {question.options.slice(currentOptionPage * optionPageSize, (currentOptionPage + 1) * optionPageSize).map(option => <label key={String(option.value)} className={`survey-option${String(value) === String(option.value) ? ' is-selected' : ''}`}>
@@ -38,7 +39,7 @@ export default function RecommendationSurvey({ phase, index, total, question, va
         {optionPageCount > 1 && <nav className="survey-page-controls" aria-label="선택지 페이지"><button type="button" aria-label="이전 선택지" disabled={busy || !currentOptionPage} onClick={() => setOptionPage(currentOptionPage - 1)}><ChevronLeft size={16} aria-hidden /></button><span aria-live="polite">{currentOptionPage + 1} / {optionPageCount}</span><button type="button" aria-label="다음 선택지" disabled={busy || currentOptionPage === optionPageCount - 1} onClick={() => setOptionPage(currentOptionPage + 1)}><ChevronRight size={16} aria-hidden /></button></nav>}
         {children}
         </div>
-        </div><SurveySummary diagnosis={diagnosis} items={summaryItems} mode={summaryMode} onEdit={onEditSummary} editingDisabled={busy} /></div>
+        </div><SurveySummary diagnosis={diagnosis} items={summaryItems} mode={summaryMode} onEdit={onEditSummary} editingDisabled={busy} onBudgetChange={onBudgetChange} /></div>
       </section>
 
       <div className="survey-footer">

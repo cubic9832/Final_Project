@@ -11,6 +11,7 @@ test('추천 비교 목록은 사양과 비용을 저장하고 최대 세 대까
   const restored = JSON.parse(JSON.stringify(saved));
   assert.deepEqual(restored.ids, [1, 2, 3]);
   assert.deepEqual(restored.result.recommendations, result.recommendations.slice(0, 3));
+  assert.deepEqual(restored.recommendationResult, result);
   assert.deepEqual(restored.diagnosis, diagnosis);
 });
 
@@ -20,6 +21,7 @@ test('제외한 차량은 저장 데이터에서도 제거하고 마지막 차�
   saved = toggleRecommendationComparison(saved, 1);
   assert.deepEqual(saved.ids, [2]);
   assert.deepEqual(saved.result.recommendations, [result.recommendations[1]]);
+  assert.deepEqual(saved.recommendationResult, result);
   assert.equal(toggleRecommendationComparison(saved, 2), null);
   assert.equal(toggleRecommendationComparison(null, 99, result, diagnosis), null);
 });

@@ -9,7 +9,7 @@ export function lifestyleSummary(vehicle = {}) {
   const scenario = vehicle.scenarioMode ? [
     vehicle.fuel !== '상관없음' && vehicle.fuel,
     vehicle.fuel === '전기' && (vehicle.chargingAvailable ? '전기차 충전 가능' : '전기차 충전 여건 없음'),
-    `예금 보존 중요도 ${vehicle.assetRetentionImportance ?? 3}/5`,
+    `목돈 보존 중요도 ${vehicle.assetRetentionImportance ?? 3}/5`,
     `유지비 중요도 ${vehicle.runningCostImportance ?? 3}/5`] : [];
   const lines = ({ 0: '둥근 윤곽', 0.5: '직선·곡선 조화', 1: '각진 윤곽' })[vehicle.exteriorAngularity];
   const purpose = ({ commute: '도심 이동', family: '가족 이동', 'weekend-drive': '주말 드라이브' })[vehicle.lifestylePurpose];

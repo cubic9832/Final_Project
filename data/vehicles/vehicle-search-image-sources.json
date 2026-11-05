@@ -1,0 +1,74 @@
+[
+  {
+    "model": "alphard",
+    "source": "https://www.toyota.co.kr/assets/360/alphard/hev-executive/360/Black/Black_0010.webp",
+    "local": "/images/vehicle-search/alphard-front.webp",
+    "sha256": "5ad23a688e6162f568c3f181e9f4f27b6baf1590887a5d92cb8234242aa7f873",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  },
+  {
+    "model": "sienna",
+    "source": "https://www.toyota.co.kr/assets/360/sienna/awd/360/AWD_1_PLATINUM_WHITE_PEARL_MICA/WHITE%20PEARL%20CS_00062.webp",
+    "local": "/images/vehicle-search/sienna-front.webp",
+    "sha256": "9c6f5e1b3c4e5a23d0cd934b90fe9db3b1d03ada2bfb9068d74c8b68142fbc42",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  },
+  {
+    "model": "porsche-911-coupe",
+    "source": "https://prs.porsche.com/iod/image/ZA/992442/1/N4Igxg9gdgZglgcxALlAQynAtmgLnaAZxQG0BdAGnDSwFMAnNFUOAExRFoA9cBaAGwgB3XjHrQ+-WjFwgqEAA74izEADc09OBlnIQrWoQDWuRSAC+5qrShq44qHSi6W7PQHUAFnFwMIELABBfgVPJnklAihiVEsqfkRPfCgkVBA2DgARQIBNORBFZWjmOJAFcVYAVzAXdLcQAE4GgCYAFlbm-MKomNBIWERSEAAGABl8gEYAcQAOSYA5AGZJgBVOqmaANVb8xYAhZapFgCkG-NapgAV8gFYZvKoANgBJQ5AAdkCAaXz3gAkAMK-HJzKgNZ4AWXyDU24yoAFEIesQFNpvlnu43sd4TsqKMpitMgAlOEgACKrTJ+TJRLOVAAygANECUcAQSrOegATw4AC1AvksBADPwcrRNChmsNmu9LFYQIRaLhkgheiAYBB6DhdGUUvlcIxogpNDZdAbKrRLEA?clientId=icc",
+    "local": "/images/vehicle-search/porsche-911-coupe-front.png",
+    "sha256": "0874a9eb81fefaafaeeabdfe1e2d3a1ceecc6af499411556ff1ddec901741090",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  },
+  {
+    "model": "porsche-911-cabriolet-front",
+    "source": "https://prs.porsche.com/iod/image/ZA/992342/1/N4Igxg9gdgZglgcxALlAQynAtmgLnaAZxQG0BdAGnDSwFMAnNFUOAExRFoA9cBaAGwgB3XjHrQ+-WjFwgqEAA74izEADc09OBlnIQrWoQDWuRSAC+5qrShq44qHSi6W7PQHUAFnFwMIELABBfgVPJnklAihiVEsqfkRPfCgkVBA2DgARQIBNORBFZWjmOJAFcVYAVzAXdLcQAE4GgCYAZgAWZvzCqJjQSFhEUhAABgAZfIBGAHEADimAOVapgBUuqmaANXb81oAhZapWgCkG-PbpgAV8gFZZvKoANgBJQ5AAdkCAaXz3gAkAMK-HLzKgNZ4AWXyDU2EyoAFEIesQNMZvlnu43sd4TsqGNpitMgAlOEgACK7TJ+TJRLOVAAygANECUcAQSrOegATw4AC1AvksBADPwcrRNChmiNmu9LFYQIRaLhkgg+iAYBB6DhdGUUvlcIxogpNDZdAbKrRLEA?clientId=icc",
+    "local": "/images/vehicle-search/porsche-911-cabriolet-front.png",
+    "sha256": "8a8fccc099e1e33008bf5c95e9b92e1a53aa2f1f4580c56caf786fb260bd29f2",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  },
+  {
+    "model": "porsche-911-targa-front",
+    "source": "https://prs.porsche.com/iod/image/ZA/992542/1/N4Igxg9gdgZglgcxALlAQynAtmgLnaAZxQG0BdAGnDSwFMAnNFUOAExRFoA9cBaAGwgB3XjHrQ+-WjFwgqEAA74izEADc09OBlnIQrWoQDWuRSAC+5qrShq44qHSi6W7PQHUAFnFwMIELABBfgVPJnklAihiVEsqfkRPfCgkVBA2DgARQIBNORBFZWjmOJAFcVYAVzAXdLcQAE4GgCYAVgAWZvzCqJjQSFhEUhAABgAZfIBGAHEADimAOQBmKYAVLqpmgDV2-KWAIRWqJYApBvz26YAFfNbZvKoANgBJI5AAdkCAaXz3gAkAMK-HLzKgNZ4AWXyDS2EyoAFEIRsQNMZvlnu43id4bsqGNpqtMgAlOEgACK7TJ+TJRPOVAAygANECUcAQSrOegATw4AC1AvksBADPwcrRNChmiNmu9LFYQIRaLhkgg+iAYBB6DhdGUUvlcIxogpNDZdAbKrRLEA?clientId=icc",
+    "local": "/images/vehicle-search/porsche-911-targa-front.png",
+    "sha256": "4be7d0b33c7e92aec68a1c76be5711dcb6eb2766f56cb3c3b1f8d7982a0982fd",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  },
+  {
+    "model": "hyundai-nexo-front",
+    "source": "https://www.hyundai.com/contents/repn-car/side-45/nexo-27my-45side.png",
+    "local": "/images/vehicle-search/hyundai-nexo-front.png",
+    "sha256": "c828add473b99bf5307ed02a0be9d7f76c1eaa228987d28b5f00291cec85d9e0",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  },
+  {
+    "model": "hyundai-ioniq9-front",
+    "source": "https://www.hyundai.com/contents/repn-car/side-45/ioniq9-27my-45side.png",
+    "local": "/images/vehicle-search/hyundai-ioniq9-front.png",
+    "sha256": "763bfc3461da16bce93c64870e649fd363a633983915ddefb5a70b83192c1bbc",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  },
+  {
+    "model": "hyundai-staria-front",
+    "source": "https://www.hyundai.com/contents/repn-car/side-45/staria-26pe-45side.png",
+    "local": "/images/vehicle-search/hyundai-staria-front.png",
+    "sha256": "1f824e68ecc7c6838a652d714570b15973d4e6b27ea52d6eea78052b72e6043b",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  },
+  {
+    "model": "kia-pv5-passenger-front",
+    "source": "https://www.kia.com/content/dam/kwp/kr/ko/configurator/pv5-passenger/trim/exterior/plus/cge/cge_64.png",
+    "local": "/images/vehicle-search/kia-pv5-passenger-front.png",
+    "sha256": "b8bb360333d9ac7ccdde7e6f89087d23126cec008ff159b9d652bd1c296b2ffd",
+    "view": "front-three-quarter",
+    "retrievedOn": "2026-11-05"
+  }
+]
