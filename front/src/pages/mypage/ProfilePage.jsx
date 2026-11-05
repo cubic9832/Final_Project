@@ -13,6 +13,7 @@ import {
 } from '../../features/auth/authApi';
 import { getAgreement, getMe, updateNotification, updateProfile, withdraw } from '../../features/auth/memberApi';
 import { checkNickNameWords } from '../../features/auth/nickNamePolicy';
+import { isAdminRole } from '../../features/auth/roles';
 import { useVehicle } from '../../features/vehicle/useVehicle';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
@@ -322,6 +323,8 @@ export default function ProfilePage() {
   }
 
   const changed = changedFields(form, me);
+  // 11-05: 관리자 · 총관리자는 관리자 대시보드 [내 계정] 으로 들어온다 → 회원용 칸(차량 구매 정보 · 이메일 알림)은 숨기고 돌아갈 곳은 대시보드
+  const isAdmin = isAdminRole(me.role);
   const ageError = errors.birthDate && form.birthDate && getAge(form.birthDate) < MIN_SIGNUP_AGE;
   const otherSessions = sessions.filter((session) => !session.current);
   const notification = agreement ? agreement.emailNotification : 'IMPORTANT';
@@ -338,14 +341,17 @@ export default function ProfilePage() {
     <div className="profile-page">
       {/* 지금 위치 — 취향 테스트 화면(taste-breadcrumb)과 같은 모양 */}
       <nav className="profile-breadcrumb" aria-label="현재 위치">
-        <Link to="/mypage">마이페이지</Link>
+        {/* 11-05: 관리자는 관리자 대시보드 [내 계정] 으로 들어오므로 돌아갈 곳도 대시보드 */}
+        <Link to={isAdmin ? '/console' : '/mypage'}>{isAdmin ? '관리자 대시보드' : '마이페이지'}</Link>
         <span aria-hidden="true">/</span>
         <span aria-current="page">개인정보 · 계정 관리</span>
       </nav>
       <header className="profile-heading">
         <h1>개인정보 · 계정 관리</h1>
         {/* 마이페이지 제목 아래 설명과 같은 방식: 이 화면에서 할 수 있는 일을 한 줄로 */}
-        <p>닉네임 · 생년월일 같은 개인정보를 고치고, 로그인된 기기와 비밀번호를 관리하세요.</p>
+        <p>{isAdmin
+          ? '관리자 계정의 닉네임 · 개인정보를 고치고, 로그인된 기기와 비밀번호를 관리하세요.'
+          : '닉네임 · 생년월일 같은 개인정보를 고치고, 로그인된 기기와 비밀번호를 관리하세요.'}</p>
       </header>
 
       {me.socialOnly && (!me.birthDate || !me.gender) && (
@@ -370,7 +376,7 @@ export default function ProfilePage() {
           <div className="profile-edit-buttons">
             {/* 11-03: 저장 실패 문구는 버튼 왼쪽 같은 줄 — 설명 아래에 끼면 아래 입력칸이 모두 밀렸다 */}
             {saveError && <p className="profile-save-error" role="alert">{saveError}</p>}
-            <Link className="my-outline-button profile-small-button" to="/mypage">취소</Link>
+            <Link className="my-outline-button profile-small-button" to={isAdmin ? '/console' : '/mypage'}>취소</Link>
             <button className="profile-dark-button" type="submit" disabled={saving || changed.length === 0}>
               {saving ? '저장 중…' : '저장'}
             </button>
@@ -412,21 +418,25 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* 차량 구매 정보 (선택) */}
-            <h3 className="profile-column-title profile-subtitle">차량 구매 정보</h3>
-            <p className="profile-card-desc">보험료 · 구매계획 같은 비용 계산에 쓸 수 있는 정보입니다. (선택)</p>
+            {/* 차량 구매 정보 (선택) — 차를 살 회원용이라 관리자에게는 보이지 않는다 (11-05) */}
+            {!isAdmin && (
+              <>
+                <h3 className="profile-column-title profile-subtitle">차량 구매 정보</h3>
+                <p className="profile-card-desc">보험료 · 구매계획 같은 비용 계산에 쓸 수 있는 정보입니다. (선택)</p>
 
-            <div className="profile-field">
-              <span className="profile-label" id="profile-driving-label">운전 경력</span>
-              <ChoiceGroup name="drivingExperience" labelledBy="profile-driving-label" options={DRIVING_OPTIONS}
-                value={form.drivingExperience} onChange={handleChange} />
-            </div>
+                <div className="profile-field">
+                  <span className="profile-label" id="profile-driving-label">운전 경력</span>
+                  <ChoiceGroup name="drivingExperience" labelledBy="profile-driving-label" options={DRIVING_OPTIONS}
+                    value={form.drivingExperience} onChange={handleChange} />
+                </div>
 
-            <div className="profile-field">
-              <span className="profile-label" id="profile-purchase-label">구매 예정</span>
-              <ChoiceGroup name="purchaseTiming" labelledBy="profile-purchase-label" options={PURCHASE_OPTIONS}
-                value={form.purchaseTiming} onChange={handleChange} />
-            </div>
+                <div className="profile-field">
+                  <span className="profile-label" id="profile-purchase-label">구매 예정</span>
+                  <ChoiceGroup name="purchaseTiming" labelledBy="profile-purchase-label" options={PURCHASE_OPTIONS}
+                    value={form.purchaseTiming} onChange={handleChange} />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="profile-column">
@@ -555,14 +565,17 @@ export default function ProfilePage() {
               <button className="my-outline-button" type="button" onClick={() => setModal('password')}>변경</button>
             </li>
           )}
-          <li>
-            <strong>이메일 알림</strong>
-            <div>
-              <span>{notificationLabel}</span>
-              <small>{agreementNote}</small>
-            </div>
-            <button className="my-outline-button" type="button" onClick={() => setModal('notification')} disabled={!agreement}>설정</button>
-          </li>
+          {/* 추천 업데이트 메일 수신 설정은 회원용 (관리자에게는 보이지 않음, 11-05) */}
+          {!isAdmin && (
+            <li>
+              <strong>이메일 알림</strong>
+              <div>
+                <span>{notificationLabel}</span>
+                <small>{agreementNote}</small>
+              </div>
+              <button className="my-outline-button" type="button" onClick={() => setModal('notification')} disabled={!agreement}>설정</button>
+            </li>
+          )}
         </ul>
         <div className="profile-withdraw" id="profile-withdraw">
           {me.role === 'SUPER_ADMIN' ? (
