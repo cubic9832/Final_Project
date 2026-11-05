@@ -1,4 +1,4 @@
-import { buildRecommendationView } from '../../../financial/pages/recommendations/buildRecommendationView.js';
+import { buildRecommendationView, describePreference } from '../../../financial/pages/recommendations/buildRecommendationView.js';
 import VehicleEnergyCostNote from '../../components/VehicleEnergyCostNote.jsx';
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import VehicleCatalogGate from '../../components/VehicleCatalogGate.jsx';
@@ -36,6 +36,20 @@ function CatalogVehicleComparePage() {
     const costs = calculateCosts(vehicle, conditions);
     const monthlyCost = costs.total - costs.installment;
     const cashAfterPurchase = conditions.cash - Math.min(vehicle.price, conditions.downPayment);
+    const preferences = preset ? undefined : recommendationState?.diagnosis?.vehicle;
+    const fuelCodes = { 가솔린: 'GASOLINE', 휘발유: 'GASOLINE', 하이브리드: 'HYBRID', 디젤: 'DIESEL', 경유: 'DIESEL', LPG: 'LPG', 전기: 'ELECTRIC' };
+    const criteria = [
+      { key: 'fuel', requested: fuelCodes[preferences?.fuel], actual: vehicle.fuel },
+      { key: 'body', requested: preferences?.preferredBodyType === 'any' ? null : preferences?.preferredBodyType, actual: specs?.body_type },
+      { key: 'seating', requested: Number(preferences?.minimumSeats) || null, actual: specs?.seats },
+    ].filter(item => item.requested).map(item => {
+      const matches = item.key === 'seating' ? item.actual >= item.requested : item.actual === item.requested;
+      return describePreference({
+        ...item,
+        status: !item.actual ? 'unknown' : matches ? 'match' : 'mismatch',
+        difference: item.requested - item.actual,
+      });
+    });
     return {
       id: vehicle.id,
       candidate: {
@@ -57,9 +71,9 @@ function CatalogVehicleComparePage() {
       body: vehicle.type,
       length: specs?.length_mm ? `${specs.length_mm / 1000}m` : '미확인',
       seats: specs?.seats ? `${specs.seats}명` : '미확인',
-      matches: [],
-      mismatches: [],
-      unknowns: [],
+      matches: criteria.filter(item => item.status === 'match'),
+      mismatches: criteria.filter(item => item.status === 'mismatch'),
+      unknowns: criteria.filter(item => item.status === 'unknown'),
     };
   });
   const comparisonViews = comparison.map(id =>
@@ -68,8 +82,10 @@ function CatalogVehicleComparePage() {
   ).filter(Boolean);
   if (comparisonViews.length) return <FinancialCandidateComparison key={presetId} comparisonViews={comparisonViews}>
     <div className="financial-recommendations-actions">
-      {!preset && recommendationState && <Link className="candidate-open-comparison" to="/financial/recommendations" state={recommendationState}>추천 결과로 돌아가기</Link>}
       {selected.map(vehicle => <Link key={vehicle.id} className="candidate-open-comparison" to={`/vehicles/${vehicle.id}/simulation`}>{vehicle.name} 조건 시뮬레이션</Link>)}
+    </div>
+    <div className="financial-recommendations-actions">
+      {!preset && recommendationState && <Link className="candidate-open-comparison" to="/financial/recommendations" state={recommendationState}>추천 결과로 돌아가기</Link>}
       <Link className="candidate-open-comparison" to="/financial">내 정보 입력하고 비교하기</Link>
     </div>
   </FinancialCandidateComparison>;
