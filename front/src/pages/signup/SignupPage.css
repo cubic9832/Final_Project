@@ -484,6 +484,13 @@
   }
 }
 
+/* 11-05: 2칸 입력 화면이 1200px 넘게 퍼지면 칸 사이가 멀어 읽기 어렵다 → 가운데 960px (구글 가입은 아래 is-narrow 560px) */
+.signup-page {
+  max-width: 960px;
+  width: 100%;
+  margin-inline: auto;
+}
+
 /* 11-05: 구글 가입 추가 정보는 칸이 몇 개 없어 화면 끝까지 늘어날 필요가 없다 → 로그인 카드와 같은 560px 가운데 */
 .signup-page.is-narrow {
   max-width: 560px;

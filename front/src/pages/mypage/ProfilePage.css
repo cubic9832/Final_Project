@@ -781,3 +781,10 @@
 .profile-page .profile-edit-buttons .my-outline-button {
   height: 42px;
 }
+
+/* 11-05: 기본 정보 · 개인 정보 2칸이 화면 끝까지 퍼지지 않게 가운데 960px (1:1 상담 880px 과 같은 마이페이지 하위 화면) */
+.profile-page {
+  max-width: 960px;
+  width: 100%;
+  margin-inline: auto;
+}
