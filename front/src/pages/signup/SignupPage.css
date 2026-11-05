@@ -416,6 +416,7 @@
   font-size: 12px;
 }
 
+/* 11-05: 흐름 끝 버튼 = 형철님 CTA 규칙(아이스 블루 배경 · 남색 글자 · 실선 테두리, 테마 토큰 --color-cta) — 회원가입 · 구글 가입 [가입 완료] */
 .signup-submit {
   display: inline-flex;
   align-items: center;
@@ -423,16 +424,16 @@
   height: 42px;
   margin-top: 20px;
   padding: 0 20px;
-  border: 0;
+  border: 1px solid var(--color-border-input);
   border-radius: 8px;
-  background: #15365f;
-  color: #fff;
+  background: var(--color-cta);
+  color: var(--color-cta-text);
   font-size: 13px;
   font-weight: 700;
 }
 
 .signup-submit:hover:not(:disabled) {
-  background: #244a75;
+  background: var(--color-cta-hover);
 }
 
 /* 가입 요청 중에는 버튼을 비활성으로 표시 */

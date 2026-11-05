@@ -18,6 +18,7 @@ import BirthDateInput from './BirthDateInput';
 import SignupCompleteModal from './SignupCompleteModal';
 import TermsModal from './TermsModal';
 import './SignupPage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
 
 // 개별 약관. "전체 동의"는 이 목록의 체크 상태로 계산한다
 // title 은 "보기" 팝업 제목에 쓴다
@@ -380,7 +381,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="signup-page">
+    <div className="signup-page page-fade-in">
       <header className="signup-heading">
         <h1>회원가입</h1>
         <p>첫차 의사결정을 위한 개인 재무 프로필을 안전하게 시작합니다.</p>

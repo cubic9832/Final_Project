@@ -577,6 +577,18 @@
   background: var(--color-primary-hover);
 }
 
+/* 11-05: 흐름 끝 버튼 = 형철님 CTA 규칙(아이스 블루 배경 · 남색 글자 · 실선 테두리, 테마 토큰 --color-cta)
+   마이페이지에서 다른 기능의 흐름으로 들어가는 버튼: 재무 진단 · 차량 찾기 · 드림카 플래너 · 취향 테스트 */
+.my-page .my-cta {
+  border: 1px solid var(--color-border-input);
+  background: var(--color-cta);
+  color: var(--color-cta-text);
+}
+
+.my-page .my-cta:hover {
+  background: var(--color-cta-hover);
+}
+
 /* 보조 버튼: 카드마다 주 버튼(남색)은 하나, 나머지는 연한 파랑 — 위 "운전 1~3년" 배지와 같은 색 */
 .my-page .my-soft-button {
   background: var(--color-blue-tint);

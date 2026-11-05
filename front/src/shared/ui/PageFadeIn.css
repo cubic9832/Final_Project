@@ -1,0 +1,13 @@
+/* 11-05: 화면에 들어올 때 0.4초 페이드인 — 형철님 화면(드림카 · 차량 찾기 · 추천)의 전환과 같은 느낌으로
+   쓰는 곳: 로그인 · 회원가입 · 구글 가입 · 마이페이지 · 계정 관리 · 1:1 상담 (화면 맨 바깥 div 에 page-fade-in)
+   움직임 줄이기를 켠 사용자에게는 넣지 않는다 */
+@media (prefers-reduced-motion: no-preference) {
+  .page-fade-in {
+    animation: page-fade-in 400ms ease-out;
+  }
+}
+
+@keyframes page-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

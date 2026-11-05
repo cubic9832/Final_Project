@@ -28,6 +28,7 @@ import PasswordResetModal from '../login/PasswordResetModal'; // 보완 10: mode
 import { deviceName, DRIVING_OPTIONS, formatDate, formatDateTime, PURCHASE_OPTIONS } from './profileOptions';
 import './MyPage.css';
 import './ProfilePage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
 
 const NICKNAME_MIN = 2;
 const NICKNAME_MAX = 12;
@@ -313,11 +314,11 @@ export default function ProfilePage({ inConsole = false }) {
   }
 
   if (meStatus === 'loading') {
-    return <div className="profile-page"><CardLoading label="내 정보를 불러오는 중…" /></div>;
+    return <div className="profile-page page-fade-in"><CardLoading label="내 정보를 불러오는 중…" /></div>;
   }
   if (meStatus === 'error') {
     return (
-      <div className="profile-page">
+      <div className="profile-page page-fade-in">
         <CardError message="내 정보를 불러오지 못했습니다." onRetry={() => { setMeStatus('loading'); setReloadKey((key) => key + 1); }} />
       </div>
     );
@@ -343,7 +344,7 @@ export default function ProfilePage({ inConsole = false }) {
     ].filter(Boolean).join(' · ');
 
   return (
-    <div className="profile-page">
+    <div className="profile-page page-fade-in">
       {/* 지금 위치 — 취향 테스트 화면(taste-breadcrumb)과 같은 모양 */}
       <nav className="profile-breadcrumb" aria-label="현재 위치">
         {/* 11-05: 관리자는 관리자 대시보드 [내 계정] 으로 들어오므로 돌아갈 곳도 대시보드 */}
@@ -577,6 +578,8 @@ export default function ProfilePage({ inConsole = false }) {
               <div>
                 <span>{notificationLabel}</span>
                 <small>{agreementNote}</small>
+                {/* 11-05: 형철님 알림센터(헤더 종)는 화면 알림이고 설정도 따로 — 여기는 이메일만이라는 걸 알려 준다 */}
+                <small>화면 알림은 위쪽 종 → 톱니바퀴에서 따로 설정해요.</small>
               </div>
               <button className="my-outline-button" type="button" onClick={() => setModal('notification')} disabled={!agreement}>설정</button>
             </li>

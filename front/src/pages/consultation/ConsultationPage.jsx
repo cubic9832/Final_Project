@@ -11,6 +11,7 @@ import useChatRoom from '../../features/chat/useChatRoom';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
 import './ConsultationPage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
 
 const STATUS_LABELS = { WAITING: '상담원 연결 대기', ACTIVE: '상담 중', CLOSED: '상담 종료' };
 
@@ -67,7 +68,7 @@ export default function ConsultationPage() {
   }
 
   return (
-    <div className="consult-page">
+    <div className="consult-page page-fade-in">
       {/* 지금 위치 — 개인정보 · 계정 관리(ProfilePage)와 같은 모양: 마이페이지 아래 화면 */}
       <nav className="consult-breadcrumb" aria-label="현재 위치">
         <Link to="/mypage">마이페이지</Link>
@@ -94,7 +95,7 @@ export default function ConsultationPage() {
         {state.status === 'done' && !room && (
           <div className="consult-start">
             <p><strong>{member?.nickName}님</strong>, 궁금한 점을 상담원에게 남겨 주세요.</p>
-            <button type="button" className="consult-button" onClick={handleStart} disabled={busy}>상담 시작</button>
+            <button type="button" className="consult-button consult-cta" onClick={handleStart} disabled={busy}>상담 시작</button>
           </div>
         )}
 
@@ -106,7 +107,7 @@ export default function ConsultationPage() {
               <div className="consult-status-actions">
                 {room.status !== 'CLOSED' && <ConnectionStatus connected={chat.connected} />}
                 {room.status === 'CLOSED'
-                  ? <button type="button" className="consult-button" onClick={handleStart} disabled={busy || room.restricted}>새로 상담하기</button>
+                  ? <button type="button" className="consult-button consult-cta" onClick={handleStart} disabled={busy || room.restricted}>새로 상담하기</button>
                   : <button type="button" className="consult-outline" onClick={() => setConfirmingClose(true)} disabled={busy}>상담 종료</button>}
               </div>
             </div>
