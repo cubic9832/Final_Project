@@ -57,19 +57,13 @@ export default function CandidateComparisonTable({ views, canToggleVehicles }) {
           color = length === longest ? 'comparison-match' : 'comparison-difference';
         }
       }
-      const otherValues = includedViews.filter(other => other.id !== view.id)
-        .map(other => other[field])
-        .filter(value => value && value !== '미확인');
-      const comparable = view[field] && view[field] !== '미확인' && otherValues.length > 0;
-      const same = otherValues.every(value => value === view[field]);
+      const compareLength = field === 'length' && lengths.length >= 2
+        && Number.isFinite(view.candidate.vehicle.length_mm) && view.candidate.vehicle.length_mm > 0;
+      const note = field === 'length'
+        ? compareLength && (color === 'comparison-match' ? '길이가 더 김' : color === 'comparison-difference' ? '길이가 더 짧음' : '비교 차량과 동일')
+        : match ? '내 조건과 일치' : mismatch ? '내 조건과 불일치' : evidence && '일치 여부 확인 필요';
       return <><span className={color} title={evidence?.text}>{view[field]}</span>
-        {comparable && (field === 'length'
-          ? <small className={color}>
-            {color === 'comparison-match' ? '길이가 더 김' : color === 'comparison-difference' ? '길이가 더 짧음' : '비교 차량과 동일'}
-          </small>
-          : <small className={same ? 'comparison-match' : 'comparison-difference'}>
-            {same ? '비교 차량과 동일' : '비교 차량과 다름'}
-          </small>)}
+        {note && <small className={color}>{note}</small>}
       </>;
     }])],
   ];
