@@ -178,6 +178,12 @@ public class MemberServiceImpl implements MemberService {
             throw new ApiException(HttpStatus.FORBIDDEN, "SUPER_ADMIN_WITHDRAW",
                     "총관리자는 탈퇴할 수 없습니다. 다른 총관리자를 먼저 지정해 주세요.");
         }
+        // 11-05: 일반 관리자도 직접 탈퇴하지 않는다 — 총관리자가 권한을 빼면(회원 관리) 일반 회원이 되고, 그때 탈퇴한다
+        // (직원 계정은 본인이 아니라 운영 쪽이 회수 · 운영 로그의 작업자가 갑자기 "탈퇴한 회원" 으로 바뀌지 않게)
+        if ("ADMIN".equals(member.getRole())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ADMIN_WITHDRAW",
+                    "관리자는 직접 탈퇴할 수 없습니다. 총관리자에게 관리자 권한 해제를 요청한 뒤 탈퇴해 주세요.");
+        }
         // 9단계: 정지 중에는 탈퇴할 수 없다 — 탈퇴 → 같은 이메일로 다시 가입해 정지를 피하지 못하게
         // (정지하면 로그인이 막히지만, 이미 받은 access token 이 최대 30분 남아 있을 수 있다)
         AccountSuspension.requireActive(member);
@@ -208,6 +214,7 @@ public class MemberServiceImpl implements MemberService {
         memberMapper.deleteSocialAccounts(userId);
         memberMapper.deleteAgreements(userId);
         memberMapper.deleteCurrentTaste(userId);
+        // 11-05 부터 관리자는 위에서 막혀 여기 오지 않는다 — 탈퇴 규칙이 바뀌어도 맡던 상담 · 권한이 남지 않게 정리 코드는 둔다
         if ("ADMIN".equals(member.getRole())) {
             chatRoomService.releaseRoomsOf(userId); // 맡던 진행 중 상담 → 대기 (다른 관리자가 다시 맡는다)
             memberMapper.deleteAdminAccount(userId);

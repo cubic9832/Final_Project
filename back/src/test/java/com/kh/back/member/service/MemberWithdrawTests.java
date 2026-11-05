@@ -42,4 +42,17 @@ class MemberWithdrawTests {
                 .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCode()).isEqualTo("SUPER_ADMIN_WITHDRAW"));
         verify(memberMapper, never()).anonymize(any(), any(), any());
     }
+
+    @Test
+    void 일반_관리자도_직접_탈퇴할_수_없다() { // 11-05: 총관리자가 권한을 뺀 뒤 일반 회원으로 탈퇴
+        MemberDto admin = new MemberDto();
+        admin.setId(77L);
+        admin.setRole("ADMIN");
+        admin.setPasswordHash("$2a$bcrypt");
+        when(memberMapper.findById(77L)).thenReturn(admin);
+
+        assertThatThrownBy(() -> memberService.withdraw(77L, "password", null))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCode()).isEqualTo("ADMIN_WITHDRAW"));
+        verify(memberMapper, never()).anonymize(any(), any(), any());
+    }
 }

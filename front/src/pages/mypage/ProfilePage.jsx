@@ -581,6 +581,9 @@ export default function ProfilePage() {
           {me.role === 'SUPER_ADMIN' ? (
             // 7단계: 총관리자는 탈퇴할 수 없다 (관리자 권한을 줄 사람이 없어지므로 — 서버도 403 SUPER_ADMIN_WITHDRAW)
             <span>총관리자는 탈퇴할 수 없습니다. 다른 총관리자를 먼저 지정해 주세요.</span>
+          ) : me.role === 'ADMIN' ? (
+            // 11-05: 일반 관리자도 직접 탈퇴하지 않는다 — 총관리자가 권한을 빼면 일반 회원이 되어 탈퇴할 수 있다 (서버도 403 ADMIN_WITHDRAW)
+            <span>관리자는 직접 탈퇴할 수 없습니다. 총관리자에게 관리자 권한 해제를 요청한 뒤 탈퇴해 주세요.</span>
           ) : (
             <>
               <span>탈퇴하면 개인 정보 · 취향 결과가 모두 삭제되며 되돌릴 수 없습니다.</span>
