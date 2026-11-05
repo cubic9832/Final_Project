@@ -453,3 +453,12 @@
 .financial-expense-mode input { accent-color: var(--color-primary); }
 .financial-expense-breakdown { padding: var(--space-16); background: var(--color-background); border-radius: var(--radius-md); }
 .financial-input-wrap input[readonly] { background: var(--color-background); color: var(--color-text-sub); }
+
+.financial-budget-editor { font-size: var(--font-body); font-weight: 400; }
+.financial-budget-editor .financial-input-wrap input { font-size: var(--font-body); }
+.financial-budget-editor p { margin-top: var(--space-8); font-size: var(--font-caption); color: var(--color-muted); }
+.financial-budget-editor-actions { display: flex; justify-content: flex-end; gap: var(--space-8); margin-top: var(--space-8); }
+.financial-budget-editor-actions button { min-height: 40px; padding: 0 var(--space-16); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-primary); font-weight: 700; }
+.financial-budget-editor-actions button:last-child { background: var(--color-primary); color: var(--color-surface); }
+.financial-budget-editor-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.financial-budget-editor-actions button:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px; }

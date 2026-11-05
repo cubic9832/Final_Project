@@ -23,7 +23,7 @@ export default function FinancialAnalysis({ totals, result, compact = false }) {
       <span className="analysis-icon"><Wallet size={theme.iconSize.lg} aria-hidden /></span>
       <p className="analysis-label">내 차량 구매 예산</p>
       <h2>{budget ? <>{candidateMoney(budget.financialUpper)}<small>까지</small></> : '예산 정보를 확인해 주세요'}</h2>
-      <p>{financed ? `예금 ${candidateMoney(budget.availablePurchaseFunds)}에 월 ${candidateMoney(budget.monthlyVehicleCap)} 한도로 ${budget.financingMonths}개월 할부를 더한 기준이에요.` : '차량 구매·유지에 쓰기로 한 예금 기준이에요.'}</p>
+      <p>{financed ? `목돈 ${candidateMoney(budget.availablePurchaseFunds)}에 월 ${candidateMoney(budget.monthlyVehicleCap)} 한도로 ${budget.financingMonths}개월 할부를 더한 기준이에요.` : '차량 구매·유지에 쓰기로 한 목돈 기준이에요.'}</p>
       {['cash-importance-band-v1', 'income-ratio-financing-band-v1'].includes(budget?.policy) && <div className="analysis-price-band"><span>선택한 가성비로 찾을 가격대</span><strong>{candidateMoney(budget.lower)} ~ {candidateMoney(budget.upper)}</strong></div>}
     </article>
     <article className="analysis-panel" id={compact ? 'analysis-monthly-panel' : undefined} role={compact ? 'tabpanel' : undefined} aria-labelledby={compact ? 'analysis-monthly-tab' : undefined} hidden={compact && activePanel !== 'monthly'}>
@@ -38,13 +38,13 @@ export default function FinancialAnalysis({ totals, result, compact = false }) {
       <div className="analysis-card-title"><h2>차를 사면 얼마나 남을까요?</h2><Car size={theme.iconSize.md} aria-hidden /></div>
       <p className="analysis-vehicle-label">첫 추천 차량 · {first.vehicle.brand} {first.vehicle.model}</p>
       <p>{first.vehicle.trim} 구매 기준이에요. 다른 차량은 다음 화면에서 비교할 수 있어요.</p>
-      <div className="analysis-cash-change"><div><span>구매 전 예금</span><strong>{candidateMoney(financial.purchaseFunds)}</strong></div><ArrowRight size={theme.iconSize.md} aria-hidden /><div><span>구매 후 남는 예금</span><strong>{candidateMoney(financial.cashAfterPurchase)}</strong></div></div>
+      <div className="analysis-cash-change"><div><span>구매 전 목돈</span><strong>{candidateMoney(financial.purchaseFunds)}</strong></div><ArrowRight size={theme.iconSize.md} aria-hidden /><div><span>구매 후 남는 목돈</span><strong>{candidateMoney(financial.cashAfterPurchase)}</strong></div></div>
       <dl className="analysis-legend">
         <div><dt>차량 가격</dt><dd>{candidateMoney(financial.purchaseCost)}</dd></div>
         <div><dt>예상 월 유지비</dt><dd>{candidateMoney(financial.monthlyRunningCost)}</dd></div>
         <div><dt>유지비를 쓴 뒤 월 잔여금</dt><dd>{candidateMoney(financial.remainingMonthly)}</dd></div>
       </dl>
-      {financial.fundingSource === 'assets' && <p className="analysis-inline-notice">남은 예금에서 매달 {candidateMoney(financial.monthlyAssetDrawdown)}을 사용해요. 수입과 지출이 같다면 약 {financial.assetRunwayMonths}개월 유지할 수 있어요.</p>}
+      {financial.fundingSource === 'assets' && <p className="analysis-inline-notice">남은 목돈에서 매달 {candidateMoney(financial.monthlyAssetDrawdown)}을 사용해요. 수입과 지출이 같다면 약 {financial.assetRunwayMonths}개월 유지할 수 있어요.</p>}
     </article>}
   </section>;
 }

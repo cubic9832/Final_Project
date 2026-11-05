@@ -7,7 +7,7 @@ set -euo pipefail
 ML_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$ML_DIR")"
 PORT="${PORT:-8002}"
-RUN="${RUN:-outputs/models/scenario-choices/20261103-unified-managed-3m}"
+RUN="${RUN:-outputs/models/scenario-choices/20261104-specifications-completed}"
 PYTHON="${PYTHON:-$ML_DIR/.venv/bin/python}"
 
 if [ ! -x "$PYTHON" ]; then

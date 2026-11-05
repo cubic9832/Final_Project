@@ -1,0 +1,1364 @@
+{
+  "version": "vehicle-specifications-20261104",
+  "checked_on": "2026-11-04",
+  "scope": "All 381 published recommendation vehicles: length and seating coverage. Historical training exports unchanged.",
+  "vehicles": [
+    {
+      "identity": {
+        "id": "EXP2-19770fc945dbcb9d",
+        "brand": "포르쉐",
+        "model": "Cayenne",
+        "trim": "Black Edition AWD",
+        "year": "2027",
+        "fuel": "GASOLINE",
+        "price": 162900000,
+        "source_url": "https://www.porsche.com/korea/ko/models/cayenne/"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "공식 모델 개요의 가솔린 SUV 가격·연식·4륜구동·5인승 표기 확인. 전장 및 해당 연식 국내 공인연비는 미확인으로 둠. EU/WLTP 수치를 국내 연비로 전용하지 않음. MSRP이며 선택사양·의무 소화기 비용·취득등록비·운송료 제외. 실제 출고 가능 시점과 최종 견적은 별도 확인. 보험·세금·정비비와 미확인 연비는 기존 추정 정책 적용."
+      },
+      "updates": {
+        "length_mm": 4930,
+        "space_source_url": "https://newsroom.porsche.com/dam/jcr%3Aa9879e0a-eee0-46e3-b3aa-913d19014bcc/Vehicle%20information%20Cayenne%20S-GO%208100.pdf",
+        "source_note": "공식 모델 개요의 가솔린 SUV 가격·연식·4륜구동·5인승 표기 확인. 전장 및 해당 연식 국내 공인연비는 미확인으로 둠. EU/WLTP 수치를 국내 연비로 전용하지 않음. MSRP이며 선택사양·의무 소화기 비용·취득등록비·운송료 제외. 실제 출고 가능 시점과 최종 견적은 별도 확인. 보험·세금·정비비와 미확인 연비는 기존 추정 정책 적용. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "EXP2-a1f5ef9e2d29fd0a",
+        "brand": "GMC",
+        "model": "Sierra",
+        "trim": "DENALI SCARLET NIGHT 4WD",
+        "year": "2026",
+        "fuel": "GASOLINE",
+        "price": 96400000,
+        "source_url": "https://sierra.gmckorea.co.kr/purchase/onlineshop/car-configuration.gm?dmsModelCd=T1&salesSection=online"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "2026-10 공식 카탈로그의 트림별 가격 및 복합연비와 현재 온라인 견적 대조. 전장·숫자 정원은 이번 원문에서 미확인으로 남김. VAT 포함. 구매보조금·프로모션·취득등록비 제외. 월 보험·세금·정비비는 기존 추정 정책 적용."
+      },
+      "updates": {
+        "length_mm": 5890,
+        "space_source_url": "https://www.gmckorea.co.kr/content/dam/gmc/asia/kr/ko/index/owners-manuals/04-pdfs/11-Technical-Data.pdf",
+        "source_note": "2026-10 공식 카탈로그의 트림별 가격 및 복합연비와 현재 온라인 견적 대조. 전장·숫자 정원은 이번 원문에서 미확인으로 남김. VAT 포함. 구매보조금·프로모션·취득등록비 제외. 월 보험·세금·정비비는 기존 추정 정책 적용. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "EXP2-ae2b75d7c5d425a2",
+        "brand": "포르쉐",
+        "model": "Cayenne",
+        "trim": "기본 모델 AWD",
+        "year": "2027",
+        "fuel": "GASOLINE",
+        "price": 149900000,
+        "source_url": "https://www.porsche.com/korea/ko/models/cayenne/"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "공식 모델 개요의 가솔린 SUV 가격·연식·4륜구동·5인승 표기 확인. 전장 및 해당 연식 국내 공인연비는 미확인으로 둠. EU/WLTP 수치를 국내 연비로 전용하지 않음. MSRP이며 선택사양·의무 소화기 비용·취득등록비·운송료 제외. 실제 출고 가능 시점과 최종 견적은 별도 확인. 보험·세금·정비비와 미확인 연비는 기존 추정 정책 적용."
+      },
+      "updates": {
+        "length_mm": 4930,
+        "space_source_url": "https://newsroom.porsche.com/dam/jcr%3Aa9879e0a-eee0-46e3-b3aa-913d19014bcc/Vehicle%20information%20Cayenne%20S-GO%208100.pdf",
+        "source_note": "공식 모델 개요의 가솔린 SUV 가격·연식·4륜구동·5인승 표기 확인. 전장 및 해당 연식 국내 공인연비는 미확인으로 둠. EU/WLTP 수치를 국내 연비로 전용하지 않음. MSRP이며 선택사양·의무 소화기 비용·취득등록비·운송료 제외. 실제 출고 가능 시점과 최종 견적은 별도 확인. 보험·세금·정비비와 미확인 연비는 기존 추정 정책 적용. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "EXP2-d0496081273cfded",
+        "brand": "GMC",
+        "model": "Sierra",
+        "trim": "DENALI 4WD",
+        "year": "2026",
+        "fuel": "GASOLINE",
+        "price": 94200000,
+        "source_url": "https://sierra.gmckorea.co.kr/purchase/onlineshop/car-configuration.gm?dmsModelCd=T1&salesSection=online"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "2026-10 공식 카탈로그의 트림별 가격 및 복합연비와 현재 온라인 견적 대조. 전장·숫자 정원은 이번 원문에서 미확인으로 남김. VAT 포함. 구매보조금·프로모션·취득등록비 제외. 월 보험·세금·정비비는 기존 추정 정책 적용."
+      },
+      "updates": {
+        "length_mm": 5890,
+        "space_source_url": "https://www.gmckorea.co.kr/content/dam/gmc/asia/kr/ko/index/owners-manuals/04-pdfs/11-Technical-Data.pdf",
+        "source_note": "2026-10 공식 카탈로그의 트림별 가격 및 복합연비와 현재 온라인 견적 대조. 전장·숫자 정원은 이번 원문에서 미확인으로 남김. VAT 포함. 구매보조금·프로모션·취득등록비 제외. 월 보험·세금·정비비는 기존 추정 정책 적용. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "EXP2-d53a247834bc35a8",
+        "brand": "푸조",
+        "model": "308 SMART HYBRID",
+        "trim": "ALLURE",
+        "year": "",
+        "fuel": "HYBRID",
+        "price": 39900000,
+        "source_url": "https://www.epeugeot.co.kr/new-cars/308hybrid.html"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "현행 공식 시작가와 공식 출시 자료(https://base.epeugeot.co.kr/Board/Details/204)의 ALLURE 가격 39,900,000원 대조. 현행 페이지 제원은 GT 기준으로 명시되어 ALLURE 정원·전장·연비에 임의 전용하지 않음. 공식 브로슈어 다운로드는 서버 오류로 검수 보류. VAT 포함. 구매보조금·프로모션·취득등록비 제외. 월 보험·세금·정비비는 기존 추정 정책 적용."
+      },
+      "updates": {
+        "length_mm": 4365,
+        "space_source_url": "https://www.peugeot.co.uk/content/peugeot/worldwide/uk/en/index/models/308.html",
+        "source_note": "현행 공식 시작가와 공식 출시 자료(https://base.epeugeot.co.kr/Board/Details/204)의 ALLURE 가격 39,900,000원 대조. 현행 페이지 제원은 GT 기준으로 명시되어 ALLURE 정원·전장·연비에 임의 전용하지 않음. 공식 브로슈어 다운로드는 서버 오류로 검수 보류. VAT 포함. 구매보조금·프로모션·취득등록비 제외. 월 보험·세금·정비비는 기존 추정 정책 적용. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-10",
+        "brand": "현대",
+        "model": "아반떼 하이브리드",
+        "trim": "N Line · 1.6 HEV · 18인치",
+        "year": "2026",
+        "fuel": "HYBRID",
+        "price": 32310000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-hybrid-2026-price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4710,
+        "space_source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-catalog.pdf",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-11",
+        "brand": "현대",
+        "model": "아반떼 하이브리드",
+        "trim": "모던 · 1.6 HEV · 16인치",
+        "year": "2026",
+        "fuel": "HYBRID",
+        "price": 28300000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-hybrid-2026-price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4710,
+        "space_source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-catalog.pdf",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-114",
+        "brand": "기아",
+        "model": "카니발",
+        "trim": "X-Line",
+        "year": "",
+        "fuel": "GASOLINE",
+        "price": 45320000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_carnival.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5155,
+        "space_source_url": "https://www.kia.com/kr/vehicles/carnival/specification",
+        "seats": 9,
+        "seat_options": [
+          9
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_carnival.pdf",
+        "seats_label": "9인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-115",
+        "brand": "기아",
+        "model": "카니발",
+        "trim": "노블레스",
+        "year": "",
+        "fuel": "GASOLINE",
+        "price": 41210000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_carnival.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5155,
+        "space_source_url": "https://www.kia.com/kr/vehicles/carnival/specification",
+        "seats": 9,
+        "seat_options": [
+          9
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_carnival.pdf",
+        "seats_label": "9인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-116",
+        "brand": "기아",
+        "model": "카니발",
+        "trim": "시그니처",
+        "year": "",
+        "fuel": "GASOLINE",
+        "price": 44560000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_carnival.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5155,
+        "space_source_url": "https://www.kia.com/kr/vehicles/carnival/specification",
+        "seats": 9,
+        "seat_options": [
+          9
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_carnival.pdf",
+        "seats_label": "9인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-12",
+        "brand": "현대",
+        "model": "아반떼 하이브리드",
+        "trim": "모던 라이트 · 1.6 HEV · 16인치",
+        "year": "2026",
+        "fuel": "HYBRID",
+        "price": 25820000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-hybrid-2026-price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4710,
+        "space_source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-catalog.pdf",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-120",
+        "brand": "기아",
+        "model": "카니발 하이리무진",
+        "trim": "시그니처",
+        "year": "",
+        "fuel": "GASOLINE",
+        "price": 66670000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_carnival-hi-limousine.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5155,
+        "space_source_url": "https://www.kia.com/kr/vehicles/carnival-hi-limousine/specification",
+        "seats": 9,
+        "seat_options": [
+          9
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_carnival-hi-limousine.pdf",
+        "seats_label": "9인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음.",
+        "기존 normalized-vehicle-details.json의 66,670,000원 시그니처 기본사양이 9인승임을 확인. 현행 가격으로 덮어쓰지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-13",
+        "brand": "현대",
+        "model": "아반떼 하이브리드",
+        "trim": "스마트 · 1.6 HEV · 16인치",
+        "year": "2026",
+        "fuel": "HYBRID",
+        "price": 25550000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-hybrid-2026-price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4710,
+        "space_source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-catalog.pdf",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-14",
+        "brand": "현대",
+        "model": "아반떼 하이브리드",
+        "trim": "인스퍼레이션 · 1.6 HEV · 17인치",
+        "year": "2026",
+        "fuel": "HYBRID",
+        "price": 31610000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-hybrid-2026-price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4710,
+        "space_source_url": "https://www.hyundai.com/contents/repn-car/catalog/avante-catalog.pdf",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-158",
+        "brand": "현대",
+        "model": "넥쏘",
+        "trim": "Exclusive",
+        "year": "2027",
+        "fuel": "HYDROGEN",
+        "price": 79370000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/nexo-2027_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4750,
+        "space_source_url": "https://www.hyundai.com/kr/ko/event/event-hyundai-the-all-new-nexo-easy-start",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/nexo-2027_price.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-159",
+        "brand": "현대",
+        "model": "넥쏘",
+        "trim": "Modern",
+        "year": "2027",
+        "fuel": "HYDROGEN",
+        "price": 76470000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/nexo-2027_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4750,
+        "space_source_url": "https://www.hyundai.com/kr/ko/event/event-hyundai-the-all-new-nexo-easy-start",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/nexo-2027_price.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-160",
+        "brand": "현대",
+        "model": "넥쏘",
+        "trim": "Prestige",
+        "year": "2027",
+        "fuel": "HYDROGEN",
+        "price": 83790000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/nexo-2027_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4750,
+        "space_source_url": "https://www.hyundai.com/kr/ko/event/event-hyundai-the-all-new-nexo-easy-start",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/nexo-2027_price.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-167",
+        "brand": "현대",
+        "model": "더 뉴 스타리아",
+        "trim": "Modern",
+        "year": "",
+        "fuel": "LPG",
+        "price": 34120000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5255,
+        "space_source_url": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-hybrid/intro",
+        "seats": 3,
+        "seat_options": [
+          3
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria_price.pdf",
+        "seats_label": "3인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-168",
+        "brand": "현대",
+        "model": "더 뉴 스타리아",
+        "trim": "Smart",
+        "year": "",
+        "fuel": "LPG",
+        "price": 32590000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5255,
+        "space_source_url": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-hybrid/intro",
+        "seats": 3,
+        "seat_options": [
+          3
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria_price.pdf",
+        "seats_label": "3인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-170",
+        "brand": "현대",
+        "model": "더 뉴 스타리아 Hybrid",
+        "trim": "Modern",
+        "year": "",
+        "fuel": "HYBRID",
+        "price": 39990000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-hybrid_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "default_configuration": "가솔린 1.6 터보 하이브리드",
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5255,
+        "space_source_url": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-hybrid/intro",
+        "seats": 9,
+        "seat_options": [
+          9,
+          11
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-hybrid_price.pdf",
+        "seats_label": "9·11인승",
+        "seats_note": "9·11인승 투어러의 동일 트림·가격 공용 항목. 기본 구성은 9인승, 11인승도 선택 가능.",
+        "default_configuration": "Modern · 투어러 9인승",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-171",
+        "brand": "현대",
+        "model": "더 뉴 스타리아 Hybrid",
+        "trim": "Modern",
+        "year": "",
+        "fuel": "HYBRID",
+        "price": 37450000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-hybrid_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5255,
+        "space_source_url": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-hybrid/intro",
+        "seats": 2,
+        "seat_options": [
+          2
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-hybrid_price.pdf",
+        "seats_label": "2인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-172",
+        "brand": "현대",
+        "model": "더 뉴 스타리아 Hybrid",
+        "trim": "Smart",
+        "year": "",
+        "fuel": "HYBRID",
+        "price": 38700000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-hybrid_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "default_configuration": "가솔린 1.6 터보 하이브리드",
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5255,
+        "space_source_url": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-hybrid/intro",
+        "seats": 9,
+        "seat_options": [
+          9,
+          11
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-hybrid_price.pdf",
+        "seats_label": "9·11인승",
+        "seats_note": "9·11인승 투어러의 동일 트림·가격 공용 항목. 기본 구성은 9인승, 11인승도 선택 가능.",
+        "default_configuration": "Smart · 투어러 9인승",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-173",
+        "brand": "현대",
+        "model": "더 뉴 스타리아 Hybrid",
+        "trim": "Smart",
+        "year": "",
+        "fuel": "HYBRID",
+        "price": 36250000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-hybrid_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5255,
+        "space_source_url": "https://www.hyundai.com/kr/ko/e/vehicles/the-new-staria-hybrid/intro",
+        "seats": 2,
+        "seat_options": [
+          2
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-hybrid_price.pdf",
+        "seats_label": "2인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-176",
+        "brand": "현대",
+        "model": "더 뉴 스타리아 라운지 Electric",
+        "trim": "Prestige",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 63590000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-lounge-electric_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5255,
+        "space_source_url": "https://www.hyundai.fi/uutiset/hyundai-staria-electric-ensiesittelyssa-ylellinen-tila-auto-7-tai-9-paikkaisena/",
+        "seats": 7,
+        "seat_options": [
+          7
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/the-new-staria-lounge-electric_price.pdf",
+        "seats_label": "7인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-182",
+        "brand": "현대",
+        "model": "더 뉴 아이오닉 6",
+        "trim": "N Line",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 57450000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq6-pe_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4935,
+        "space_source_url": "https://ownersmanual.hyundai.com/full_webhelp/CE1/2025/ko_KR/topic_nqq_ssn_rzb.html",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq6-pe_price.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-183",
+        "brand": "현대",
+        "model": "더 뉴 아이오닉 6",
+        "trim": "롱레인지",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 50640000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq6-pe_price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4925,
+        "space_source_url": "https://ownersmanual.hyundai.com/full_webhelp/CE1/2025/ko_KR/topic_nqq_ssn_rzb.html",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq6-pe_price.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-224",
+        "brand": "현대",
+        "model": "아이오닉 9",
+        "trim": "Exclusive",
+        "year": "2027",
+        "fuel": "ELECTRIC",
+        "price": 67590000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq9-2027-price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5060,
+        "space_source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq9-catalog.pdf",
+        "seats": 7,
+        "seat_options": [
+          7
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq9-2027-price.pdf",
+        "seats_label": "7인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-225",
+        "brand": "현대",
+        "model": "아이오닉 9",
+        "trim": "Prestige",
+        "year": "2027",
+        "fuel": "ELECTRIC",
+        "price": 73250000.0,
+        "source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq9-2027-price.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5060,
+        "space_source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq9-catalog.pdf",
+        "seats": 7,
+        "seat_options": [
+          7
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.hyundai.com/contents/repn-car/catalog/ioniq9-2027-price.pdf",
+        "seats_label": "7인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-30",
+        "brand": "기아",
+        "model": "EV3",
+        "trim": "롱레인지",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 44150000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev3.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4300,
+        "space_source_url": "https://www.kia.com/kr/vehicles/ev3/specification",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev3.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-33",
+        "brand": "기아",
+        "model": "EV4",
+        "trim": "롱레인지",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 44620000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev4.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4730,
+        "space_source_url": "https://www.kia.com/kr/vehicles/ev4/specification",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev4.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-36",
+        "brand": "기아",
+        "model": "EV5",
+        "trim": "롱레인지",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 45750000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev5.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4610,
+        "space_source_url": "https://www.kia.com/kr/vehicles/ev5/specification",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev5.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-39",
+        "brand": "기아",
+        "model": "EV6",
+        "trim": "롱레인지",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 47600000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev6.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 4695,
+        "space_source_url": "https://www.kia.com/kr/vehicles/ev6/specification",
+        "seats": 5,
+        "seat_options": [
+          5
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev6.pdf",
+        "seats_label": "5인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-42",
+        "brand": "기아",
+        "model": "EV9",
+        "trim": "롱레인지",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 66420000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev9.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 5010,
+        "space_source_url": "https://www.kia.com/kr/vehicles/ev9/specification",
+        "seats": 7,
+        "seat_options": [
+          7
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ev9.pdf",
+        "seats_label": "7인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-6",
+        "brand": "기아",
+        "model": "모닝",
+        "trim": "GT-Line · 1.0 가솔린 · 16인치",
+        "year": "2027",
+        "fuel": "GASOLINE",
+        "price": 19110000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_morning.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 3595,
+        "space_source_url": "https://www.kia.com/kr/vehicles/morning/specification",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-7",
+        "brand": "기아",
+        "model": "모닝",
+        "trim": "시그니처 · 1.0 가솔린 · 16인치",
+        "year": "2027",
+        "fuel": "GASOLINE",
+        "price": 18160000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_morning.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 3595,
+        "space_source_url": "https://www.kia.com/kr/vehicles/morning/specification",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-8",
+        "brand": "기아",
+        "model": "모닝",
+        "trim": "트렌디 · 1.0 가솔린 · 14인치",
+        "year": "2027",
+        "fuel": "GASOLINE",
+        "price": 14210000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_morning.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 3595,
+        "space_source_url": "https://www.kia.com/kr/vehicles/morning/specification",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-84",
+        "brand": "기아",
+        "model": "레이 EV",
+        "trim": "라이트",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 28070000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ray-ev.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 3595,
+        "space_source_url": "https://www.kia.com/kr/vehicles/ray-ev/specification",
+        "seats": 4,
+        "seat_options": [
+          4
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ray-ev.pdf",
+        "seats_label": "4인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-85",
+        "brand": "기아",
+        "model": "레이 EV",
+        "trim": "에어",
+        "year": "",
+        "fuel": "ELECTRIC",
+        "price": 28620000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ray-ev.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "seats": null,
+        "seat_options": [],
+        "seats_status": "legacy-database",
+        "seats_source_url": null,
+        "seats_label": null,
+        "seats_note": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 3595,
+        "space_source_url": "https://www.kia.com/kr/vehicles/ray-ev/specification",
+        "seats": 4,
+        "seat_options": [
+          4
+        ],
+        "seats_status": "official-source-verified",
+        "seats_source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_ray-ev.pdf",
+        "seats_label": "4인승",
+        "seats_note": "공식 가격표의 해당 트림·판매가격·좌석 구성을 대조함.",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준.",
+        "좌석은 원본 가격표의 판매가격과 기본사양 연결 기준; 모델 전체 최대 정원을 일괄 적용하지 않음."
+      ]
+    },
+    {
+      "identity": {
+        "id": "legacy-db-9",
+        "brand": "기아",
+        "model": "모닝",
+        "trim": "프레스티지 · 1.0 가솔린 · 14인치",
+        "year": "2027",
+        "fuel": "GASOLINE",
+        "price": 16010000.0,
+        "source_url": "https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_morning.pdf"
+      },
+      "previous": {
+        "length_mm": null,
+        "space_source_url": null,
+        "source_note": "V3/V5 database seed import; original specifications preserved."
+      },
+      "updates": {
+        "length_mm": 3595,
+        "space_source_url": "https://www.kia.com/kr/vehicles/morning/specification",
+        "source_note": "V3/V5 database seed import; original specifications preserved. [2026-11-04 사양 보완: 전장·좌석에 관한 과거 미확인 표기는 현재 사양 및 출처 필드로 대체.]"
+      },
+      "evidence": [
+        "전장은 동일 세대 제조사 공식 제원 기준."
+      ]
+    }
+  ]
+}

@@ -37,6 +37,6 @@ export function buildCandidateHighlights(candidate, preferences = {}) {
   const chosen = important.length ? important : descriptions.filter(item => !['cost', 'purpose'].includes(item.key)).sort((a, b) => b.weight - a.weight).slice(0, 2);
   const result = chosen.map(item => item.text);
   if (!chosen.some(item => item.key === 'cost')) result.push(remaining);
-  if (result.length < 2) result.push(cost.monthly_payment ? '예금과 정한 소득 비율 안의 할부로 구매할 수 있어요.' : '현재 사용 가능한 예금으로 구매할 수 있어요.');
+  if (result.length < 2) result.push(cost.monthly_payment ? '목돈과 정한 소득 비율 안의 할부로 구매할 수 있어요.' : '현재 사용 가능한 목돈으로 구매할 수 있어요.');
   return result;
 }

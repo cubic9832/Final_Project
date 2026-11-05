@@ -31,7 +31,6 @@ import SignupPage from './pages/signup/SignupPage';
 import GoogleSignupPage from './pages/signup/GoogleSignupPage';
 import VehicleCatalogGate from './features/vehicle/components/VehicleCatalogGate';
 import { VehicleProvider } from './features/vehicle/VehicleContext';
-import { VehicleSearchPage } from './features/vehicle/pages/search/VehicleSearchPage';
 import { VehicleResultsPage } from './features/vehicle/pages/results/VehicleResultsPage';
 import VehicleDetailPage from './features/vehicle/pages/detail/VehicleDetailPage';
 import VehicleComparePage from './features/vehicle/pages/compare/VehicleComparePage';
@@ -87,7 +86,7 @@ function App() {
         <Route path="/financial/recommendations" element={<FinancialRecommendationsPage />} />
         <Route path="/companies" element={<CompanyListPage />} />
         <Route path="/companies/:code" element={<CompanyDetailPage />} />
-        <Route path="/search" element={<VehicleCatalogGate><VehicleSearchPage /></VehicleCatalogGate>} />
+        <Route path="/search" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />
         <Route path="/vehicles" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />
         <Route path="/vehicles/compare" element={<VehicleComparePage />} />
         <Route path="/vehicles/:id" element={<VehicleCatalogGate><VehicleDetailPage /></VehicleCatalogGate>} />

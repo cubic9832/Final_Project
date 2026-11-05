@@ -133,7 +133,7 @@ def load_service(directory, *, apply_specification_updates=True):
 def create_app(service=None):
     @asynccontextmanager
     async def lifespan(application):
-        application.state.candidates = service or load_service(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261103-unified-managed-3m')))
+        application.state.candidates = service or load_service(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261104-specifications-completed')))
         from vehicle_matching.managed_catalog import ManagedCatalog
         url=os.environ.get('ML_MANAGED_CATALOG_URL','http://127.0.0.1:8080/api/v1/vehicles/recommendation-catalog')
         from vehicle_matching.lifestyle_service import LifestyleService
@@ -142,7 +142,7 @@ def create_app(service=None):
         application.state.managed_catalog = ManagedCatalog(url) if service is None and url and not isinstance(application.state.candidates, (LifestyleService,ScenarioService,UiScenarioService)) else None
         application.state.snapshot_guard = None
         if service is None and url and isinstance(application.state.candidates, UiScenarioService):
-            model_path = Path(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261103-unified-managed-3m')))
+            model_path = Path(os.environ.get('ML_CANDIDATE_RUN', str(ROOT / 'ml/outputs/models/scenario-choices/20261104-specifications-completed')))
             metadata = json.loads((model_path / 'metadata.json').read_text(encoding='utf-8'))
             if metadata['training'].get('catalog_origin') == 'managed-database':
                 from vehicle_matching.managed_catalog import ManagedSnapshotGuard

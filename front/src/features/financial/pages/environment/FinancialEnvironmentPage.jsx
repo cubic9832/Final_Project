@@ -9,7 +9,7 @@ import useRecommendationOptions from '../../useRecommendationOptions.js';
 
 export default function FinancialEnvironmentPage() {
   const { state: routeState } = useLocation();
-  const [state] = useState(() => ({ ...readFinancialSession(), ...routeState }));
+  const [state, setState] = useState(() => ({ ...readFinancialSession(), ...routeState }));
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState(() => createVehiclePreferences(state?.vehicle));
   const [step, setStep] = useState(() => Math.max(0, Number(routeState?.environmentStep) || 0));
@@ -33,5 +33,5 @@ export default function FinancialEnvironmentPage() {
     onChange={value => setVehicle(previous => recordSurveyAnswer(previous, question.id, value))}
     onBack={() => index ? setStep(index - 1) : navigate('/financial', { state: { ...diagnosis, financialStep: 4 } })}
     onNext={next} nextLabel={index === questions.length - 1 ? '이제 차량 취향 고르기' : '다음'}
-    disabled={index === questions.length - 1 && !options} error={error} loading={!options && !error} diagnosis={diagnosis} summaryItems={surveySummary(questions, vehicle)} onEditSummary={editSummary} />;
+    disabled={index === questions.length - 1 && !options} error={error} loading={!options && !error} diagnosis={diagnosis} onBudgetChange={changes => { setState(previous => ({ ...previous, ...changes })); saveFinancialSession(changes); }} summaryItems={surveySummary(questions, vehicle)} onEditSummary={editSummary} />;
 }
