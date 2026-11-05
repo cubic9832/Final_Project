@@ -498,3 +498,11 @@
   max-width: 720px;
   margin-inline: auto;
 }
+
+/* 11-05: 개인 정보 안내 상자 — 첫 문장이 5px 모자라 "니다." 만 다음 줄로 넘어갔다
+   → 두 칸 사이 간격(40px) 쪽으로 16px 만 왼쪽으로 늘린다 (글자 시작은 왼쪽 이름표와 거의 같은 자리). 한 칸으로 쌓이는 좁은 화면은 그대로 */
+@media (min-width: 961px) {
+  .signup-columns .signup-privacy-note {
+    margin-left: -16px;
+  }
+}
