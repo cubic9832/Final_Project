@@ -66,6 +66,35 @@ export default function AdminChatPanel() {
     getAdminRooms('').then((rooms) => setSelected(rooms.find((room) => room.id === selectedId) ?? null)).catch(() => {});
   }, [selectedId, version]);
 
+  // 11-05: 내가 맡은 진행 중 상담은 맨 위에 모아 둔다 (여러 개 맡으면 찾기 어려워서). 각 묶음 안은 서버 순서(최근 메시지 순) 그대로
+  const isMine = (room) => room.status === 'ACTIVE' && room.assignedAdminId === me?.id;
+  const mineRooms = list.rooms.filter(isMine);
+  const otherRooms = list.rooms.filter((room) => !isMine(room));
+
+  function renderRoom(room) {
+    return (
+      <li key={room.id}>
+        <button type="button" className={[selectedId === room.id && 'is-selected', isMine(room) && 'is-mine'].filter(Boolean).join(' ') || undefined}
+          onClick={() => setSelectedId(room.id)}>
+          <span className="admin-chat-row">
+            <strong>{room.userNickName}</strong>
+            <span className="admin-chat-badges">
+              {room.reportCount > 0 && <span className="admin-chat-badge is-restricted">신고 {room.reportCount}</span>}
+              {room.warningCount > 0 && <span className="admin-chat-badge is-warned">경고 {room.warningCount}</span>}
+              {room.restricted && <span className="admin-chat-badge is-restricted">제한</span>}
+              <span className={`admin-chat-badge is-${room.status.toLowerCase()}`}>{STATUS_LABELS[room.status]}</span>
+            </span>
+          </span>
+          <span className="admin-chat-preview">{room.lastMessage ?? '메시지 없음'}</span>
+          <span className="admin-chat-meta">
+            {room.assignedAdminNickName ? `담당 ${room.assignedAdminId === me?.id ? '나' : room.assignedAdminNickName}` : '담당 없음'}
+            {' · '}{shortTime(room.lastMessageAt ?? room.createdAt)}
+          </span>
+        </button>
+      </li>
+    );
+  }
+
   return (
     <div className="admin-chat">
       {/* 상담원별 만족도 · 신고 — 총관리자만 (신고당한 상담원 본인이 보지 않게) */}
@@ -81,26 +110,11 @@ export default function AdminChatPanel() {
         {list.status === 'error' && <p className="admin-chat-note is-error">{list.error}</p>}
         {list.status === 'done' && list.rooms.length === 0 && <p className="admin-chat-note">상담이 없습니다.</p>}
         <ul>
-          {list.rooms.map((room) => (
-            <li key={room.id}>
-              <button type="button" className={selectedId === room.id ? 'is-selected' : undefined} onClick={() => setSelectedId(room.id)}>
-                <span className="admin-chat-row">
-                  <strong>{room.userNickName}</strong>
-                  <span className="admin-chat-badges">
-                    {room.reportCount > 0 && <span className="admin-chat-badge is-restricted">신고 {room.reportCount}</span>}
-                    {room.warningCount > 0 && <span className="admin-chat-badge is-warned">경고 {room.warningCount}</span>}
-                    {room.restricted && <span className="admin-chat-badge is-restricted">제한</span>}
-                    <span className={`admin-chat-badge is-${room.status.toLowerCase()}`}>{STATUS_LABELS[room.status]}</span>
-                  </span>
-                </span>
-                <span className="admin-chat-preview">{room.lastMessage ?? '메시지 없음'}</span>
-                <span className="admin-chat-meta">
-                  {room.assignedAdminNickName ? `담당 ${room.assignedAdminId === me?.id ? '나' : room.assignedAdminNickName}` : '담당 없음'}
-                  {' · '}{shortTime(room.lastMessageAt ?? room.createdAt)}
-                </span>
-              </button>
-            </li>
-          ))}
+          {/* 내 상담이 있을 때만 묶음 이름을 단다 (없으면 예전처럼 목록만) */}
+          {mineRooms.length > 0 && <li className="admin-chat-group">내 상담 {mineRooms.length}</li>}
+          {mineRooms.map(renderRoom)}
+          {mineRooms.length > 0 && otherRooms.length > 0 && <li className="admin-chat-group">다른 상담</li>}
+          {otherRooms.map(renderRoom)}
         </ul>
       </section>
 
