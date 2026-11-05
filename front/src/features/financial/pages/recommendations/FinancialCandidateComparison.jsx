@@ -4,10 +4,10 @@ import CandidateComparisonTable from './CandidateComparisonTable.jsx';
 import { buildRecommendationView } from './buildRecommendationView.js';
 import './FinancialRecommendationsPage.css';
 
-export default function FinancialCandidateComparison({ result, diagnosis, selectedIds, canToggleVehicles = true, recommendationState, presetViews, children }) {
+export default function FinancialCandidateComparison({ result, diagnosis, selectedIds, canToggleVehicles = true, recommendationState, comparisonViews, children }) {
   const views = isFinancialRecommendationResult(result) ? buildRecommendationView(result) : [];
-  const selected = presetViews ?? (selectedIds ?? []).map(id => views.find(view => view.id === id)).filter(Boolean);
-  if (!selected.length || (!presetViews && !diagnosis?.values)) return <section className="financial-recommendations-empty">
+  const selected = comparisonViews ?? (selectedIds ?? []).map(id => views.find(view => view.id === id)).filter(Boolean);
+  if (!selected.length || (!comparisonViews && !diagnosis?.values)) return <section className="financial-recommendations-empty">
     <h1>추천 비교 정보를 확인할 수 없습니다.</h1><p>선택한 차량 정보를 찾을 수 없어요. 추천 결과에서 차량을 다시 선택해 주세요.</p>
     <Link to="/financial">재무 정보 입력하기</Link>
   </section>;
