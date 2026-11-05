@@ -10,6 +10,7 @@ import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
 import ProfilePage from '../mypage/ProfilePage';
 import './AdminPage.css';
+import './AdminAccountPage.css';
 
 // 11-05: /console/account — 관리자 · 총관리자의 개인정보 · 계정 관리 (닉네임 · 비밀번호 · 로그인 기기)
 // 관리자 화면 규칙(보완 11 · 12)대로 공통 헤더 없이, 위쪽 줄은 관리자 대시보드(AdminPage)와 같은 클래스로 같은 모양
@@ -28,7 +29,8 @@ export default function AdminAccountPage() {
   }
 
   return <div className="admin-page">
-    <div className="admin-workspace-heading"><div><h1>관리자 대시보드</h1></div>
+    {/* 제목 "관리자 대시보드" 는 넣지 않는다 (돌아가는 버튼과 겹침). 이름 · 버튼은 아래 계정 관리 폭(960px)의 오른쪽 끝에 맞춘다 */}
+    <div className="admin-workspace-heading admin-account-top">
       <div className="admin-account-bar">
         <span className="admin-account-name"><strong>{member?.nickName}</strong>{ROLE_LABELS[member?.role]}</span>
         <Link className="admin-outline-button" to="/console"><LayoutDashboard size={theme.iconSize.sm} aria-hidden="true" />관리자 대시보드</Link>
