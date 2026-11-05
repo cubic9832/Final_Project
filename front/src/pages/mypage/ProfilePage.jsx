@@ -2,7 +2,7 @@
 // 위: 개인정보 수정 — 한 상자 안에 왼쪽 기본 정보 + 차량 구매 정보, 오른쪽 개인 정보. 제목 줄 [저장] 이 바뀐 항목을 한 번에 저장
 // 아래: 계정 관리 (로그인 = 방법 + 로그인된 기기 · 비밀번호 변경 · 이메일 알림 · 회원 탈퇴) — 마이페이지에서 옮겨 옴, 팝업은 그대로
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
   changePassword,
   checkNickName,
@@ -63,7 +63,8 @@ function changedFields(form, me) {
   });
 }
 
-export default function ProfilePage() {
+// inConsole: 관리자 대시보드 안(/console/account, AdminAccountPage)에서 그릴 때 true — 11-05
+export default function ProfilePage({ inConsole = false }) {
   const navigate = useNavigate();
   const { clearFavorites } = useVehicle();
   const [me, setMe] = useState(null);                   // 서버의 내 정보 (저장하면 새 값으로 바뀜)
@@ -325,6 +326,10 @@ export default function ProfilePage() {
   const changed = changedFields(form, me);
   // 11-05: 관리자 · 총관리자는 관리자 대시보드 [내 계정] 으로 들어온다 → 회원용 칸(차량 구매 정보 · 이메일 알림)은 숨기고 돌아갈 곳은 대시보드
   const isAdmin = isAdminRole(me.role);
+  // 11-05: 관리자가 회원 주소(/mypage/profile)로 오면 공통 헤더 없는 관리자 화면으로 옮긴다 (관리자 화면 규칙 — 보완 11 · 12)
+  if (isAdmin && !inConsole) {
+    return <Navigate to="/console/account" replace />;
+  }
   const ageError = errors.birthDate && form.birthDate && getAge(form.birthDate) < MIN_SIGNUP_AGE;
   const otherSessions = sessions.filter((session) => !session.current);
   const notification = agreement ? agreement.emailNotification : 'IMPORTANT';

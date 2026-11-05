@@ -55,8 +55,8 @@ export default function AdminPage() {
     <div className="admin-workspace-heading"><div><h1>관리자 대시보드</h1></div>
       <div className="admin-account-bar">
         <span className="admin-account-name"><strong>{member?.nickName}</strong>{ROLE_LABELS[member?.role]}</span>
-        {/* 11-05: 관리자 계정의 닉네임 · 비밀번호 · 로그인 기기 관리 — 회원과 같은 계정 관리 화면(관리자 모드)을 쓴다 */}
-        <Link className="admin-outline-button" to="/mypage/profile"><UserRound size={theme.iconSize.sm} aria-hidden="true" />내 계정</Link>
+        {/* 11-05: 관리자 계정의 닉네임 · 비밀번호 · 로그인 기기 관리 — 회원과 같은 계정 관리 화면(관리자 모드)을 공통 헤더 없이 (AdminAccountPage) */}
+        <Link className="admin-outline-button" to="/console/account"><UserRound size={theme.iconSize.sm} aria-hidden="true" />내 계정</Link>
         <button className="admin-outline-button" type="button" onClick={() => setIsLogoutOpen(true)}><LogOut size={theme.iconSize.sm} aria-hidden="true" />로그아웃</button>
       </div>
     </div>

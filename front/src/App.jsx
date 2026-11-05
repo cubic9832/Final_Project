@@ -21,6 +21,7 @@ import FinancialResultPage from './features/financial/pages/result/FinancialResu
 import RecommendationDetailsPage from './features/financial/pages/recommendations/RecommendationDetailsPage';
 import FinancialRecommendationsPage from './features/financial/pages/recommendations/FinancialRecommendationsPage';
 import AdminPage from './pages/admin/AdminPage';
+import AdminAccountPage from './pages/admin/AdminAccountPage';
 import ConsultationPage from './pages/consultation/ConsultationPage';
 import MyPage from './pages/mypage/MyPage';
 import ProfilePage from './pages/mypage/ProfilePage';
@@ -99,6 +100,7 @@ function App() {
       {/* 관리자 로그인 화면은 없앴다: 관리자도 일반 로그인(/login) 후 헤더 · 마이페이지의 "관리자 대시보드" 로 들어온다 */}
       <Route path="/console" element={<RequireAdmin />}>
         <Route index element={<AdminPage />} />
+        <Route path="account" element={<AdminAccountPage />} />
       </Route>
     </Routes>
     </VehicleProvider>
