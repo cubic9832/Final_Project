@@ -1,4 +1,5 @@
 .financial-recommendations-page { width: 100%; max-width: var(--layout-max-width); margin: 0 auto; padding: var(--space-8) 0 var(--space-48); color: var(--color-primary); animation: recommendations-fade-in 400ms ease-out; }
+.financial-recommendations-page.financial-comparison-page { animation: none; }
 .recommendations-heading { margin-bottom: var(--space-24); }
 .recommendations-heading h1 { font-size: var(--font-page-title); line-height: 1.5; letter-spacing: -0.8px; }
 .recommendations-heading p { margin-top: var(--space-8); color: var(--color-muted); font-size: var(--font-body); line-height: 1.5; }
