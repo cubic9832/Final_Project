@@ -35,6 +35,15 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private static final Set<String> ADMIN_ROLES = Set.of("ADMIN", "SUPER_ADMIN");
     private static final DateTimeFormatter UNTIL_FORMAT = DateTimeFormatter.ofPattern("M월 d일 HH:mm"); // 제한 안내
 
+    // 11-05 (멘토링): 회원이 [상담 종료]를 안 누르고 떠나도 상담이 계속 열려 있지 않게
+    static final int IDLE_WARN_MINUTES = 10;   // 상담원 답 뒤 회원이 이만큼 조용하면 경고
+    static final int IDLE_CLOSE_MINUTES = 5;   // 경고 뒤 이만큼 더 조용하면 자동 종료
+    static final int REOPEN_COOLDOWN_MINUTES = 3; // 종료 뒤 이만큼 지나야 [새로 상담하기] (열었다 닫았다 반복 막기)
+    // 경고 문구 = 자동 종료 대상을 찾는 표시 (마지막 메시지가 이 SYSTEM 문구인 방) — 바꾸면 이미 경고받은 방은 다시 경고부터
+    static final String IDLE_WARNING = "회원님의 답이 " + IDLE_WARN_MINUTES + "분 동안 없어요. "
+            + IDLE_CLOSE_MINUTES + "분 안에 답이 없으면 상담이 자동으로 종료됩니다.";
+    static final String UNRESTRICTED_NOTICE = "상담 제한이 풀렸습니다. [새로 상담하기]로 다시 상담할 수 있어요.";
+
     private final ChatMapper chatMapper;
     private final ChatBroadcaster broadcaster;
     private final CurrentRoleLookup currentRoleLookup;
@@ -72,7 +81,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             chatMapper.insertRoom(room);
             system(room.getId(), "상담을 요청했습니다. 상담원이 연결되면 이곳에서 대화할 수 있어요.");
             broadcaster.roomChanged(room.getId(), ChatRoomDto.WAITING);
-        } else if (ChatRoomDto.CLOSED.equals(room.getStatus()) && chatMapper.reopen(room.getId()) == 1) {
+        } else if (ChatRoomDto.CLOSED.equals(room.getStatus())) {
+            // 11-05: 종료 직후면 0줄 → 잠시 뒤에 다시 (제한은 위에서 걸렀다)
+            //        단, 관리자가 [제한 풀기] 한 직후는 바로 (풀기 안내도 마지막 메시지 시각을 바꾸기 때문)
+            int cooldown = UNRESTRICTED_NOTICE.equals(room.getLastMessage()) ? 0 : REOPEN_COOLDOWN_MINUTES;
+            if (chatMapper.reopen(room.getId(), cooldown) == 0) {
+                throw new ApiException(HttpStatus.CONFLICT, "CHAT_COOLDOWN",
+                        "상담이 끝나고 " + REOPEN_COOLDOWN_MINUTES + "분이 지나면 새로 상담할 수 있어요. 잠시 후 다시 눌러 주세요.");
+            }
             system(room.getId(), "새 상담을 요청했습니다. 상담원이 연결되면 알려 드릴게요.");
             broadcaster.roomChanged(room.getId(), ChatRoomDto.WAITING);
         }
@@ -273,7 +289,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         }
         chatMapper.unrestrict(roomId);
         adminAuditLogMapper.insert(actorId, "CHAT_UNRESTRICT", "MEMBER", room.getUserId(), "상담 제한 풀기");
-        system(roomId, "상담 제한이 풀렸습니다. [새로 상담하기]로 다시 상담할 수 있어요.");
+        system(roomId, UNRESTRICTED_NOTICE);
         broadcaster.roomChanged(roomId, ChatRoomDto.CLOSED);
     }
 
@@ -304,6 +320,23 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     @Transactional
     public void closeForWithdrawal(Long userId) {
         closeRoomOf(userId, "회원이 탈퇴하여 상담이 종료되었습니다.");
+    }
+
+    // 11-05 (멘토링): 무응답 상담 정리 — 먼저 경고받고도 조용한 방을 닫고, 그다음 새로 조용해진 방에 경고
+    // 자동 종료도 보통 종료처럼 만족도를 받는다 (상담원이 맡았던 상담이니까). 관리자가 한 일이 아니라 운영 로그는 남기지 않는다
+    @Override
+    @Transactional
+    public void handleIdleRooms() {
+        for (Long roomId : chatMapper.findIdleRoomIds(ChatMessageDto.SYSTEM, IDLE_WARNING, IDLE_CLOSE_MINUTES)) {
+            if (chatMapper.close(roomId) == 1) { // 그 사이 다른 사람이 닫았으면 0줄 → 건너뜀
+                system(roomId, "답이 없어 상담이 자동으로 종료되었습니다. 더 궁금한 점이 있으면 [새로 상담하기]를 눌러 주세요.");
+                broadcaster.roomChanged(roomId, ChatRoomDto.CLOSED);
+            }
+        }
+        for (Long roomId : chatMapper.findIdleRoomIds(ChatMessageDto.ADMIN, null, IDLE_WARN_MINUTES)) {
+            system(roomId, IDLE_WARNING);
+            broadcaster.roomChanged(roomId, ChatRoomDto.ACTIVE);
+        }
     }
 
     // 회원의 대기 · 진행 중 상담을 닫고 안내 문구를 남긴다 (이미 종료됐거나 상담이 없으면 아무것도 안 함)

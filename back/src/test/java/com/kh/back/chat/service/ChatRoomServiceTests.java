@@ -90,10 +90,56 @@ class ChatRoomServiceTests {
     @Test
     void 종료된_상담에서_새로_상담하면_대기로_되돌린다() {
         room(ChatRoomDto.CLOSED, ADMIN);
-        when(chatMapper.reopen(ROOM)).thenReturn(1);
+        when(chatMapper.reopen(ROOM, ChatRoomServiceImpl.REOPEN_COOLDOWN_MINUTES)).thenReturn(1);
         service.startConsultation(MEMBER);
-        verify(chatMapper).reopen(ROOM);
+        verify(chatMapper).reopen(ROOM, ChatRoomServiceImpl.REOPEN_COOLDOWN_MINUTES);
         verify(broadcaster).roomChanged(ROOM, ChatRoomDto.WAITING);
+    }
+
+    @Test
+    void 종료_직후에는_잠시_뒤에_새로_상담할_수_있다() { // 11-05 멘토링: 열었다 닫았다 반복 막기
+        room(ChatRoomDto.CLOSED, ADMIN);
+        when(chatMapper.reopen(ROOM, ChatRoomServiceImpl.REOPEN_COOLDOWN_MINUTES)).thenReturn(0); // 아직 3분 안 지남
+        assertCode(() -> service.startConsultation(MEMBER), "CHAT_COOLDOWN");
+        verify(broadcaster, never()).roomChanged(anyLong(), anyString());
+    }
+
+    @Test
+    void 제한을_풀어_준_직후에는_기다리지_않고_새로_상담할_수_있다() {
+        ChatRoomDto room = room(ChatRoomDto.CLOSED, ADMIN);
+        room.setLastMessage(ChatRoomServiceImpl.UNRESTRICTED_NOTICE);
+        when(chatMapper.reopen(ROOM, 0)).thenReturn(1);
+        service.startConsultation(MEMBER);
+        verify(chatMapper).reopen(ROOM, 0);
+    }
+
+    @Test
+    void 상담원_답_뒤_조용하면_경고하고_경고_뒤에도_조용하면_자동_종료한다() { // 11-05 멘토링
+        when(chatMapper.findIdleRoomIds(ChatMessageDto.SYSTEM, ChatRoomServiceImpl.IDLE_WARNING, ChatRoomServiceImpl.IDLE_CLOSE_MINUTES))
+                .thenReturn(List.of(11L));
+        when(chatMapper.findIdleRoomIds(ChatMessageDto.ADMIN, null, ChatRoomServiceImpl.IDLE_WARN_MINUTES)).thenReturn(List.of(12L));
+        when(chatMapper.close(11L)).thenReturn(1);
+
+        service.handleIdleRooms();
+
+        verify(broadcaster).roomChanged(11L, ChatRoomDto.CLOSED); // 경고받은 방 → 종료
+        verify(broadcaster).roomChanged(12L, ChatRoomDto.ACTIVE); // 새로 조용해진 방 → 경고만
+        verify(chatMapper, never()).close(12L);
+        ArgumentCaptor<ChatMessageDto> saved = ArgumentCaptor.forClass(ChatMessageDto.class);
+        verify(chatMapper, org.mockito.Mockito.times(2)).insertMessage(saved.capture());
+        assertThat(saved.getAllValues()).extracting(ChatMessageDto::getContent)
+                .anySatisfy(text -> assertThat(text).contains("자동으로 종료되었습니다"))
+                .contains(ChatRoomServiceImpl.IDLE_WARNING);
+        verify(adminAuditLogMapper, never()).insert(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void 그_사이_이미_종료된_방은_자동_종료_안내를_남기지_않는다() {
+        when(chatMapper.findIdleRoomIds(ChatMessageDto.SYSTEM, ChatRoomServiceImpl.IDLE_WARNING, ChatRoomServiceImpl.IDLE_CLOSE_MINUTES))
+                .thenReturn(List.of(11L));
+        when(chatMapper.close(11L)).thenReturn(0);
+        service.handleIdleRooms();
+        verify(chatMapper, never()).insertMessage(any());
     }
 
     @Test
@@ -215,7 +261,7 @@ class ChatRoomServiceTests {
                     assertThat(e.getCode()).isEqualTo("CHAT_RESTRICTED");
                     assertThat(e.getMessage()).contains("11월 2일 15:00");
                 });
-        verify(chatMapper, never()).reopen(anyLong());
+        verify(chatMapper, never()).reopen(anyLong(), org.mockito.ArgumentMatchers.anyInt());
     }
 
     @Test

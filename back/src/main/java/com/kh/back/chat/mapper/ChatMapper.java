@@ -23,7 +23,11 @@ public interface ChatMapper {
     void insertRoom(ChatRoomDto room);
 
     // 상태 바꾸기는 "지금 상태" 를 조건으로 건다 → 두 관리자가 동시에 눌러도 한 명만 성공 (바뀐 줄 수로 판단)
-    int reopen(@Param("roomId") Long roomId);
+    // 11-05: 종료 뒤 cooldownMinutes 분이 지나야 다시 열린다
+    int reopen(@Param("roomId") Long roomId, @Param("cooldownMinutes") int cooldownMinutes);
+
+    // 11-05: 무응답 상담 (마지막 메시지가 senderType · content 이고 minutes 분 지난 진행 중 상담)
+    List<Long> findIdleRoomIds(@Param("senderType") String senderType, @Param("content") String content, @Param("minutes") int minutes);
 
     int assign(@Param("roomId") Long roomId, @Param("adminId") Long adminId);
 

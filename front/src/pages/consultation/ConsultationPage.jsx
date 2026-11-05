@@ -35,7 +35,8 @@ export default function ConsultationPage() {
   }, [loadRoom]);
 
   const { room } = state;
-  const chat = useChatRoom(room?.id, loadRoom);
+  // 11-05: 종료된 상담은 WebSocket 을 닫는다 (수신 중 표시도 숨김)
+  const chat = useChatRoom(room?.id, loadRoom, room?.status !== 'CLOSED');
 
   // [상담 시작] · [새로 상담하기] → 대기
   async function handleStart() {
@@ -103,7 +104,7 @@ export default function ConsultationPage() {
               <span className={`consult-badge is-${room.status.toLowerCase()}`}>{STATUS_LABELS[room.status]}</span>
               {/* 오른쪽: 수신 상태 + 버튼 한 줄 (대화창 위에 따로 두면 빈 줄이 생긴다) */}
               <div className="consult-status-actions">
-                <ConnectionStatus connected={chat.connected} />
+                {room.status !== 'CLOSED' && <ConnectionStatus connected={chat.connected} />}
                 {room.status === 'CLOSED'
                   ? <button type="button" className="consult-button" onClick={handleStart} disabled={busy || room.restricted}>새로 상담하기</button>
                   : <button type="button" className="consult-outline" onClick={() => setConfirmingClose(true)} disabled={busy}>상담 종료</button>}

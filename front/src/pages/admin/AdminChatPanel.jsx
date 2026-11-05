@@ -116,7 +116,8 @@ export default function AdminChatPanel() {
 // 오른쪽: 선택한 상담 — 회원 정보 · [맡기] · [넘기기] · [상담 종료] · [경고] · [상담 제한] + 대화
 function RoomDetail({ room, meId, isSuper, onChanged }) {
   const navigate = useNavigate();
-  const chat = useChatRoom(room.id, onChanged);
+  // 11-05: 종료된 상담은 지난 대화만 (WebSocket 닫음) — 회원이 다시 요청하면 목록 알림으로 room 이 바뀌어 다시 연결된다
+  const chat = useChatRoom(room.id, onChanged, room.status !== 'CLOSED');
   // 한 번만 보내고, 성공하면 목록을 다시 불러와 이 상담(room)이 바뀔 때까지 잠근다 (맡기 · 종료 등이 두 번 가지 않게)
   const lock = useActionLock(room);
   const busy = lock.locked;
@@ -197,7 +198,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
           )}
         </div>
         {/* 11-04: 수신 상태는 버튼 줄 오른쪽 끝(대화창 바로 위) — 대화창 위 따로 한 줄을 대화 공간으로 돌린다 */}
-        <ConnectionStatus connected={chat.connected} />
+        {room.status !== 'CLOSED' && <ConnectionStatus connected={chat.connected} />}
       </div>
 
       {confirm && <ChatConfirmModal {...confirm} onClose={() => setConfirm(null)} />}
