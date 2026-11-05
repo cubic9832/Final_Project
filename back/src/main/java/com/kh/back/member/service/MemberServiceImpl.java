@@ -1,12 +1,10 @@
 package com.kh.back.member.service;
 
 import com.kh.back.member.dto.ProfileUpdateRequest;
-import com.kh.back.member.dto.UserAgreementDto;
 import com.kh.back.member.dto.UserProfileDto;
 import com.kh.back.member.dto.MemberDto;
 import com.kh.back.member.dto.MemberResponse;
 import com.kh.back.member.mapper.MemberMapper;
-import com.kh.back.member.mapper.UserAgreementMapper;
 import com.kh.back.member.mapper.UserProfileMapper;
 
 import com.kh.back.auth.service.NickNamePolicy;
@@ -15,7 +13,6 @@ import com.kh.back.auth.mapper.RefreshTokenMapper;
 import com.kh.back.chat.service.ChatRoomService;
 import com.kh.back.common.exception.ApiException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,7 +32,6 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberMapper memberMapper;
     private final UserProfileMapper userProfileMapper;
-    private final UserAgreementMapper userAgreementMapper; // 보완 9
     private final PasswordEncoder passwordEncoder;
     private final PasswordChangeLimiter passwordChangeLimiter; // 보완 4 추가: 비밀번호 변경과 같은 "현재 비밀번호 틀린 횟수"
     private final RefreshTokenMapper refreshTokenMapper;
@@ -135,27 +131,6 @@ public class MemberServiceImpl implements MemberService {
             userProfileMapper.upsert(profile, changed); // 닉네임만 바꿨으면 개인정보 표는 건드리지 않는다
         }
         return MemberResponse.from(member, profile);
-    }
-
-    // 보완 9: 가입 동의 기록 · 이메일 알림
-    @Override
-    @Transactional(readOnly = true)
-    public UserAgreementDto getAgreement(Long userId) {
-        UserAgreementDto saved = userAgreementMapper.findByUserId(userId);
-        return saved != null ? saved : UserAgreementDto.empty(userId);
-    }
-
-    // ALL(추천 업데이트까지)로 바꾸면 그때를 수신 동의 시각으로 남기고(이미 ALL 이면 처음 시각 유지), 다른 범위면 지운다
-    @Override
-    @Transactional
-    public UserAgreementDto updateNotification(Long userId, String emailNotification) {
-        findMember(userId);
-        UserAgreementDto current = getAgreement(userId);
-        LocalDateTime updatesAgreedAt = !"ALL".equals(emailNotification) ? null
-                : ("ALL".equals(current.getEmailNotification()) && current.getUpdatesAgreedAt() != null
-                        ? current.getUpdatesAgreedAt() : LocalDateTime.now());
-        userAgreementMapper.upsertNotification(userId, emailNotification, updatesAgreedAt);
-        return getAgreement(userId);
     }
 
     private static String blankToNull(String value) {

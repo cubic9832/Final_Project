@@ -70,8 +70,6 @@ public class SignupRequest {
     @AssertTrue(message = "개인정보 수집·이용에 동의해 주세요.")
     private boolean privacyAgreed;
 
-    // [선택] 차량 추천 업데이트 수신 — 체크하면 이메일 알림 ALL, 안 하면 IMPORTANT
-    private boolean updatesAgreed;
 
     public void setNickName(String nickName) {
         this.nickName = nickName == null ? null : nickName.trim();

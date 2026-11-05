@@ -11,7 +11,7 @@ import {
   logoutOtherSessions,
   logoutSession,
 } from '../../features/auth/authApi';
-import { getAgreement, getMe, updateNotification, updateProfile, withdraw } from '../../features/auth/memberApi';
+import { getMe, updateProfile, withdraw } from '../../features/auth/memberApi';
 import { checkNickNameWords } from '../../features/auth/nickNamePolicy';
 import { isAdminRole } from '../../features/auth/roles';
 import { useVehicle } from '../../features/vehicle/useVehicle';
@@ -21,11 +21,9 @@ import BirthDateInput from '../signup/BirthDateInput';
 import { formatPhone, GENDER_OPTIONS, getAge, MIN_SIGNUP_AGE, validateBirthDate, validatePhone } from '../signup/profileRules';
 import AccountManageModal from './AccountManageModal';
 import { CardError, CardLoading } from './CardStatus';
-import EmailNotificationModal from './EmailNotificationModal';
-import { NOTIFICATION_OPTIONS } from './notificationOptions';
 import PasswordChangeModal from './PasswordChangeModal';
 import PasswordResetModal from '../login/PasswordResetModal'; // 보완 10: mode="setup" = 비밀번호 만들기
-import { deviceName, DRIVING_OPTIONS, formatDate, formatDateTime, PURCHASE_OPTIONS } from './profileOptions';
+import { deviceName, DRIVING_OPTIONS, formatDateTime, PURCHASE_OPTIONS } from './profileOptions';
 import './MyPage.css';
 import './ProfilePage.css';
 import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
@@ -84,10 +82,8 @@ export default function ProfilePage({ inConsole = false }) {
   const [sessionBusy, setSessionBusy] = useState(false);
   const [showAllSessions, setShowAllSessions] = useState(false); // 기기가 많으면 최근 3대만 보이다가 펼침
 
-  // 계정 관리 팝업: 'password' | 'notification' | 'account' | null
+  // 계정 관리 팝업: 'password' | 'password-setup' | 'account' | null (11-05: 이메일 알림 팝업 없앰)
   const [modal, setModal] = useState(null);
-  // 보완 9: 가입 동의 기록 · 이메일 알림 (서버). null = 불러오는 중, false = 불러오지 못함
-  const [agreement, setAgreement] = useState(null);
 
   // 내 정보 불러오기
   useEffect(() => {
@@ -104,17 +100,6 @@ export default function ProfilePage({ inConsole = false }) {
       ignore = true;
     };
   }, [reloadKey]);
-
-  // 보완 9: 가입 동의 기록 · 이메일 알림 불러오기
-  useEffect(() => {
-    let ignore = false;
-    getAgreement()
-      .then((data) => !ignore && setAgreement(data))
-      .catch(() => !ignore && setAgreement(false));
-    return () => {
-      ignore = true;
-    };
-  }, []);
 
   // 로그인된 기기 불러오기 (기기 로그아웃 뒤에도 다시 부른다)
   const loadSessions = useCallback(() => {
@@ -305,14 +290,6 @@ export default function ProfilePage({ inConsole = false }) {
     showToast('회원 탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.');
   }
 
-  // 보완 9: 이메일 알림 저장 (실패하면 팝업이 오류를 보여 준다)
-  async function handleSaveNotification(value) {
-    const saved = await updateNotification(value);
-    setAgreement(saved);
-    setModal(null);
-    showToast(`이메일 알림을 '${NOTIFICATION_OPTIONS.find((option) => option.value === value)?.label}'(으)로 바꿨어요.`);
-  }
-
   if (meStatus === 'loading') {
     return <div className="profile-page page-fade-in"><CardLoading label="내 정보를 불러오는 중…" /></div>;
   }
@@ -333,15 +310,6 @@ export default function ProfilePage({ inConsole = false }) {
   }
   const ageError = errors.birthDate && form.birthDate && getAge(form.birthDate) < MIN_SIGNUP_AGE;
   const otherSessions = sessions.filter((session) => !session.current);
-  const notification = agreement ? agreement.emailNotification : 'IMPORTANT';
-  const notificationLabel = NOTIFICATION_OPTIONS.find((option) => option.value === notification)?.label;
-  // 보완 9: 동의 기록 한 줄 (기록 기능 전에 가입한 회원은 기록 없음)
-  const agreementNote = agreement === null ? '불러오는 중…'
-    : agreement === false ? '알림 설정을 불러오지 못했습니다'
-    : [
-      agreement.termsAgreedAt ? `약관 동의 ${formatDate(agreement.termsAgreedAt.slice(0, 10))}` : '약관 동의 기록 없음 (기록 기능 전 가입)',
-      agreement.updatesAgreedAt && `추천 업데이트 수신 동의 ${formatDate(agreement.updatesAgreedAt.slice(0, 10))}`,
-    ].filter(Boolean).join(' · ');
 
   return (
     <div className="profile-page page-fade-in">
@@ -571,19 +539,6 @@ export default function ProfilePage({ inConsole = false }) {
               <button className="my-outline-button" type="button" onClick={() => setModal('password')}>변경</button>
             </li>
           )}
-          {/* 추천 업데이트 메일 수신 설정은 회원용 (관리자에게는 보이지 않음, 11-05) */}
-          {!isAdmin && (
-            <li>
-              <strong>이메일 알림</strong>
-              <div>
-                <span>{notificationLabel}</span>
-                <small>{agreementNote}</small>
-                {/* 11-05: 형철님 알림센터(헤더 종)는 화면 알림이고 설정도 따로 — 여기는 이메일만이라는 걸 알려 준다 */}
-                <small>화면 알림은 위쪽 종 → 톱니바퀴에서 따로 설정해요.</small>
-              </div>
-              <button className="my-outline-button" type="button" onClick={() => setModal('notification')} disabled={!agreement}>설정</button>
-            </li>
-          )}
         </ul>
         <div className="profile-withdraw" id="profile-withdraw">
           {me.role === 'SUPER_ADMIN' ? (
@@ -605,9 +560,6 @@ export default function ProfilePage({ inConsole = false }) {
       {modal === 'password' && <PasswordChangeModal email={me.email} onChange={handleChangePassword} onClose={() => setModal(null)} />}
       {modal === 'password-setup' && (
         <PasswordResetModal mode="setup" initialEmail={me.email} onDone={handlePasswordCreated} onClose={() => setModal(null)} />
-      )}
-      {modal === 'notification' && (
-        <EmailNotificationModal currentValue={notification} onSave={handleSaveNotification} onClose={() => setModal(null)} />
       )}
       {modal === 'account' && <AccountManageModal socialOnly={me.socialOnly} onWithdraw={handleWithdraw} onClose={() => setModal(null)} />}
     </div>

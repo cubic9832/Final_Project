@@ -40,6 +40,4 @@ public class GoogleSignupRequest {
     @AssertTrue(message = "필수 동의 항목에 체크해 주세요.")
     private boolean consent;
 
-    // 보완 9: [선택] 차량 추천 업데이트 수신 — 체크하면 이메일 알림 ALL, 안 하면 IMPORTANT
-    private boolean updatesAgreed;
 }

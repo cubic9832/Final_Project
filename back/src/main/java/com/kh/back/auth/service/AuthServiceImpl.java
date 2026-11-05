@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
     private final SocialAccountMapper socialAccountMapper;
     private final RecaptchaVerifier recaptchaVerifier;
     private final UserProfileMapper userProfileMapper;
-    private final UserAgreementMapper userAgreementMapper; // 보완 9: 가입 동의 기록 · 이메일 알림
+    private final UserAgreementMapper userAgreementMapper; // 보완 9: 가입 동의 기록 (필수 약관 동의 시각)
     private final RefreshTokenMapper refreshTokenMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
         profile.setGender(request.getGender());
         userProfileMapper.insert(profile);
         // 보완 9: 약관 동의 시각 · 이메일 알림 (같은 트랜잭션)
-        userAgreementMapper.insert(UserAgreementDto.atSignup(member.getId(), request.isUpdatesAgreed(), LocalDateTime.now()));
+        userAgreementMapper.insert(UserAgreementDto.atSignup(member.getId(), LocalDateTime.now()));
 
         // 보완 6: 가입 전에 이 이메일로 로그인에 실패한 기록이 있으면 지운다
         // (없는 이메일로 틀린 기록이 새 계정의 첫 로그인에 이어져 바로 reCAPTCHA 가 뜨지 않게)
@@ -411,7 +411,7 @@ public class AuthServiceImpl implements AuthService {
         profile.setGender(request.getGender());
         userProfileMapper.insert(profile);
         // 보완 9: 가입 마무리 화면의 동의 시각 · 이메일 알림
-        userAgreementMapper.insert(UserAgreementDto.atSignup(member.getId(), request.isUpdatesAgreed(), LocalDateTime.now()));
+        userAgreementMapper.insert(UserAgreementDto.atSignup(member.getId(), LocalDateTime.now()));
 
         socialAccountMapper.insert(member.getId(), GOOGLE, pending.sub(), pending.email());
         AuthTokens tokens = issueTokens(member).markNewMember(true); // 화면이 자동으로 정한 닉네임을 알려 준다

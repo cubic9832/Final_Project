@@ -25,7 +25,6 @@ import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이�
 const terms = [
   { id: 'service', title: '서비스 이용약관', label: '서비스 이용약관에 동의합니다.', required: true },
   { id: 'privacy', title: '개인정보 수집·이용 동의', label: '개인정보 수집·이용에 동의합니다.', required: true },
-  { id: 'updates', title: '차량 추천 업데이트 수신', label: '차량 추천 업데이트 소식을 받습니다.', required: false },
 ];
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -97,7 +96,7 @@ export default function SignupPage() {
     birthDate: '', // 보완 5: 'YYYY-MM-DD'
     gender: '', // 보완 5: MALE · FEMALE · NONE
   });
-  const [agreements, setAgreements] = useState({ service: false, privacy: false, updates: false });
+  const [agreements, setAgreements] = useState({ service: false, privacy: false }); // 11-05: [선택] 추천 업데이트 수신은 없앰 — 필수 2개만
   const [errors, setErrors] = useState({});
   const [notice, setNotice] = useState('');
   // "중복 확인" 결과 안내 문구 { nickname, email } (예: "사용할 수 있는 이메일입니다.")
@@ -318,7 +317,6 @@ export default function SignupPage() {
         verificationToken: getProof(form.email.trim()), // 보완 7 추가: 인증한 사람만 가진 번호
         termsAgreed: agreements.service,
         privacyAgreed: agreements.privacy,
-        updatesAgreed: agreements.updates,
       });
       clearProof(member.email); // 한 번 쓰면 끝 (서버에서도 지움)
       setJoinedEmail(member.email);
