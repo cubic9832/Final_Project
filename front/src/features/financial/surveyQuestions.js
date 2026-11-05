@@ -13,15 +13,15 @@ export function environmentQuestions(scenarioMode, vehicle = {}) {
     importance('costImportance', '차량 비용을 얼마나 아끼고 싶으세요?', '구매 가능한 예산 안에서 추천 가격대를 정해요.', [
       '취향이 더 중요해요', '균형 잡힌 차량을 원해요', '비용을 아끼고 싶어요',
     ]),
-    { id: 'incomeRatio', category: '매달 차에 쓸 돈', title: '월 소득의 몇 %까지 차에 쓸 수 있나요?', description: '할부금과 보험료·세금·정비비·연료비 같은 유지비를 합친 금액이에요. 예금만 고르면 매달 소득은 유지비에만 쓰고, 일시불로 살 수 있는 차만 추천해요.', compact: true,
-      options: incomeRatioValues.map(value => value === '0' ? { value, label: '예금만' } : { value, label: `${value}%까지` }) },
+    { id: 'incomeRatio', category: '매달 차에 쓸 돈', title: '월 소득의 몇 %까지 차에 쓸 수 있나요?', description: '할부금과 보험료·세금·정비비·연료비 같은 유지비를 합친 금액이에요. 목돈만 고르면 매달 소득은 유지비에만 쓰고, 일시불로 살 수 있는 차만 추천해요.', compact: true,
+      options: incomeRatioValues.map(value => value === '0' ? { value, label: '목돈만' } : { value, label: `${value}%까지` }) },
   ];
   if (vehicle.incomeRatio && vehicle.incomeRatio !== '0') questions.push(
-    { id: 'paymentMonths', category: '할부 기간', title: '몇 개월 동안 나눠 낼까요?', description: '예금을 먼저 쓰고 남은 금액을 연 6% 할부로 나눠 내는 기준이에요. 실제 대출 금리·심사와는 달라요.', compact: true,
+    { id: 'paymentMonths', category: '할부 기간', title: '몇 개월 동안 나눠 낼까요?', description: '목돈을 먼저 쓰고 남은 금액을 연 6% 할부로 나눠 내는 기준이에요. 실제 대출 금리·심사와는 달라요.', compact: true,
       options: paymentMonthValues.map(value => value === '0' ? { value, label: '일시불' } : { value, label: `${value}개월` }) },
   );
   if (scenarioMode) questions.push(
-    importance('assetRetentionImportance', '차를 산 뒤, 예금을 얼마나 남길까요?', '예금을 남기는 것과 마음에 드는 차 사이의 우선순위예요.', ['마음에 들면 써도 괜찮아요','어느 정도 남기고 싶어요','최대한 남기고 싶어요']),
+    importance('assetRetentionImportance', '차를 산 뒤, 목돈을 얼마나 남길까요?', '목돈을 남기는 것과 마음에 드는 차 사이의 우선순위예요.', ['마음에 들면 써도 괜찮아요','어느 정도 남기고 싶어요','최대한 남기고 싶어요']),
     importance('runningCostImportance', '매달 유지비는 얼마나 중요하세요?', '연료비, 보험료, 세금, 정비비를 함께 비교해요.', ['취향이 더 중요해요','유지비와 취향을 함께 봐요','유지비를 아끼고 싶어요']),
   );
   questions.push(
@@ -42,7 +42,7 @@ export function vehicleQuestions(vehicle, scenarioMode) {
     {id:'accelerationPreference',category:'운전하는 느낌',title:'어느 정도의 속도감을 원하세요?',description:'출발해서 시속 100km까지 속도가 붙는 느낌을 비교해요.',options:[
       {value:'any',label:'상관없어요'}, {value:'0',label:'부드럽고 완만하게'}, {value:'0.5',label:'균형 잡힌 속도감'}, {value:'1',label:'강하고 빠르게'},
     ]},
-    {id:'fuel',category:'연료 선택',title:'어떤 연료를 쓰는 차가 좋으세요?',description:'아직 정하지 않았다면 상관없음을 골라도 괜찮아요.',options:[
+    {id:'fuel', showAllOptions:true,category:'연료 선택',title:'어떤 연료를 쓰는 차가 좋으세요?',description:'아직 정하지 않았다면 상관없음을 골라도 괜찮아요.',options:[
       ['상관없음','상관없어요'],['가솔린','휘발유'],['하이브리드','하이브리드'],['디젤','경유'],['전기','전기'],['LPG','LPG'],
     ].map(([value,label]) => ({value,label}))},
   ];

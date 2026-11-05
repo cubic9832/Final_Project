@@ -25,7 +25,7 @@ export function buildCandidateRecommendation({ values = {}, assets = {}, loans, 
       : amount(values.housing, '월 주거비') + amount(values.fixed, '월 고정 지출') + amount(values.living, '월 생활비')
         + amount(values.transport, '교통비', true) + amount(values.phone, '통신비', true),
     existing_monthly_payment: 0,
-    liquid_assets: amount(assets.deposit, '사용 가능 예금'),
+    liquid_assets: amount(assets.deposit, '사용 가능 목돈'),
     // Removed UI fields are zeroed for API compatibility, including old saved inputs.
     emergency_reserve: 0,
     monthly_savings: 0, // Retained only for API compatibility; ignore old saved values.

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './FinancialAssetsFields.css';
 
-const assetFields = [{ name: 'deposit', label: '사용 가능 예금' }];
+const assetFields = [{ name: 'deposit', label: '사용 가능 목돈' }];
 const loanFields = [
   { name: 'balance', label: '잔액 (선택 · 현황 확인용)', unit: '만 원', step: '0.01' },
   { name: 'payment', label: '월 상환액', unit: '만 원', step: '0.01' },
@@ -50,7 +50,7 @@ export default function FinancialAssetsFields({ assets, setAssets, loans, setLoa
 
   return <div className="financial-assets-fields">
             <h2 id="assets-title">자산과 대출 내역</h2>
-            <p>차량 구매에 사용할 수 있는 예금을 입력해 주세요. 단위는 만 원입니다.</p>
+            <p>차량 구매에 사용할 수 있는 목돈을 입력해 주세요. 단위는 만 원입니다.</p>
             <div className="assets-fields">{assetFields.map((field) => renderInput(field))}</div>
 
             <details className="financial-disclosure assets-debt-details" open={loans.length > 0} onInvalidCapture={event => { event.currentTarget.open = true; }}>

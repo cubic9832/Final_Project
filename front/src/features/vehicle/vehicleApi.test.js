@@ -12,7 +12,7 @@ test('catalog images use local WebP for examples and missing photos while preser
   assert.equal(toVehicle({ ...row, brand: '미등록', imageUrl: '/uploads/other.jpg', isExample: true }).imageUrl, '/uploads/other.jpg');
 });
 
-test('API catalog converts won to screen units and excludes incompatible running costs', async () => {
+test('API catalog keeps electric and missing-efficiency vehicles with explicit units and estimates', async () => {
   const adapter = client.defaults.adapter;
   client.defaults.adapter = async (config) => {
     assert.equal(config.url, '/vehicles');
@@ -20,7 +20,11 @@ test('API catalog converts won to screen units and excludes incompatible running
   };
   try {
     const vehicles = await getVehicles();
-    assert.equal(vehicles.length, 1);
+    assert.equal(vehicles.length, 3);
+    assert.equal(vehicles[1].fuel, 'ELECTRIC');
+    assert.equal(vehicles[1].efficiencyUnit, 'km/kWh');
+    assert.equal(vehicles[2].efficiencyEstimated, true);
+    assert.ok(vehicles[2].efficiency > 0);
     assert.equal(vehicles[0].price, 2555);
     assert.equal(vehicles[0].id, '42');
     assert.equal(vehicles[0].sourceUrl, row.sourceUrl);

@@ -1,3 +1,4 @@
+import { energyPrices } from './vehicleEnergyPrices.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calculateCosts, defaultConditions, defaultFinance } from './vehicleData.js';
@@ -33,4 +34,16 @@ test('financial pressure can leave a negative remaining budget without invalid s
   assert.equal(result.available, 0);
   assert.ok(result.remaining < 0);
   assert.ok(result.score >= 0 && result.score <= 99);
+});
+
+
+test('연료별 단가와 연비·전비로 월 에너지비를 계산하고 0km는 0원이다', () => {
+  for (const fuel of ['GASOLINE', 'HYBRID', 'DIESEL', 'LPG', 'ELECTRIC', 'HYDROGEN']) {
+    const efficiency = fuel === 'ELECTRIC' ? 5 : fuel === 'HYDROGEN' ? 100 : 10;
+    const vehicle = { ...vehicles[0], fuel, efficiency };
+    const costs = calculateCosts(vehicle, defaultConditions, { ...defaultFinance, distance: 12000 });
+    assert.equal(costs.fuel, 1000 / efficiency * energyPrices[fuel].price / 10000);
+    assert.equal(calculateCosts(vehicle, defaultConditions, { ...defaultFinance, distance: 0 }).fuel, 0);
+    assert.ok(Number.isFinite(costs.total));
+  }
 });
