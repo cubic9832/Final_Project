@@ -1,5 +1,6 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import { useEffect, useRef } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import FinancialResultProgress from '../../components/FinancialResultProgress.jsx';
 import FinancialAnalysis from '../recommendations/FinancialAnalysis.jsx';
 import './FinancialResultPage.css';
@@ -15,8 +16,8 @@ import '../recommendations/FinancialRecommendationsPage.css';
 const savedResults = new WeakSet();
 
 export default function FinancialResultPage() {
-  const { state, pathname } = useLocation();
-  const navigate = useNavigate();
+  const { state, pathname } = useFinancialLocation();
+  const navigate = useFinancialNavigate();
   const member = useAuthStore((store) => store.member);
   const ready = Boolean(state?.diagnosis?.values) && isFinancialRecommendationResult(state?.result);
   // 저장이 늦게 끝났을 때 이미 다른 화면(추천 차량 등)으로 떠났으면 결과 화면으로 되돌리지 않기 위한 표시

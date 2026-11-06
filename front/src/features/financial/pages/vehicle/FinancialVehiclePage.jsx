@@ -1,5 +1,6 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import { useEffect, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { financialSummarySteps, recordSurveyAnswer, surveySummary } from '../../surveySummary.js';
 import RecommendationSurvey from '../../components/RecommendationSurvey.jsx';
 import SurveyPages from '../../components/SurveyPages.jsx';
@@ -13,9 +14,9 @@ import { readFinancialSession, saveFinancialSession } from '../../financialSessi
 
 const reviewQuestion = { id: 'review', category: '마지막 확인', title: '이 조건으로 내 차를 찾아볼까요?', description: '바꾸고 싶은 답이 있다면 수정해 주세요. 예산과 탑승 인원을 먼저 확인한 뒤 취향에 맞는 차를 찾아드려요.' };
 export default function FinancialVehiclePage() {
-  const { state: routeState } = useLocation();
+  const { state: routeState } = useFinancialLocation();
   const [state, setState] = useState(() => ({ ...readFinancialSession(), ...routeState }));
-  const navigate = useNavigate();
+  const navigate = useFinancialNavigate();
   const [vehicle, setVehicle] = useState(() => createVehiclePreferences(state?.vehicle));
   const [step, setStep] = useState(() => state?.returnToVehicleReview ? vehicleQuestions(createVehiclePreferences(state?.vehicle), state?.vehicle?.scenarioMode ?? true).length : 0);
   const { options, error } = useRecommendationOptions();

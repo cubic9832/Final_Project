@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
 import { refreshAccessToken } from './shared/api/tokenRefresh';
+import AuthPending from './components/AuthPending';
 import GuestOnly from './components/GuestOnly';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
@@ -40,6 +41,12 @@ import DreamCarPlannerPage from './features/dream-car/pages/planner/DreamCarPlan
 import DreamCarCalculationGuidePage from './features/dream-car/pages/calculation-guide/DreamCarCalculationGuidePage';
 import SavingsProgressPage from './features/dream-car/pages/progress/SavingsProgressPage';
 
+function FinancialSessionRoutes() {
+  const initialized = useAuthStore(state => state.initialized);
+  const memberId = useAuthStore(state => state.member?.id);
+  return initialized ? <Outlet key={memberId ?? 'guest'} /> : <AuthPending />;
+}
+
 function App() {
   // 앱이 처음 열릴 때 한 번: refresh token 쿠키가 있으면 로그인 상태를 되살린다 (새로고침 · 브라우저 재시작 후 로그인 유지)
   useEffect(() => {
@@ -74,15 +81,17 @@ function App() {
           {/* 8단계: 1:1 상담 (마이페이지 · 콤파의 [1:1 상담] 버튼) — 마이페이지 아래 화면이라 /mypage/... */}
           <Route path="/mypage/consultation" element={<ConsultationPage />} />
         </Route>
-        <Route path="/financial" element={<FinancialPage />} />
-        <Route path="/financial/assets" element={<FinancialAssetsPage />} />
-        <Route path="/financial/credit" element={<FinancialCreditPage />} />
-        <Route path="/financial/environment" element={<FinancialEnvironmentPage />} />
-        <Route path="/financial/vehicle" element={<FinancialVehiclePage />} />
-        <Route path="/financial/review" element={<FinancialReviewPage />} />
-        <Route path="/financial/result" element={<FinancialResultPage />} />
-        <Route path="/financial/recommendations/details" element={<RecommendationDetailsPage />} />
-        <Route path="/financial/recommendations" element={<FinancialRecommendationsPage />} />
+        <Route element={<FinancialSessionRoutes />}>
+          <Route path="/financial" element={<FinancialPage />} />
+          <Route path="/financial/assets" element={<FinancialAssetsPage />} />
+          <Route path="/financial/credit" element={<FinancialCreditPage />} />
+          <Route path="/financial/environment" element={<FinancialEnvironmentPage />} />
+          <Route path="/financial/vehicle" element={<FinancialVehiclePage />} />
+          <Route path="/financial/review" element={<FinancialReviewPage />} />
+          <Route path="/financial/result" element={<FinancialResultPage />} />
+          <Route path="/financial/recommendations/details" element={<RecommendationDetailsPage />} />
+          <Route path="/financial/recommendations" element={<FinancialRecommendationsPage />} />
+        </Route>
         <Route path="/companies" element={<CompanyListPage />} />
         <Route path="/companies/:code" element={<CompanyDetailPage />} />
         <Route path="/search" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />

@@ -1,16 +1,17 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import { useState } from 'react';
 import { Car } from 'lucide-react';
 import theme from '../../../../styles/theme.js';
 import { candidateImage, candidateMoney, fuelLabels } from './candidatePresentation.js';
 import ExplainTerm from '../../../chatbot/ExplainTerm';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 
 
 export default function RecommendationCard({ candidate, rank, comparisonSelected, comparisonFull, onToggleComparison }) {
   const [failedSrc, setFailedSrc] = useState(null);
-  const navigate = useNavigate();
-  const { state } = useLocation();
+  const navigate = useFinancialNavigate();
+  const { state } = useFinancialLocation();
   const { vehicle, cost } = candidate;
   const image = candidateImage(vehicle);
 

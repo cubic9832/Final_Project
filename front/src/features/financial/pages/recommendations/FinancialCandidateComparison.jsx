@@ -1,3 +1,4 @@
+import { scopeFinancialState } from '../../financialSession.js';
 import { Link } from 'react-router-dom';
 import { isFinancialRecommendationResult } from '../../isFinancialRecommendationResult.js';
 import CandidateComparisonTable from './CandidateComparisonTable.jsx';
@@ -16,8 +17,8 @@ export default function FinancialCandidateComparison({ result, diagnosis, select
     <div className="vehicle-content-fade">
     <CandidateComparisonTable views={selected} canToggleVehicles={canToggleVehicles} />
     {children ?? <div className="financial-recommendations-actions">
-      <Link className="candidate-open-comparison" to="/financial/recommendations" state={{ ...(recommendationState ?? { diagnosis, result }), comparisonIds: selectedIds }}>추천 결과로 돌아가기</Link>
-      <Link className="candidate-open-comparison" to="/financial/vehicle" state={diagnosis}>차량 취향 수정하기</Link>
+      <Link className="candidate-open-comparison" to="/financial/recommendations" state={scopeFinancialState({ ...(recommendationState ?? { diagnosis, result }), comparisonIds: selectedIds })}>추천 결과로 돌아가기</Link>
+      <Link className="candidate-open-comparison" to="/financial/vehicle" state={scopeFinancialState(diagnosis)}>차량 취향 수정하기</Link>
     </div>}
     </div>
   </div>;

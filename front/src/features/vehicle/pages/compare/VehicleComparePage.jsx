@@ -1,3 +1,5 @@
+import useAuthStore from '../../../../stores/useAuthStore.js';
+import { readScopedFinancialState, scopeFinancialState } from '../../../financial/financialSession.js';
 import { buildRecommendationView, describePreference } from '../../../financial/pages/recommendations/buildRecommendationView.js';
 import VehicleEnergyCostNote from '../../components/VehicleEnergyCostNote.jsx';
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom';
@@ -9,7 +11,9 @@ import { findProfilePreset } from '../../../preset/profilePresets';
 import '../../styles/VehiclePages.css';
 
 export default function VehicleComparePage() {
-  const { state } = useLocation();
+  const { state: routeState } = useLocation();
+  const member = useAuthStore(store => store.member);
+  const state = readScopedFinancialState(routeState, member?.id ?? null);
   const [params] = useSearchParams();
   if (params.get('source') === 'catalog' && !params.has('preset')) return <Navigate to='/vehicles/compare' replace state={state} />;
   if (params.get('source') === 'financial') return <FinancialCandidateComparison result={state?.recommendationResult} diagnosis={state?.diagnosis} selectedIds={params.getAll('vehicle')} />;
@@ -17,17 +21,21 @@ export default function VehicleComparePage() {
 }
 
 function CatalogVehicleComparePage() {
-  const { state } = useLocation();
+  const { state: routeState } = useLocation();
+  const member = useAuthStore(store => store.member);
+  const state = readScopedFinancialState(routeState, member?.id ?? null);
   const [params] = useSearchParams();
   const presetId = params.get('preset');
   const preset = findProfilePreset(presetId);
-  const { vehicles, planningVehicles, conditions, comparison, financialComparison } = useVehicle();
-  const selected = comparison.map((id) => vehicles.find((vehicle) => vehicle.id === id)).filter(Boolean);
+  const favoritesOnly = params.get('source') === 'favorites' && !presetId;
+  const { vehicles, planningVehicles, conditions, comparison, favoriteComparison, financialComparison } = useVehicle();
+  const comparisonIds = favoritesOnly ? favoriteComparison : comparison;
+  const selected = comparisonIds.map((id) => vehicles.find((vehicle) => vehicle.id === id)).filter(Boolean);
   if (presetId !== null && !preset) return <section className="vehicle-page panel vehicle-empty"><h1>프로필을 찾을 수 없습니다.</h1><p>메인에서 예시 프로필을 다시 선택해 주세요.</p><Link className="vehicle-button primary" to="/">프리셋 선택하기</Link></section>;
-  const recommendationViews = !preset && financialComparison
+  const recommendationViews = !favoritesOnly && !preset && financialComparison
     ? buildRecommendationView(financialComparison.result)
     : [];
-  const recommendationState = state?.result && state?.diagnosis ? state : financialComparison && {
+  const recommendationState = favoritesOnly ? null : state?.result && state?.diagnosis ? state : financialComparison && {
     diagnosis: financialComparison.diagnosis,
     result: financialComparison.recommendationResult ?? financialComparison.result,
   };
@@ -76,7 +84,7 @@ function CatalogVehicleComparePage() {
       unknowns: criteria.filter(item => item.status === 'unknown'),
     };
   });
-  const comparisonViews = comparison.map(id =>
+  const comparisonViews = comparisonIds.map(id =>
     recommendationViews.find(view => String(view.id) === id)
     ?? catalogViews.find(view => view.id === id)
   ).filter(Boolean);
@@ -85,9 +93,9 @@ function CatalogVehicleComparePage() {
       {selected.map(vehicle => <Link key={vehicle.id} className="candidate-open-comparison" to={`/vehicles/${vehicle.id}/simulation`}>{vehicle.name} 조건 시뮬레이션</Link>)}
     </div>
     <div className="financial-recommendations-actions">
-      {!preset && recommendationState && <Link className="candidate-open-comparison" to="/financial/recommendations" state={recommendationState}>추천 결과로 돌아가기</Link>}
+      {!preset && recommendationState && <Link className="candidate-open-comparison" to="/financial/recommendations" state={scopeFinancialState(recommendationState)}>추천 결과로 돌아가기</Link>}
       <Link className="candidate-open-comparison" to="/financial">내 정보 입력하고 비교하기</Link>
     </div>
   </FinancialCandidateComparison>;
-  return <div className="vehicle-page"><div className="vehicle-heading split"><div><h1>차량 비교</h1><p>최대 3대의 구매비용과 유지비, 재무 적합도를 같은 기준으로 비교합니다.</p></div><span className="vehicle-badge">{selected.length} / 3 선택</span></div><div className="vehicle-content-fade"><section className="panel vehicle-empty"><h2>비교할 차량을 선택해 주세요.</h2><p>추천 차량이나 차량 상세에서 최대 3대를 추가할 수 있습니다.</p><Link className="vehicle-button primary" to="/vehicles">차량 선택하기</Link></section><div className="vehicle-actions"><Link className="vehicle-button cta" to="/financial">내 정보 입력하고 비교하기</Link></div>{!preset && <VehicleEnergyCostNote />}</div></div>;
+  return <div className="vehicle-page"><div className="vehicle-heading split"><div><h1>차량 비교</h1><p>최대 3대의 구매비용과 유지비, 재무 적합도를 같은 기준으로 비교합니다.</p></div><span className="vehicle-badge">{selected.length} / 3 선택</span></div><div className="vehicle-content-fade"><section className="panel vehicle-empty"><h2>비교할 차량을 선택해 주세요.</h2><p>{favoritesOnly ? '차량 목록에서 관심 차량을 추가하면 먼저 저장한 3대까지 비교할 수 있습니다.' : '추천 차량이나 차량 상세에서 최대 3대를 추가할 수 있습니다.'}</p><Link className="vehicle-button primary" to="/vehicles">차량 선택하기</Link></section><div className="vehicle-actions"><Link className="vehicle-button cta" to="/financial">내 정보 입력하고 비교하기</Link></div>{!preset && <VehicleEnergyCostNote />}</div></div>;
 }
