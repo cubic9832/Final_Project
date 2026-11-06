@@ -6,7 +6,7 @@ import FinancialBudgetSummary from './FinancialBudgetSummary.jsx';
 import { calculateFinancialSummary } from '../calculateFinancialSummary.js';
 import { formatFinancialMoney } from '../formatFinancialMoney.js';
 
-export default function SurveySummary({ diagnosis, items = [], mode = 'budget', onEdit, editingDisabled = false, onBudgetChange }) {
+export default function SurveySummary({ diagnosis, items, mode = 'budget', onEdit, editingDisabled = false, onBudgetChange }) {
   const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 769px)').matches);
   const [expanded, setExpanded] = useState(false);
   const [conditionsExpanded, setConditionsExpanded] = useState(false);
@@ -32,9 +32,9 @@ export default function SurveySummary({ diagnosis, items = [], mode = 'budget', 
     media.addEventListener('change', update);
     return () => media.removeEventListener('change', update);
   }, []);
-  return <aside ref={summaryRef} className="survey-side-summary" aria-label="내 예산과 선택 조건">
+  return <aside ref={summaryRef} className="survey-side-summary" aria-label={items ? '내 예산과 선택 조건' : '내 예산'}>
     <details open={wide || expanded} onToggle={event => { if (!wide) setExpanded(event.currentTarget.open); }}>
-      <summary>{mode === 'cashflow' ? '월 여유금 계산 보기' : '내 예산·선택 조건 보기'}</summary>
+      <summary>{mode === 'cashflow' ? '월 여유금 계산 보기' : items ? '내 예산·선택 조건 보기' : '내 예산 보기'}</summary>
       <div className="survey-summary-content">
         {mode === 'cashflow' ? <section className="survey-cashflow">
           <span className="financial-eyebrow">월 예산 미리보기</span>
@@ -45,7 +45,7 @@ export default function SurveySummary({ diagnosis, items = [], mode = 'budget', 
           <p>{totals.available > 0 ? '이 금액을 기준으로 차량 유지비를 비교해요. 다음 단계에서는 이용 조건과 취향을 골라 주세요.' : '매달 지출을 충당할 여유가 부족해요. 차량 구매 후 남는 목돈도 함께 확인해야 해요.'}</p>
         </section> : <>
         <FinancialBudgetSummary values={diagnosis.values} assets={diagnosis.assets} loans={diagnosis.loans} onEdit={onEdit} editingDisabled={editingDisabled} onBudgetChange={onBudgetChange} diagnosis={diagnosis} />
-        <section className="survey-selected-conditions" aria-labelledby="survey-conditions-title">
+        {items && <section className="survey-selected-conditions" aria-labelledby="survey-conditions-title">
           <div className="survey-conditions-heading"><h2 id="survey-conditions-title">선택한 조건</h2>
             <button type="button" className="survey-conditions-toggle" aria-label={`선택한 조건 ${conditionsExpanded ? '접기' : '펼치기'}`} aria-expanded={conditionsExpanded} aria-haspopup="dialog" onClick={() => setConditionsExpanded(true)}><ChevronDown size={theme.iconSize.sm} aria-hidden /></button>
           </div>
@@ -54,7 +54,7 @@ export default function SurveySummary({ diagnosis, items = [], mode = 'budget', 
             {items.length ? <dl aria-live="polite">{items.map(item => <div key={item.id}><dt><span className="survey-summary-label">{item.label}</span>{onEdit && <button type="button" className="survey-summary-edit" disabled={editingDisabled} aria-label={`${item.label} 수정`} onClick={() => { setConditionsExpanded(false); onEdit(item.id); }}>수정</button>}</dt><dd>{item.value}</dd></div>)}</dl> : <p>답을 고르면 여기에 정리해 드려요.</p>}
             </div>
           </Modal>}
-        </section>
+        </section>}
         </>}
       </div>
     </details>

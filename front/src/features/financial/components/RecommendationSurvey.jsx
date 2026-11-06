@@ -4,7 +4,7 @@ import theme from '../../../styles/theme.js';
 import SurveySummary from './SurveySummary.jsx';
 import './RecommendationSurvey.css';
 
-export default function RecommendationSurvey({ phase, index, total, question, value, onChange, onBack, onNext, nextLabel = '다음', busy = false, disabled = false, error, loading, diagnosis, children, formRef, canGoBack = true, summaryItems = [], summaryMode = 'budget', onEditSummary, onBudgetChange }) {
+export default function RecommendationSurvey({ phase, index, total, question, value, onChange, onBack, onNext, nextLabel = '다음', busy = false, disabled = false, error, loading, diagnosis, children, formRef, canGoBack = true, summaryItems, summaryMode = 'budget', onEditSummary, onBudgetChange }) {
   const heading = useRef(null);
   const [optionPagination, setOptionPagination] = useState({ questionId: question.id, page: 0 });
   const optionPage = optionPagination.questionId === question.id ? optionPagination.page : 0;
