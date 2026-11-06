@@ -38,6 +38,14 @@ public class AdminChatApiController {
     private final ChatRoomService chatRoomService;
     private final ChatQuickReplyService chatQuickReplyService;
     private final ChatFeedbackService chatFeedbackService;
+    private final com.kh.back.chat.mapper.ChatMapper chatMapper;
+
+    public record ChatQueueSummaryResponse(long waiting) {}
+
+    @GetMapping("/queue-summary")
+    public ApiResponse<ChatQueueSummaryResponse> queueSummary() {
+        return ApiResponse.ok(new ChatQueueSummaryResponse(chatMapper.countWaitingRooms()));
+    }
 
     // GET /api/v1/admin/chat/rooms?status=WAITING — 상담 목록 (없으면 전체, 최근 메시지 순)
     // 호출: AdminChatPanel.jsx 화면이 열릴 때 · /topic/admin/chat 알림을 받을 때 → chatApi.getAdminRooms

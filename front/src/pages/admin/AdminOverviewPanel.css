@@ -1,0 +1,38 @@
+/* 권한에 따라 남은 요약 카드가 가용 너비를 나눠 사용한다. */
+.admin-summary.admin-overview-summary {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+}
+
+/* 내용량이 다른 두 영역을 세로로 쌓아 카드 아래의 빈 공간을 없앤다. */
+.admin-grid-2.admin-overview-services {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.admin-overview-services :is(.admin-task-list, .admin-service-list) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  column-gap: var(--space-32);
+}
+
+.admin-overview-services .admin-task-list > .admin-task,
+.admin-overview-services .admin-service-list > .admin-service-row {
+  min-width: 0;
+  padding: var(--space-16) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-overview-services :is(.admin-task, .admin-service-row) > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-overview-services .admin-service-row > svg {
+  flex-shrink: 0;
+}
+
+.admin-overview-task-action { display:block; margin-top:var(--space-8); color:var(--color-text-sub); font-size:var(--font-caption); font-weight:700; }
+
+/* 점검 항목이 홀수면 마지막 항목이 남은 한 줄을 사용한다. */
+.admin-overview-services .admin-task-list > .admin-task:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}

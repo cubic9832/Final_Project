@@ -15,6 +15,8 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface ChatMapper {
+    // 목록의 100건 제한과 별개로 전체 대기 상담 수를 조회한다.
+    long countWaitingRooms();
 
     ChatRoomDto findRoomById(@Param("roomId") Long roomId);
 

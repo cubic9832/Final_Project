@@ -90,3 +90,7 @@ export const restrictionLabel = (value) => {
 
 // 서버 실패 봉투의 안내 문구 (없으면 fallback)
 export const chatErrorMessage = (error, fallback) => error?.response?.data?.error?.message ?? fallback;
+
+// 전체 대기 건수: 상담 목록의 최대 100건 제한과 별도로 조회한다.
+export const getChatQueueSummary = async signal =>
+  (await client.get('/admin/chat/queue-summary', { signal })).data.data;
