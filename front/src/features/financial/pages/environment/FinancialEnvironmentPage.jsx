@@ -1,5 +1,6 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import { useEffect, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import RecommendationSurvey from '../../components/RecommendationSurvey.jsx';
 import { createVehiclePreferences } from '../../createVehiclePreferences.js';
 import { environmentQuestions } from '../../surveyQuestions.js';
@@ -8,9 +9,9 @@ import { financialSummarySteps, recordSurveyAnswer, surveySummary } from '../../
 import useRecommendationOptions from '../../useRecommendationOptions.js';
 
 export default function FinancialEnvironmentPage() {
-  const { state: routeState } = useLocation();
+  const { state: routeState } = useFinancialLocation();
   const [state, setState] = useState(() => ({ ...readFinancialSession(), ...routeState }));
-  const navigate = useNavigate();
+  const navigate = useFinancialNavigate();
   const [vehicle, setVehicle] = useState(() => createVehiclePreferences(state?.vehicle));
   const [step, setStep] = useState(() => Math.max(0, Number(routeState?.environmentStep) || 0));
   const { options, error } = useRecommendationOptions();

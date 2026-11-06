@@ -1,6 +1,6 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import FinancialMoneyInput from '../../components/FinancialMoneyInput.jsx';
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { financialSummarySteps } from '../../surveySummary.js';
 import RecommendationSurvey from '../../components/RecommendationSurvey.jsx';
 import LoanCalculator from './LoanCalculator.jsx';
@@ -19,9 +19,9 @@ const totalExpenses = values => expenseFields.reduce((sum, [key]) => sum + Numbe
 
 
 export default function FinancialPage() {
-  const { state: routeState } = useLocation();
+  const { state: routeState } = useFinancialLocation();
   const [state] = useState(() => ({ ...readFinancialSession(), ...routeState }));
-  const navigate = useNavigate();
+  const navigate = useFinancialNavigate();
   const formRef = useRef(null);
   const [step, setStep] = useState(() => Number.isInteger(routeState?.financialStep) ? Math.min(4, Math.max(0, routeState.financialStep)) : 0);
   useEffect(() => {
