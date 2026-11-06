@@ -4,6 +4,9 @@ import { ROLE_LABELS } from '../../features/auth/roles';
 // 작업 코드 → 화면 이름 (8단계 상담 기록 · 보완 13 메일 기록 포함, 없으면 코드 그대로 보인다)
 export const ACTION_LABELS = {
   ROLE_CHANGE: '권한 변경',
+  ADMIN_ROLE_CREATE: '업무 역할 등록', ADMIN_ROLE_UPDATE: '업무 역할 수정', ADMIN_ROLE_DELETE: '업무 역할 삭제',
+  ADMIN_ROLE_GRANT: '업무 역할 부여', ADMIN_ROLE_REVOKE: '업무 역할 회수',
+  ADMIN_SCREEN_GRANT: '화면 권한 부여', ADMIN_SCREEN_REVOKE: '화면 권한 회수',
   LOGIN_UNLOCK: '잠금 해제',
   CHAT_WARN: '상담 경고',
   CHAT_RESTRICT: '상담 제한',
@@ -34,6 +37,7 @@ const isMailLog = (log) => log.targetType === 'MAIL';
 export const logActor = (log) => (isMailLog(log) ? '서버 (자동)' : personName(log.actorNickName, log.actorId));
 export const logTarget = (log) => {
   if (isMailLog(log)) return '인증 메일';
+  if (log.targetType === 'ROLE') return '업무 역할';
   if (log.targetType === 'MODEL') return '추천 모델';
   return personName(log.targetNickName, log.targetId);
 };

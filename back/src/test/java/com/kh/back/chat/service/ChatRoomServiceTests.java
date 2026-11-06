@@ -46,6 +46,7 @@ class ChatRoomServiceTests {
     @Mock ChatMapper chatMapper;
     @Mock ChatBroadcaster broadcaster;
     @Mock CurrentRoleLookup currentRoleLookup;
+    @Mock com.kh.back.common.security.AdminScreenAccess adminScreenAccess;
     @Mock AdminAuditLogMapper adminAuditLogMapper;
     @Mock MemberMapper memberMapper; // 9단계: 정지 여부 — 기본은 정지 안 된 회원 (보완 15: null 이면 탈퇴 회원 → MEMBER_NOT_FOUND)
     @Spy ChatContentFilter contentFilter = new ChatContentFilter(); // 진짜 금칙어 목록으로 검사
@@ -54,6 +55,7 @@ class ChatRoomServiceTests {
 
     @BeforeEach
     void setUp() {
+        lenient().when(adminScreenAccess.canUse(anyLong(), eq("CHAT"))).thenReturn(true);
         lenient().when(currentRoleLookup.currentRole(MEMBER)).thenReturn("USER");
         lenient().when(currentRoleLookup.currentRole(OTHER_MEMBER)).thenReturn("USER");
         lenient().when(currentRoleLookup.currentRole(ADMIN)).thenReturn("ADMIN");

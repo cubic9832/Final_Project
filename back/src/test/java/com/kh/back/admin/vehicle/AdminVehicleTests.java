@@ -38,6 +38,7 @@ class AdminVehicleTests {
     private String admin(){
         member(999999L,"vehicle-api-test@example.com","차량 API 테스트");
         jdbc.update("INSERT INTO admin_accounts(user_id,role) VALUES(999999,'ADMIN') ON DUPLICATE KEY UPDATE role=VALUES(role)");
+        jdbc.update("INSERT IGNORE INTO admin_account_roles(user_id,role_id) SELECT 999999,id FROM admin_roles WHERE code='VEHICLE_MANAGER'");
         return "Bearer "+jwt.createAccessToken(999999L,"ADMIN");
     }
     private Map<String,Object> request(){

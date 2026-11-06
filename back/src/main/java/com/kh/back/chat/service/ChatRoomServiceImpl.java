@@ -49,6 +49,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final ChatMapper chatMapper;
     private final ChatBroadcaster broadcaster;
     private final CurrentRoleLookup currentRoleLookup;
+    private final com.kh.back.common.security.AdminScreenAccess adminScreenAccess;
     private final AdminAuditLogMapper adminAuditLogMapper;
     private final ChatContentFilter contentFilter;
     private final MemberMapper memberMapper; // 9단계: 정지된 회원인지
@@ -186,13 +187,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
     @Override
     public List<ChatAdminOption> getAdmins() {
-        return chatMapper.findAdmins();
+        return chatMapper.findAdmins().stream().filter(admin -> isAdmin(admin.id())).toList();
     }
 
     // [맡기]: 대기 중인 상담만. 두 관리자가 동시에 눌러도 DB 의 조건부 UPDATE 로 한 명만 성공한다
     @Override
     @Transactional
     public void assign(Long adminId, Long roomId) {
+        requireAdminActor(adminId, "상담 화면을 사용할 권한이 없습니다.");
         ChatRoomDto room = requireRoom(roomId);
         if (chatMapper.assign(roomId, adminId) == 0) {
             throw new ApiException(HttpStatus.CONFLICT, "CHAT_ALREADY_ASSIGNED",
@@ -425,7 +427,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     private boolean isAdmin(Long userId) {
-        return ADMIN_ROLES.contains(currentRoleLookup.currentRole(userId));
+        return ADMIN_ROLES.contains(currentRoleLookup.currentRole(userId)) && adminScreenAccess.canUse(userId,"CHAT");
     }
 
     private static ApiException roomNotFound() {

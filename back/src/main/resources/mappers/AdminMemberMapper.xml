@@ -21,6 +21,10 @@
             <if test="role == 'USER'">
                 AND a.role IS NULL
             </if>
+            <!-- 권한 부여 대상 조회: 일반 회원과 관리자만 포함한다. 목록과 개수에 함께 적용한다. -->
+            <if test="role == 'NOT_SUPER_ADMIN'">
+                AND (a.role IS NULL OR a.role &lt;&gt; 'SUPER_ADMIN')
+            </if>
         </where>
     </sql>
 

@@ -37,10 +37,18 @@
                     <when test="sort == 'target'">
                         CASE WHEN l.target_type = 'MAIL' THEN '인증 메일'
                              WHEN l.target_type = 'MODEL' THEN '추천 모델'
+                             WHEN l.target_type = 'ROLE' THEN '업무 역할'
                              ELSE COALESCE(t.nick_name, CONCAT('탈퇴한 회원 #', l.target_id), '탈퇴한 회원') END
                     </when>
                     <when test="sort == 'action'">
                         CASE l.action
+                            WHEN 'ADMIN_ROLE_CREATE' THEN '업무 역할 등록'
+                            WHEN 'ADMIN_ROLE_UPDATE' THEN '업무 역할 수정'
+                            WHEN 'ADMIN_ROLE_DELETE' THEN '업무 역할 삭제'
+                            WHEN 'ADMIN_ROLE_GRANT' THEN '업무 역할 부여'
+                            WHEN 'ADMIN_ROLE_REVOKE' THEN '업무 역할 회수'
+                            WHEN 'ADMIN_SCREEN_GRANT' THEN '화면 권한 부여'
+                            WHEN 'ADMIN_SCREEN_REVOKE' THEN '화면 권한 회수'
                             WHEN 'ROLE_CHANGE' THEN '권한 변경'
                             WHEN 'LOGIN_UNLOCK' THEN '잠금 해제'
                             WHEN 'CHAT_WARN' THEN '상담 경고'

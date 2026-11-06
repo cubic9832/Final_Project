@@ -1,0 +1,58 @@
+.permission-panel { min-width: 0; }
+.permission-panel, .permission-form { font-family:inherit; font-size:var(--font-body); line-height:1.5; color:var(--color-text); }
+.permission-table td { font-size:var(--font-body); font-weight:400; }
+.permission-table .permission-assigned-roles,
+.permission-table .permission-available-screens { white-space:normal; overflow-wrap:anywhere; word-break:keep-all; }
+.permission-detail h4, .permission-screen-summary h4 { font-size:var(--font-body); font-weight:700; }
+.permission-detail p, .permission-form p, .permission-selection li { font-size:var(--font-body); font-weight:400; }
+.permission-field-label { font-size:var(--font-body); font-weight:700; }
+.permission-account-info { display:grid; gap:var(--space-12); }
+.permission-account-info > div { display:grid; grid-template-columns:80px minmax(0,1fr); gap:var(--space-12); }
+.permission-account-info dt { color:var(--color-muted); }
+.permission-account-info dd { margin:0; font-weight:400; overflow-wrap:anywhere; }
+.permission-screen-summary h4 { margin:0 0 var(--space-8); }
+.permission-screen-summary p { margin:0; color:var(--color-text-sub); overflow-wrap:anywhere; }
+.permission-heading-tools, .permission-actions { display:flex; align-items:center; flex-wrap:wrap; gap:var(--space-12); }
+.permission-search { width:360px; max-width:100%; margin:0; }
+.permission-search .admin-search-field { display:flex; width:100%; align-items:center; }
+.permission-search input { width:100%; min-width:0; border:0; background:transparent; }
+.permission-search button { display:flex; padding:8px; border:0; background:transparent; color:var(--color-primary, #203960); cursor:pointer; }
+.permission-table td { padding-top:20px; padding-bottom:20px; }
+.permission-subject { padding:0; border:0; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.permission-detail { padding:24px; }
+.permission-detail h4 { margin:0 0 8px; }
+.permission-detail p { margin:0 0 20px; overflow-wrap:anywhere; }
+.permission-form { display:flex; flex-direction:column; gap:20px; }
+.permission-form label { display:flex; flex-direction:column; gap:8px; font-size:var(--font-body); }
+.permission-form input, .permission-form textarea { font:inherit; border:1px solid var(--color-border, #E2E8F0); border-radius:8px; padding:12px; width:100%; box-sizing:border-box; }
+.permission-form textarea { resize:none; }
+.permission-selection { margin:0; border:0; padding:0; min-width:0; }
+.permission-member-results small { display:block; font-size:var(--font-caption); }
+.permission-panel .permission-help, .permission-form .permission-help { color:var(--color-muted); font-size:var(--font-caption); }
+.permission-error { color:var(--color-danger); font-size:var(--font-body); }
+.permission-empty { text-align:center; }
+@media (max-width:768px) { .permission-heading-tools, .permission-search { width:100%; } }
+
+.permission-row-action { display:flex; align-items:center; justify-content:center; min-height:var(--layout-control-height); }
+
+.permission-selection legend { display:flex; align-items:center; justify-content:space-between; gap:var(--space-16); width:100%; margin-bottom:var(--space-8); color:var(--color-primary); font-size:var(--font-body); font-weight:700; }
+.permission-selection-count { color:var(--color-blue-strong); font-size:var(--font-caption); font-weight:400; white-space:nowrap; }
+.permission-choice-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-12); margin-top:var(--space-16); }
+.permission-choice { display:flex; flex-direction:column; justify-content:center; gap:var(--space-8); min-width:0; min-height:88px; padding:var(--space-16); border:1px solid var(--color-border-input); border-radius:var(--radius-sm); background:var(--color-surface); color:var(--color-primary); text-align:left; font:inherit; }
+.permission-choice[aria-pressed="true"] { border-color:var(--color-primary); background:var(--color-blue-tint); box-shadow:inset 0 0 0 1px var(--color-primary); }
+.permission-choice:hover:not(:disabled) { border-color:var(--color-primary); }
+.permission-choice-heading { display:flex; align-items:center; justify-content:space-between; gap:var(--space-12); width:100%; }
+.permission-choice-heading strong { font-size:var(--font-body); font-weight:700; overflow-wrap:anywhere; }
+.permission-choice-state { display:inline-flex; align-items:center; gap:var(--space-4); flex-shrink:0; color:var(--color-muted); font-size:var(--font-caption); }
+.permission-choice[aria-pressed="true"] .permission-choice-state { color:var(--color-primary); font-weight:700; }
+.permission-choice-description { display:block; color:var(--color-text-sub); font-size:var(--font-caption); line-height:1.6; overflow-wrap:anywhere; }
+.permission-choice:last-child:nth-child(odd) { grid-column:1 / -1; }
+.permission-screen-summary { padding:var(--space-16); border-radius:var(--radius-sm); background:var(--color-background); }
+.permission-screen-chips { display:flex; flex-wrap:wrap; gap:var(--space-8); padding:0; margin:var(--space-12) 0; list-style:none; }
+.permission-screen-chips li { padding:var(--space-4) var(--space-12); border:1px solid var(--color-border-input); border-radius:var(--radius-pill); background:var(--color-surface); color:var(--color-primary); font-size:var(--font-caption); }
+.permission-screen-summary .permission-help { margin-top:var(--space-12); }
+.permission-member-results { list-style:none; padding:0; margin:var(--space-12) 0; }
+.permission-member-scroll { max-height:360px; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; margin-top:var(--space-16); padding-right:var(--space-12); }
+.permission-member-scroll:focus-visible { outline:2px solid var(--color-blue-strong); outline-offset:4px; border-radius:var(--radius-sm); }
+.permission-member-results li { display:flex; align-items:center; justify-content:space-between; gap:var(--space-16); padding:var(--space-12) 0; border-bottom:1px solid var(--color-border); }
+@media(max-width:768px) { .permission-choice-grid { grid-template-columns:minmax(0,1fr); } }
