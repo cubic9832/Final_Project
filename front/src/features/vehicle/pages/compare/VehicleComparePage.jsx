@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import useAuthStore from '../../../../stores/useAuthStore.js';
 import { readScopedFinancialState, scopeFinancialState } from '../../../financial/financialSession.js';
 import { buildRecommendationView, describePreference } from '../../../financial/pages/recommendations/buildRecommendationView.js';
@@ -29,7 +30,10 @@ function CatalogVehicleComparePage() {
   const preset = findProfilePreset(presetId);
   const favoritesOnly = params.get('source') === 'favorites' && !presetId;
   const { vehicles, planningVehicles, conditions, comparison, favoriteComparison, financialComparison } = useVehicle();
-  const comparisonIds = favoritesOnly ? favoriteComparison : comparison;
+  const [favoriteStart, setFavoriteStart] = useState(0);
+  const lastFavoriteStart = Math.max(0, favoriteComparison.length - 3);
+  const start = Math.min(favoriteStart, lastFavoriteStart);
+  const comparisonIds = favoritesOnly ? favoriteComparison.slice(start, start + 3) : comparison;
   const selected = comparisonIds.map((id) => vehicles.find((vehicle) => vehicle.id === id)).filter(Boolean);
   if (presetId !== null && !preset) return <section className="vehicle-page panel vehicle-empty"><h1>프로필을 찾을 수 없습니다.</h1><p>메인에서 예시 프로필을 다시 선택해 주세요.</p><Link className="vehicle-button primary" to="/">프리셋 선택하기</Link></section>;
   const recommendationViews = !favoritesOnly && !preset && financialComparison
@@ -88,7 +92,11 @@ function CatalogVehicleComparePage() {
     recommendationViews.find(view => String(view.id) === id)
     ?? catalogViews.find(view => view.id === id)
   ).filter(Boolean);
-  if (comparisonViews.length) return <FinancialCandidateComparison key={presetId} comparisonViews={comparisonViews}>
+  if (comparisonViews.length) return <FinancialCandidateComparison key={presetId} comparisonViews={comparisonViews} canToggleVehicles={!favoritesOnly}
+    controls={favoritesOnly && <nav className="vehicle-actions" aria-label="관심 차량 비교 이동">
+      <button type="button" className="vehicle-button" disabled={start === 0} onClick={() => setFavoriteStart(start - 1)}>이전</button>
+      <button type="button" className="vehicle-button" disabled={start === lastFavoriteStart} onClick={() => setFavoriteStart(start + 1)}>다음</button>
+    </nav>}>
     <div className="financial-recommendations-actions">
       {selected.map(vehicle => <Link key={vehicle.id} className="candidate-open-comparison" to={`/vehicles/${vehicle.id}/simulation`}>{vehicle.name} 조건 시뮬레이션</Link>)}
     </div>
@@ -97,5 +105,5 @@ function CatalogVehicleComparePage() {
       <Link className="candidate-open-comparison" to="/financial">내 정보 입력하고 비교하기</Link>
     </div>
   </FinancialCandidateComparison>;
-  return <div className="vehicle-page"><div className="vehicle-heading split"><div><h1>차량 비교</h1><p>최대 3대의 구매비용과 유지비, 재무 적합도를 같은 기준으로 비교합니다.</p></div><span className="vehicle-badge">{selected.length} / 3 선택</span></div><div className="vehicle-content-fade"><section className="panel vehicle-empty"><h2>비교할 차량을 선택해 주세요.</h2><p>{favoritesOnly ? '차량 목록에서 관심 차량을 추가하면 먼저 저장한 3대까지 비교할 수 있습니다.' : '추천 차량이나 차량 상세에서 최대 3대를 추가할 수 있습니다.'}</p><Link className="vehicle-button primary" to="/vehicles">차량 선택하기</Link></section><div className="vehicle-actions"><Link className="vehicle-button cta" to="/financial">내 정보 입력하고 비교하기</Link></div>{!preset && <VehicleEnergyCostNote />}</div></div>;
+  return <div className="vehicle-page"><div className="vehicle-heading split"><div><h1>차량 비교</h1><p>최대 3대의 구매비용과 유지비, 재무 적합도를 같은 기준으로 비교합니다.</p></div><span className="vehicle-badge">{selected.length} / 3 선택</span></div><div className="vehicle-content-fade"><section className="panel vehicle-empty"><h2>비교할 차량을 선택해 주세요.</h2><p>{favoritesOnly ? '차량 목록에서 관심 차량을 추가하면 3대씩 비교할 수 있습니다.' : '추천 차량이나 차량 상세에서 최대 3대를 추가할 수 있습니다.'}</p><Link className="vehicle-button primary" to="/vehicles">차량 선택하기</Link></section><div className="vehicle-actions"><Link className="vehicle-button cta" to="/financial">내 정보 입력하고 비교하기</Link></div>{!preset && <VehicleEnergyCostNote />}</div></div>;
 }

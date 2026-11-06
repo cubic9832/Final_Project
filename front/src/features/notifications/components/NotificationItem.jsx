@@ -1,10 +1,10 @@
+import { notificationTypeLabels } from '../notificationTypeLabels.js';
 import { useEffect, useRef, useState } from 'react';
 import { BellOff, EllipsisVertical, Trash2 } from 'lucide-react';
 import theme from '../../../styles/theme';
 import { deleteNotification, setNotificationPreference } from '../notificationApi';
 
 // 11-05: 상담 알림(CHAT_*) 이름 추가
-const TYPE_LABELS = { GOAL_REACHED: '목표 달성', RECURRING_RECORDED: '정기 저축 기록', CHAT_REPLY: '상담원 답장', CHAT_IDLE_WARNING: '상담 종료 예정' };
 
 export default function NotificationItem({ item, onRead, onRefresh, onError }) {
   const [menu, setMenu] = useState(false);
@@ -37,7 +37,7 @@ export default function NotificationItem({ item, onRead, onRefresh, onError }) {
     <button type="button" ref={trigger} className="notification-more" aria-label={`${item.title} 더 보기`} aria-expanded={menu} onClick={() => setMenu(value => !value)}><EllipsisVertical size={theme.iconSize.sm} aria-hidden /></button>
     <div className={`notification-menu-collapse${menu ? ' is-expanded' : ''}`} aria-hidden={!menu} inert={!menu}><div className="notification-menu-inner"><div className="notification-item-menu" aria-label="알림 관리">
       <button type="button" ref={firstAction} className="notification-delete" disabled={busy} onClick={() => act(() => deleteNotification(item.id))}><Trash2 size={theme.iconSize.sm} aria-hidden />삭제하기</button>
-      <button type="button" disabled={busy} onClick={() => act(() => setNotificationPreference(item.type, false))}><BellOff size={theme.iconSize.sm} aria-hidden /><span>이 유형 알림 끄기<small>{TYPE_LABELS[item.type] ?? '이 유형'} 알림을 끕니다.</small></span></button>
+      {notificationTypeLabels[item.type] && <button type="button" disabled={busy} onClick={() => act(() => setNotificationPreference(item.type, false))}><BellOff size={theme.iconSize.sm} aria-hidden /><span>이 유형 알림 끄기<small>{notificationTypeLabels[item.type]} 알림을 끕니다.</small></span></button>}
       <button type="button" onClick={close}>취소</button>
     </div></div></div>
   </li>;

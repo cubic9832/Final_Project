@@ -65,7 +65,7 @@ export function VehicleProvider({ children }) {
     saveFinancialComparison(toggleRecommendationComparison(financialComparison, id, result, diagnosis));
   }
   const [favorites, setFavorites] = useState(readSaved);
-  const favoriteComparison = [...new Set(favorites)].filter(id => vehicles.some(vehicle => vehicle.id === id)).slice(0, 3);
+  const favoriteComparison = [...new Set(favorites)].filter(id => vehicles.some(vehicle => vehicle.id === id));
   const [storageError, setStorageError] = useState('');
   function toggleFavorite(id) {
     const next = favorites.includes(id) ? favorites.filter((item) => item !== id) : [...favorites, id];
