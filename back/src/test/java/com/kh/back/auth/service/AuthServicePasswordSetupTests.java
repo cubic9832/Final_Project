@@ -96,6 +96,7 @@ class AuthServicePasswordSetupTests {
         verify(memberMapper).updatePasswordHash(9L, "new-hash");
         verify(refreshTokenMapper).deleteByUserId(9L);
         verify(refreshTokenMapper).insert(any());
+        verify(refreshTokenMapper).deleteBeyondLatest(9L, AuthServiceImpl.MAX_LOGIN_SESSIONS); // 11-06: 로그인 기록은 최근 5개만
         verify(verificationProofStore).remove("proof");
         assertThat(tokens.getMember().isSocialOnly()).isFalse(); // 화면이 바로 [변경] 버튼으로 바꿀 수 있게
     }

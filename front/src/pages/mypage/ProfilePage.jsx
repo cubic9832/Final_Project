@@ -512,6 +512,8 @@ export default function ProfilePage({ inConsole = false }) {
                   )}
                 </ul>
               )}
+              {/* 11-06: 기기가 아니라 "로그인 한 번" 이 한 줄 — 같은 크롬이라도 다시 로그인하거나 주소(localhost · 공용 서버)가 다르면 늘어난다 (조장 질문) */}
+              <small>로그인할 때마다 한 줄씩 생겨요. 같은 브라우저라도 로그아웃 없이 다시 로그인하면 늘어나고, 최근 5개까지만 남아요.</small>
               <small>모르는 기기가 있으면 [로그아웃]을 누르고 비밀번호를 바꿔 주세요. 이미 열려 있던 화면은 최대 30분 안에 로그아웃됩니다.</small>
             </div>
             <button className="my-outline-button profile-small-button" type="button" onClick={handleLogoutOthers}

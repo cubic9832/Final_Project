@@ -49,6 +49,13 @@
         ORDER BY created_at DESC
     </select>
 
+    <!-- 11-06: 최근에 쓴 keep 개(목록과 같은 순서)만 남기고 지운다. MySQL 은 같은 표를 지우면서 LIMIT 서브쿼리를 못 써서 한 겹 더 감싼다 -->
+    <delete id="deleteBeyondLatest">
+        DELETE FROM refresh_token
+        WHERE user_id = #{userId}
+          AND id NOT IN (SELECT id FROM (SELECT id FROM refresh_token WHERE user_id = #{userId} ORDER BY created_at DESC, id DESC LIMIT #{keep}) latest)
+    </delete>
+
     <select id="findById" resultType="com.kh.back.auth.dto.RefreshTokenDto">
         SELECT id, user_id, token, expires_at, device, logged_in_at, created_at
         FROM refresh_token

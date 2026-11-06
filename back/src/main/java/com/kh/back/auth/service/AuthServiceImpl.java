@@ -44,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
     // 보완 5: 가입 가능 나이. 차량 추천 서비스라 운전면허를 딸 수 있는 나이(만 18세, 1·2종 보통 기준)부터 받는다
     // (도로교통법 기준 — 법 조항은 확인 필요. 프론트 profileRules.js 의 MIN_SIGNUP_AGE 와 같은 값)
     private static final int MIN_SIGNUP_AGE = 18;
+    static final int MAX_LOGIN_SESSIONS = 5; // 11-06: 계정당 로그인 기록(refresh token) 최대 개수
 
     private static final String GOOGLE = "GOOGLE"; // social_accounts.provider
 
@@ -546,6 +547,8 @@ public class AuthServiceImpl implements AuthService {
         refresh.setDevice(ClientDevice.current());                       // 6단계: 로그인된 기기 목록에 보여 줄 이름
         refresh.setLoggedInAt(now);                                      // 6단계: 처음 로그인한 시각 (재발급해도 그대로)
         refreshTokenMapper.insert(refresh);
+        // 11-06: 같은 크롬이라도 로그인할 때마다 한 줄씩 생긴다 → 계정당 최근 5개까지만 (6번째 로그인이면 가장 오래 안 쓴 기기가 로그아웃)
+        refreshTokenMapper.deleteBeyondLatest(member.getId(), MAX_LOGIN_SESSIONS);
 
         return new AuthTokens(accessToken, refresh.getToken(), MemberResponse.from(member));
     }
