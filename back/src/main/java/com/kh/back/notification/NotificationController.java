@@ -39,7 +39,7 @@ public class NotificationController {
         return ApiResponse.ok(service.preferences(userId));
     }
     @PutMapping("/preferences/{type}") public ResponseEntity<Void> preference(@AuthenticationPrincipal Long userId,
-            @PathVariable SavingsNotificationRequest.Type type,@Valid @RequestBody NotificationPreferenceRequest request) {
+            @PathVariable NotificationType type,@Valid @RequestBody NotificationPreferenceRequest request) {
         service.preference(userId,type,request.enabled()); return ResponseEntity.noContent().build();
     }
 }

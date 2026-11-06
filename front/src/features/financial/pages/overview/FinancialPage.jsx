@@ -76,8 +76,8 @@ export default function FinancialPage() {
   }
 
   const questions = [
-    { id: 'income', category: '매달 들어오는 돈', title: '한 달에 얼마를 받으세요?', description: '세금을 뺀 월급에 정기적으로 받는 다른 소득도 더해 주세요.' },
-    { id: 'expenses', category: '매달 쓰는 돈', title: '생활비로 매달 얼마를 쓰세요?', description: '집세, 식비, 교통비 등을 합쳐 주세요. 대출 갚는 돈은 다음에 따로 물어볼게요.' },
+    { id: 'income', category: '매달 들어오는 돈', title: '한 달에 얼마를 받으세요?', description: '월급과 기타 소득까지 합쳐서 작성해 주세요.' },
+    { id: 'expenses', category: '매달 쓰는 돈', title: '매달 돈을 얼마나 쓰세요?', description: '매달 쓰는 비용이 어느 정도인지 알아봐요' },
     { id: 'loans', category: '매달 갚는 돈', title: '대출을 갚는 데 얼마를 쓰세요?', description: '매달 갚는 원금과 이자를 합쳐 주세요. 대출이 없다면 0으로 두면 돼요.' },
     { id: 'deposit', category: '차에 쓸 수 있는 목돈', title: '모아둔 돈이 있나요?', description: '차량을 구매하기 위해 준비해 둔 목돈 액수를 작성해 주세요.' },
     { id: 'finance-review', category: '내 예산 확인', title: '입력한 금액이 맞나요?', description: '이 금액으로 차량 구매와 매달 유지비를 감당할 수 있는지 살펴볼게요.' },
@@ -108,7 +108,7 @@ export default function FinancialPage() {
     <div className="financial-survey-input">
       {step === 0 && input('income', '월 총수령액', values.income, value => setValues(previous => ({ ...previous, income: value })), { required: true, help: '모든 금액은 만 원 단위예요. 예: 300만 원이면 300' })}
       {step === 1 && <>
-        {input('monthlyExpenses', '월 생활비 합계', values.monthlyExpenses, value => setValues(previous => ({ ...previous, monthlyExpenses: value })), { required: true, readOnly: detailed, help: '지출이 없으면 0을 입력해 주세요.' })}
+        {input('monthlyExpenses', '월 지출 합계', values.monthlyExpenses, value => setValues(previous => ({ ...previous, monthlyExpenses: value })), { required: true, readOnly: detailed, help: '지출이 없으면 0을 입력해 주세요.' })}
         <fieldset className="financial-expense-mode"><legend>생활비 입력 방법</legend><div className="financial-mode-options"><label><input type="radio" name="expenseMode" checked={!detailed} onChange={() => changeMode(false)} /> 합계로 입력</label><label><input type="radio" name="expenseMode" checked={detailed} onChange={() => changeMode(true)} /> 항목별로 계산</label></div></fieldset>
         {detailed && <button type="button" className="survey-detail-button" onClick={openExpenses}>생활비 세부 항목 입력·수정</button>}
       </>}

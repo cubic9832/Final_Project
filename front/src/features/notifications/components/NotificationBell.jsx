@@ -1,3 +1,4 @@
+import { notificationTypeLabels } from '../notificationTypeLabels.js';
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { Bell, Settings, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -54,13 +55,13 @@ export default function NotificationBell({ memberId }) {
       <header className="notification-panel-heading"><div><h2>알림센터</h2><p>읽지 않은 알림 {unread}개</p></div><div className="notification-panel-actions"><button type="button" className="notification-panel-close" aria-label="알림 수신 설정" aria-pressed={settings} onClick={() => setSettings(value => !value)}><Settings size={theme.iconSize.md} aria-hidden /></button><button type="button" className="notification-panel-close" aria-label="알림센터 닫기" popoverTarget={panelId} popoverTargetAction="hide" autoFocus><X size={theme.iconSize.md} aria-hidden /></button></div></header>
       <div className="notification-panel-content">
       {error && <p role="status" className="notification-empty">{error}</p>}
-      <div className={`notification-settings-collapse${settings ? ' is-expanded' : ''}`} aria-hidden={!settings} inert={!settings}><div className="notification-settings-inner"><div className="notification-preferences"><h3>알림 수신 설정</h3>{[['GOAL_REACHED','목표 달성'],['RECURRING_RECORDED','정기 저축 기록']].map(([type,label]) => <label key={type}><span>{label}</span><input type="checkbox" checked={preferences[type] !== false} disabled={savingPreference} onChange={async event => {
+      <div className={`notification-settings-collapse${settings ? ' is-expanded' : ''}`} aria-hidden={!settings} inert={!settings}><div className="notification-settings-inner"><div className="notification-preferences"><h3>알림 수신 설정</h3>{Object.entries(notificationTypeLabels).map(([type,label]) => <label key={type}><span>{label}</span><input type="checkbox" checked={preferences[type] !== false} disabled={savingPreference} onChange={async event => {
         const enabled = event.target.checked;
         setSavingPreference(true);
         try { await setNotificationPreference(type, enabled); await refresh(); }
         catch { useNotificationStore.setState({ error:'알림 설정을 저장하지 못했어요. 다시 시도해 주세요.' }); }
         finally { setSavingPreference(false); }
-      }} /></label>)}<p>알림을 꺼도 저축 기록은 계속 저장돼요. 여기에서 다시 켤 수 있어요.</p></div></div></div>
+      }} /></label>)}<p>알림을 꺼도 저축 기록과 상담 답변은 계속 확인할 수 있어요.</p></div></div></div>
       {!settings && (mine.length ? <ul className="notification-list">{mine.map(item => <NotificationItem key={item.id} item={item} onRefresh={refresh} onError={error => useNotificationStore.setState({ error })} onRead={async () => {
         try {
           await readNotification(item.id); markRead(memberId,item.id);

@@ -5,7 +5,7 @@ import CandidateComparisonTable from './CandidateComparisonTable.jsx';
 import { buildRecommendationView } from './buildRecommendationView.js';
 import './FinancialRecommendationsPage.css';
 
-export default function FinancialCandidateComparison({ result, diagnosis, selectedIds, canToggleVehicles = true, recommendationState, comparisonViews, children }) {
+export default function FinancialCandidateComparison({ result, diagnosis, selectedIds, canToggleVehicles = true, recommendationState, comparisonViews, controls, children }) {
   const views = isFinancialRecommendationResult(result) ? buildRecommendationView(result) : [];
   const selected = comparisonViews ?? (selectedIds ?? []).map(id => views.find(view => view.id === id)).filter(Boolean);
   if (!selected.length || (!comparisonViews && !diagnosis?.values)) return <section className="financial-recommendations-empty">
@@ -13,7 +13,7 @@ export default function FinancialCandidateComparison({ result, diagnosis, select
     <Link to="/financial">재무 정보 입력하기</Link>
   </section>;
   return <div className="financial-recommendations-page financial-comparison-page">
-    <header className="recommendations-heading"><div><h1>차량 비교</h1><p>차량별 구매 비용과 예상 유지비, 제원을 비교합니다.</p></div></header>
+    <header className="recommendations-heading"><div><h1>차량 비교</h1><p>차량별 구매 비용과 예상 유지비, 제원을 비교합니다.</p></div>{controls}</header>
     <div className="vehicle-content-fade">
     <CandidateComparisonTable views={selected} canToggleVehicles={canToggleVehicles} />
     {children ?? <div className="financial-recommendations-actions">

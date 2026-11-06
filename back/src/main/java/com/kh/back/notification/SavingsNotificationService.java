@@ -29,7 +29,7 @@ public class SavingsNotificationService {
     }
     public void delete(long userId,long id) { repository.delete(userId,id); stream.changed(userId); }
     public java.util.Map<String,Boolean> preferences(long userId) { return repository.preferences(userId); }
-    public void preference(long userId,SavingsNotificationRequest.Type type,boolean enabled) {
+    public void preference(long userId,NotificationType type,boolean enabled) {
         repository.preference(userId,type,enabled); stream.changed(userId);
     }
 }

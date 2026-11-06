@@ -11,6 +11,7 @@ import com.kh.back.common.security.CurrentRoleLookup;
 import com.kh.back.member.dto.MemberDto;
 import com.kh.back.member.mapper.MemberMapper;
 import com.kh.back.member.service.AccountSuspension;
+import com.kh.back.notification.ConsultationNotificationService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -41,6 +42,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final AdminAuditLogMapper adminAuditLogMapper;
     private final ChatContentFilter contentFilter;
     private final MemberMapper memberMapper; // 9단계: 정지된 회원인지
+    private final ConsultationNotificationService consultationNotifications;
 
     // ───────────── 회원 ─────────────
 
@@ -143,6 +145,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         }
 
         ChatMessageDto saved = save(roomId, senderType, senderId, text);
+        if (ChatMessageDto.ADMIN.equals(senderType)) {
+            consultationNotifications.recordReply(room.getUserId(), saved.getId());
+        }
         broadcaster.roomChanged(roomId, room.getStatus());
         return saved;
     }

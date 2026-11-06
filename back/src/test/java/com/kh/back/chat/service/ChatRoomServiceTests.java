@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,6 +20,7 @@ import com.kh.back.common.exception.ApiException;
 import com.kh.back.common.security.CurrentRoleLookup;
 import com.kh.back.member.dto.MemberDto;
 import com.kh.back.member.mapper.MemberMapper;
+import com.kh.back.notification.ConsultationNotificationService;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +47,7 @@ class ChatRoomServiceTests {
     @Mock ChatBroadcaster broadcaster;
     @Mock CurrentRoleLookup currentRoleLookup;
     @Mock AdminAuditLogMapper adminAuditLogMapper;
+    @Mock ConsultationNotificationService consultationNotifications;
     @Mock MemberMapper memberMapper; // 9단계: 정지 여부 — 기본은 정지 안 된 회원 (보완 15: null 이면 탈퇴 회원 → MEMBER_NOT_FOUND)
     @Spy ChatContentFilter contentFilter = new ChatContentFilter(); // 진짜 금칙어 목록으로 검사
     @InjectMocks ChatRoomServiceImpl service;
@@ -110,6 +113,7 @@ class ChatRoomServiceTests {
         verify(chatMapper).insertMessage(saved.capture());
         assertThat(saved.getValue().getSenderType()).isEqualTo(ChatMessageDto.USER);
         assertThat(saved.getValue().getContent()).isEqualTo("견적 문의합니다"); // 앞뒤 공백 제거
+        verify(consultationNotifications, never()).recordReply(anyLong(), anyLong());
     }
 
     @Test
@@ -137,10 +141,18 @@ class ChatRoomServiceTests {
     @Test
     void 담당_관리자의_답장은_ADMIN_으로_저장된다() {
         room(ChatRoomDto.ACTIVE, ADMIN);
+        long messageId = 25L;
+        doAnswer(call -> {
+            ChatMessageDto message = call.getArgument(0);
+            message.setId(messageId);
+            when(chatMapper.findMessageById(messageId)).thenReturn(message);
+            return null;
+        }).when(chatMapper).insertMessage(any());
         service.sendMessage(ADMIN, ROOM, "안녕하세요, 상담원입니다.");
         ArgumentCaptor<ChatMessageDto> saved = ArgumentCaptor.forClass(ChatMessageDto.class);
         verify(chatMapper).insertMessage(saved.capture());
         assertThat(saved.getValue().getSenderType()).isEqualTo(ChatMessageDto.ADMIN);
+        verify(consultationNotifications).recordReply(MEMBER, messageId);
     }
 
     @Test
