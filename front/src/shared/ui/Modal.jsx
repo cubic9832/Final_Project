@@ -7,7 +7,7 @@ import { X } from 'lucide-react';
 import theme from '../../styles/theme';
 import './Modal.css';
 
-const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])';
 
 export default function Modal({
   title,
@@ -18,6 +18,7 @@ export default function Modal({
   isDirty = false, // true: 저장하지 않은 변경이 있어 닫기 전에 폐기 여부를 묻는다
   busy = false, // true: 저장 중이라 닫지 않는다
   size = 'md',
+  className = '',
 }) {
   const titleId = useId();
   const dialogRef = useRef(null);
@@ -79,7 +80,7 @@ export default function Modal({
     >
       <div
         ref={dialogRef}
-        className={`auth-modal auth-modal-${size}`}
+        className={`auth-modal auth-modal-${size} ${className}`}
         role={dismissible ? 'dialog' : 'alertdialog'}
         aria-modal="true"
         aria-labelledby={titleId}
