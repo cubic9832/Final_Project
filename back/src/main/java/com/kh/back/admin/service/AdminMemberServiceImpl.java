@@ -36,6 +36,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     private final LoginAttemptLimiter loginAttemptLimiter; // 보완 6: 로그인 5번 실패 잠금 (서버 메모리)
     private final RefreshTokenMapper refreshTokenMapper;
     private final AdminAuditLogMapper adminAuditLogMapper; // V13: 운영 로그
+    private final com.kh.back.admin.repository.AdminPermissionRepository adminPermissions;
     private final ChatRoomService chatRoomService; // 8단계: 관리자에서 해제되면 맡던 상담을 대기로
 
     @Override
@@ -104,6 +105,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
             chatRoomService.releaseRoomsOf(targetId); // 8단계: 맡던 진행 중 상담 → 대기 (다른 관리자가 다시 맡는다)
         } else {
             adminMemberMapper.grantAdmin(targetId, role); // 누가 지정했는지는 아래 운영 로그(ROLE_CHANGE)에 남는다
+            if ("ADMIN".equals(role) && !"ADMIN".equals(current)) adminPermissions.assignLegacyRole(targetId);
         }
         // 운영 로그: 누가 누구를 무엇으로 바꿨는지 (같은 트랜잭션 → 기록이 실패하면 권한 변경도 취소)
         adminAuditLogMapper.insert(actorId, "ROLE_CHANGE", "MEMBER", targetId, current + " → " + role);

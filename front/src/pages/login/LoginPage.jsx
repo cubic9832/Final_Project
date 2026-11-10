@@ -9,6 +9,7 @@ import PasswordResetModal from './PasswordResetModal';
 import RecaptchaBox from './RecaptchaBox';
 import GoogleLoginButton from './GoogleLoginButton';
 import './LoginPage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // "이메일 저장"을 체크하고 로그인하면 이메일만 브라우저에 저장한다 (비밀번호 · 토큰은 저장하지 않는다)
@@ -165,7 +166,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page">
+    <div className="login-page page-fade-in">
       <div className="login-heading">
         <h1>로그인</h1>
         {/* 11-03 회의: 비회원 간편 체험 삭제 — "계정이 필요한 이유" 박스 대신 제목 아래 한 줄로 */}

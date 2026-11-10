@@ -19,6 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompAuthInterceptor stompAuthInterceptor;
     private final StompErrorHandler stompErrorHandler;
+    private final ChatScreenPermissionInterceptor chatScreenPermissionInterceptor;
 
     // ① 연결 주소: ws://localhost:5173/ws (Vite 가 8080 으로 넘긴다)
     // 허용 출처: 내 PC(localhost) · 같은 와이파이의 공용 서버(192.168.x.x) 개발 화면 — 배포하면 배포 주소로 바꾼다
@@ -40,6 +41,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // ③ 화면에서 들어오는 모든 STOMP 메시지가 이 인터셉터를 먼저 거친다 (REST 의 JwtAuthenticationFilter 자리)
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(stompAuthInterceptor);
+        registration.interceptors(stompAuthInterceptor,chatScreenPermissionInterceptor);
+    }
+
+    @Override public void configureClientOutboundChannel(ChannelRegistration registration) {
+        registration.interceptors(chatScreenPermissionInterceptor);
     }
 }

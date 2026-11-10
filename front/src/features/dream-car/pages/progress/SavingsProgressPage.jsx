@@ -5,7 +5,7 @@ import { useVehicle } from '../../../vehicle/useVehicle';
 import VehicleCatalogGate from '../../../vehicle/components/VehicleCatalogGate.jsx';
 import { calculateSavingsProgress, currentDate, deleteSavingRecord, formatMoney, getSavingRecords, isProgressPlan, progressStorageKey, shiftMonth } from '../../savingsProgress';
 import theme from '../../../../styles/theme';
-import AuthModal from '../../../auth/components/AuthModal';
+import Modal from '../../../../shared/ui/Modal.jsx';
 import SavingsProgressChart from './SavingsProgressChart';
 import DailySavingForm from './DailySavingForm';
 import RecurringSavingsSettings from './RecurringSavingsSettings';
@@ -89,9 +89,9 @@ function SavingsProgressPageContent() {
           <RecurringSavingsSettings key={plan.id} plan={plan} asOfDate={asOfDate} onSave={(next, message) => persist(state.plans.map(item => item.id === plan.id ? next : item), message)} />
 
         </aside></div>
-      {recordModalOpen && <AuthModal title={editingRecord ? '저축 기록 수정' : '저축 기록하기'} subtitle="작은 저축도 내 차를 향한 한 걸음이에요." size="md" isDirty={recordDirty} onClose={closeRecordModal}>
+      {recordModalOpen && <Modal title={editingRecord ? '저축 기록 수정' : '저축 기록하기'} subtitle="작은 저축도 내 차를 향한 한 걸음이에요." size="md" isDirty={recordDirty} onClose={closeRecordModal}>
         <div className="savings-record-modal"><DailySavingForm key={`${plan.id}-${editingRecord?.id || 'new'}`} {...{ plan, asOfDate }} record={editingRecord} onDirtyChange={setRecordDirty} onCancel={closeRecordModal} onSave={next => persist(state.plans.map(item => item.id === plan.id ? next : item), '저축 기록을 저장했습니다. 월 합계와 차트에 반영했어요.')} /></div>
-      </AuthModal>}
+      </Modal>}
     </>}
   </div>;
 }

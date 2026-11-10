@@ -14,11 +14,41 @@ import static org.junit.jupiter.api.Assertions.*;
 class NotificationControlsTests {
     @Autowired JdbcTemplate jdbc;
     @Autowired SavingsNotificationRepository repository;
+    @Autowired SavingsNotificationService notificationService;
 
     private long member() {
         String email="notification-test-"+UUID.randomUUID()+"@test.invalid";
         jdbc.update("INSERT INTO users(email,password_hash,nick_name,role) VALUES(?,'TEST_NO_LOGIN',?,'USER')",email,"test-"+UUID.randomUUID().toString().substring(0,12));
         return jdbc.queryForObject("SELECT id FROM users WHERE email=?",Long.class,email);
+    }
+
+    @Test void consultationReplyIsVisibleOnlyToItsRecipientAndCannotBeDuplicated() {
+        long owner = member(), other = member();
+        notificationService.notifyChat(owner, SavingsNotificationRequest.Type.CHAT_REPLY, "chat-reply:25", "상담 답변", "새 답변을 확인해 주세요.");
+        notificationService.notifyChat(owner, SavingsNotificationRequest.Type.CHAT_REPLY, "chat-reply:25", "상담 답변", "새 답변을 확인해 주세요.");
+
+        var notifications = repository.list(owner);
+        assertEquals(1, notifications.size());
+        var reply = notifications.get(0);
+        assertEquals("CHAT_REPLY", reply.type());
+        assertEquals("/mypage/consultation", reply.href());
+        assertFalse(reply.read());
+        assertTrue(repository.list(other).isEmpty());
+        assertFalse(repository.markRead(other, reply.id()));
+        assertTrue(repository.markRead(owner, reply.id()));
+    }
+
+    @Test void consultationReplyCanBeMutedAndEnabledAgain() {
+        long owner = member();
+        assertTrue(repository.preferences(owner).get("CHAT_REPLY"));
+        repository.preference(owner, SavingsNotificationRequest.Type.CHAT_REPLY, false);
+        notificationService.notifyChat(owner, SavingsNotificationRequest.Type.CHAT_REPLY, "chat-reply:25", "상담 답변", "새 답변을 확인해 주세요.");
+        assertFalse(repository.preferences(owner).get("CHAT_REPLY"));
+        assertTrue(repository.list(owner).isEmpty());
+
+        repository.preference(owner, SavingsNotificationRequest.Type.CHAT_REPLY, true);
+        notificationService.notifyChat(owner, SavingsNotificationRequest.Type.CHAT_REPLY, "chat-reply:26", "상담 답변", "새 답변을 확인해 주세요.");
+        assertEquals(1, repository.list(owner).size());
     }
 
     @Test void deletionPersistsAndReplayCannotRestoreTheNotification() {

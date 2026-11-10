@@ -1,19 +1,23 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import { useState } from 'react';
-import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Car } from 'lucide-react';
 import LoginRequiredModal from '../../../auth/components/LoginRequiredModal.jsx';
 import useAuthStore from '../../../../stores/useAuthStore.js';
 import theme from '../../../../styles/theme.js';
 import { isFinancialRecommendationResult } from '../../isFinancialRecommendationResult.js';
+import { buildDetailReasons } from './buildDetailReasons.js';
 import { buildRecommendationView } from './buildRecommendationView.js';
 import { candidateImage, candidateMoney } from './candidatePresentation.js';
 import VehiclePreferenceSummary from './VehiclePreferenceSummary.jsx';
+import { useVehicle } from '../../../vehicle/useVehicle';
 import './FinancialRecommendationsPage.css';
 import './RecommendationDetailsPage.css';
 
 export default function RecommendationDetailsPage() {
-  const { state } = useLocation();
-  const navigate = useNavigate();
+  const { state } = useFinancialLocation();
+  const { planningVehicles } = useVehicle();
+  const navigate = useFinancialNavigate();
   const [loginRequired, setLoginRequired] = useState(false);
   const [params, setParams] = useSearchParams();
   const accessToken = useAuthStore(store => store.accessToken);
@@ -27,8 +31,16 @@ export default function RecommendationDetailsPage() {
   if (!initialized) return <p role="status">로그인 상태를 확인하는 중입니다…</p>;
   if (index >= 3 && !accessToken) return <Navigate to="/login" replace />;
   const candidate = candidates[index];
-  const { vehicle, cost } = candidate;
+  const { vehicle: recommendedVehicle, cost } = candidate;
+  // Saved diagnosis scores/costs remain attached to their original recommendation.
+  // Corrected specifications come from the same published vehicle ID.
+  const currentVehicle = planningVehicles.find(item => item.id === recommendedVehicle.id);
+  const vehicle = currentVehicle ? { ...recommendedVehicle,
+    length_mm: currentVehicle.length_mm, seats: currentVehicle.seats,
+    seat_options: currentVehicle.seat_options, seats_label: currentVehicle.seats_label,
+  } : recommendedVehicle;
   const view = buildRecommendationView({ ...state.result, recommendations: candidates })[index];
+  const reasons = buildDetailReasons(view, candidates, state.diagnosis.vehicle);
   const image = candidateImage(vehicle);
   function move(next) {
     if (next >= 3 && !accessToken) {
@@ -50,8 +62,8 @@ export default function RecommendationDetailsPage() {
         <div className="recommendation-details-image">{image && failedSrc !== image.src ? <img src={image.src} alt={image.alt} onError={() => setFailedSrc(image.src)} /> : <Car size={theme.iconSize.lg} aria-label="차량 이미지 준비 중" />}</div>
         <div><p>추천 {index + 1} · {vehicle.brand}</p><h2>{vehicle.model}</h2><p>{vehicle.year && `${vehicle.year}년형 · `}{vehicle.trim}</p><strong>{candidateMoney(vehicle.price)}</strong></div>
       </div>
-      <dl className="financial-recommendation-specs">{[['구매 후 남는 예금', view.financial?.cashAfterPurchase], [cost.monthly_payment ? '할부·유지비 지출 후 월 잔여금' : '유지비 지출 후 월 잔여금', cost.remaining_monthly]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{candidateMoney(value)}</dd></div>)}</dl>
-      {view?.financial?.fundingSource === 'assets' && <p className="financial-candidate-alert">예금에서 매월 {candidateMoney(view.financial.monthlyAssetDrawdown)}을 사용해요. 구매 후 예금으로 약 {view.financial.assetRunwayMonths}개월 유지할 수 있어요.</p>}
+      <dl className="financial-recommendation-specs">{[['구매 후 남는 목돈', view.financial?.cashAfterPurchase], [cost.monthly_payment ? '할부·유지비 지출 후 월 잔여금' : '유지비 지출 후 월 잔여금', cost.remaining_monthly]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{candidateMoney(value)}</dd></div>)}</dl>
+      {view?.financial?.fundingSource === 'assets' && <p className="financial-candidate-alert">목돈에서 매월 {candidateMoney(view.financial.monthlyAssetDrawdown)}을 사용해요. 구매 후 목돈으로 약 {view.financial.assetRunwayMonths}개월 유지할 수 있어요.</p>}
       <section className="financial-recommendation-reasons" aria-label={`${vehicle.model} 맞는 조건`}>
         <h3>맞는 조건</h3>
         <ul>{view.matches.slice(0, 2).map(item => <li key={item.key}><p>{item.text}</p></li>)}</ul>
@@ -62,7 +74,16 @@ export default function RecommendationDetailsPage() {
         <ul>{[...view.mismatches, ...view.unknowns].sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0)).slice(0, 2).map(item => <li key={item.key}>{item.text}</li>)}</ul>
         {!view.mismatches.length && !view.unknowns.length && view.evidence && <p>지정한 연료·크기·정원에서 확인된 불일치가 없어요.</p>}
       </section>
-      <VehiclePreferenceSummary vehicle={vehicle} specifications={candidate.lifestyleEvidence?.specifications} values={candidate.lifestyleEvidence?.values} evidence={candidate.lifestyleEvidence?.evidence} />
+      <div className="recommendation-details-explanation">
+        <VehiclePreferenceSummary vehicle={vehicle} specifications={candidate.lifestyleEvidence?.specifications} values={candidate.lifestyleEvidence?.values} evidence={candidate.lifestyleEvidence?.evidence} />
+        <section className="recommendation-details-rationale" aria-labelledby="recommendation-rationale-title">
+          <h3 id="recommendation-rationale-title">왜 골랐을까?</h3>
+          <ol>{reasons.map(({ title, text }) => <li key={title}>
+            <h4>{title}</h4>
+            <p>{text}</p>
+          </li>)}</ol>
+        </section>
+      </div>
 
     </article>
     <button className="financial-previous-button recommendation-details-back" onClick={() => navigate('/financial/recommendations', { state })}><ArrowLeft size={theme.iconSize.sm} aria-hidden />추천 차량 목록</button>

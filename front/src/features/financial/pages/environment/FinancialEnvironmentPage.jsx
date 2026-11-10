@@ -1,5 +1,6 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import { useEffect, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import RecommendationSurvey from '../../components/RecommendationSurvey.jsx';
 import { createVehiclePreferences } from '../../createVehiclePreferences.js';
 import { environmentQuestions } from '../../surveyQuestions.js';
@@ -8,9 +9,9 @@ import { financialSummarySteps, recordSurveyAnswer, surveySummary } from '../../
 import useRecommendationOptions from '../../useRecommendationOptions.js';
 
 export default function FinancialEnvironmentPage() {
-  const { state: routeState } = useLocation();
-  const [state] = useState(() => ({ ...readFinancialSession(), ...routeState }));
-  const navigate = useNavigate();
+  const { state: routeState } = useFinancialLocation();
+  const [state, setState] = useState(() => ({ ...readFinancialSession(), ...routeState }));
+  const navigate = useFinancialNavigate();
   const [vehicle, setVehicle] = useState(() => createVehiclePreferences(state?.vehicle));
   const [step, setStep] = useState(() => Math.max(0, Number(routeState?.environmentStep) || 0));
   const { options, error } = useRecommendationOptions();
@@ -33,5 +34,5 @@ export default function FinancialEnvironmentPage() {
     onChange={value => setVehicle(previous => recordSurveyAnswer(previous, question.id, value))}
     onBack={() => index ? setStep(index - 1) : navigate('/financial', { state: { ...diagnosis, financialStep: 4 } })}
     onNext={next} nextLabel={index === questions.length - 1 ? '이제 차량 취향 고르기' : '다음'}
-    disabled={index === questions.length - 1 && !options} error={error} loading={!options && !error} diagnosis={diagnosis} summaryItems={surveySummary(questions, vehicle)} onEditSummary={editSummary} />;
+    disabled={index === questions.length - 1 && !options} error={error} loading={!options && !error} diagnosis={diagnosis} onBudgetChange={changes => { setState(previous => ({ ...previous, ...changes })); saveFinancialSession(changes); }} summaryItems={surveySummary(questions, vehicle)} onEditSummary={editSummary} />;
 }

@@ -13,7 +13,8 @@ public interface AdminAuditLogMapper {
                 @Param("targetId") Long targetId, @Param("detail") String detail);
 
     // 최근 순. action 이 null 이면 전체
-    List<AdminAuditLogResponse> findRecent(@Param("action") String action, @Param("offset") int offset, @Param("size") int size);
+    List<AdminAuditLogResponse> findRecent(@Param("action") String action, @Param("offset") int offset, @Param("size") int size,
+                                         @Param("sort") String sort, @Param("direction") String direction);
 
     int count(@Param("action") String action);
 }

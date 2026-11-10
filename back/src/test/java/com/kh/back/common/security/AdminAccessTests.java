@@ -33,9 +33,11 @@ class AdminAccessTests {
     @Autowired MockMvc mvc;
     @Autowired JwtProvider jwtProvider;
     @MockitoBean CurrentRoleLookup currentRoleLookup;
+    @MockitoBean com.kh.back.admin.repository.AdminPermissionRepository permissions;
 
     @BeforeEach
     void setUp() {
+        when(permissions.allowedScreens(1L)).thenReturn(java.util.List.of("OVERVIEW","VEHICLES","RECOMMENDATIONS","MODELS","MEMBERS","CHAT","CHATBOT","LOGS"));
         when(currentRoleLookup.currentRole(1L)).thenReturn("ADMIN");
         when(currentRoleLookup.currentRole(2L)).thenReturn("USER");
         when(currentRoleLookup.currentRole(3L)).thenReturn("SUPER_ADMIN");
@@ -43,10 +45,10 @@ class AdminAccessTests {
     }
 
     @Test
-    void 관리자는_보안_검사를_통과한다() throws Exception {
+    void 화면_권한이_정의되지_않은_관리자_주소는_거부한다() throws Exception {
         String token = jwtProvider.createAccessToken(1L, "ADMIN");
         mvc.perform(get(ADMIN_URL).header("Authorization", "Bearer " + token))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden());
     }
 
     @Test

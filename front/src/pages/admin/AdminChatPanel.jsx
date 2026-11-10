@@ -66,6 +66,39 @@ export default function AdminChatPanel() {
     getAdminRooms('').then((rooms) => setSelected(rooms.find((room) => room.id === selectedId) ?? null)).catch(() => {});
   }, [selectedId, version]);
 
+  // 11-05: 내 상담(내가 맡은 진행 중 상담 · 내가 맡았다 끝난 상담)은 맨 위에 모아 둔다 (여러 개 맡으면 찾기 어려워서)
+  // 종료돼도 담당자(assignedAdminId)는 남는다 — [새로 상담하기] 로 대기가 될 때 비워진다. 대기 중 상담은 담당이 없어 늘 "다른 상담"
+  // 각 묶음 안은 서버 순서(최근 메시지 순), [전체] 에서만 진행 중 → 대기 → 종료 순으로 한 번 더 나눈다 (sort 는 같은 순위면 순서 유지)
+  const isMine = (room) => room.assignedAdminId != null && room.assignedAdminId === me?.id;
+  const STATUS_ORDER = { ACTIVE: 0, WAITING: 1, CLOSED: 2 };
+  const ordered = filter === '' ? [...list.rooms].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]) : list.rooms;
+  const mineRooms = ordered.filter(isMine);
+  const otherRooms = ordered.filter((room) => !isMine(room));
+
+  function renderRoom(room) {
+    return (
+      <li key={room.id}>
+        <button type="button" className={[selectedId === room.id && 'is-selected', isMine(room) && 'is-mine'].filter(Boolean).join(' ') || undefined}
+          onClick={() => setSelectedId(room.id)}>
+          <span className="admin-chat-row">
+            <strong>{room.userNickName}</strong>
+            <span className="admin-chat-badges">
+              {room.reportCount > 0 && <span className="admin-chat-badge is-restricted">신고 {room.reportCount}</span>}
+              {room.warningCount > 0 && <span className="admin-chat-badge is-warned">경고 {room.warningCount}</span>}
+              {room.restricted && <span className="admin-chat-badge is-restricted">제한</span>}
+              <span className={`admin-chat-badge is-${room.status.toLowerCase()}`}>{STATUS_LABELS[room.status]}</span>
+            </span>
+          </span>
+          <span className="admin-chat-preview">{room.lastMessage ?? '메시지 없음'}</span>
+          <span className="admin-chat-meta">
+            {room.assignedAdminNickName ? `담당 ${room.assignedAdminId === me?.id ? '나' : room.assignedAdminNickName}` : '담당 없음'}
+            {' · '}{shortTime(room.lastMessageAt ?? room.createdAt)}
+          </span>
+        </button>
+      </li>
+    );
+  }
+
   return (
     <div className="admin-chat">
       {/* 상담원별 만족도 · 신고 — 총관리자만 (신고당한 상담원 본인이 보지 않게) */}
@@ -81,26 +114,11 @@ export default function AdminChatPanel() {
         {list.status === 'error' && <p className="admin-chat-note is-error">{list.error}</p>}
         {list.status === 'done' && list.rooms.length === 0 && <p className="admin-chat-note">상담이 없습니다.</p>}
         <ul>
-          {list.rooms.map((room) => (
-            <li key={room.id}>
-              <button type="button" className={selectedId === room.id ? 'is-selected' : undefined} onClick={() => setSelectedId(room.id)}>
-                <span className="admin-chat-row">
-                  <strong>{room.userNickName}</strong>
-                  <span className="admin-chat-badges">
-                    {room.reportCount > 0 && <span className="admin-chat-badge is-restricted">신고 {room.reportCount}</span>}
-                    {room.warningCount > 0 && <span className="admin-chat-badge is-warned">경고 {room.warningCount}</span>}
-                    {room.restricted && <span className="admin-chat-badge is-restricted">제한</span>}
-                    <span className={`admin-chat-badge is-${room.status.toLowerCase()}`}>{STATUS_LABELS[room.status]}</span>
-                  </span>
-                </span>
-                <span className="admin-chat-preview">{room.lastMessage ?? '메시지 없음'}</span>
-                <span className="admin-chat-meta">
-                  {room.assignedAdminNickName ? `담당 ${room.assignedAdminId === me?.id ? '나' : room.assignedAdminNickName}` : '담당 없음'}
-                  {' · '}{shortTime(room.lastMessageAt ?? room.createdAt)}
-                </span>
-              </button>
-            </li>
-          ))}
+          {/* 내 상담이 있을 때만 묶음 이름을 단다 (없으면 예전처럼 목록만) */}
+          {mineRooms.length > 0 && <li className="admin-chat-group">내 상담 {mineRooms.length}</li>}
+          {mineRooms.map(renderRoom)}
+          {mineRooms.length > 0 && otherRooms.length > 0 && <li className="admin-chat-group">다른 상담 {otherRooms.length}</li>}
+          {otherRooms.map(renderRoom)}
         </ul>
       </section>
 
@@ -116,7 +134,8 @@ export default function AdminChatPanel() {
 // 오른쪽: 선택한 상담 — 회원 정보 · [맡기] · [넘기기] · [상담 종료] · [경고] · [상담 제한] + 대화
 function RoomDetail({ room, meId, isSuper, onChanged }) {
   const navigate = useNavigate();
-  const chat = useChatRoom(room.id, onChanged);
+  // 11-05: 종료된 상담은 지난 대화만 (WebSocket 닫음) — 회원이 다시 요청하면 목록 알림으로 room 이 바뀌어 다시 연결된다
+  const chat = useChatRoom(room.id, onChanged, room.status !== 'CLOSED');
   // 한 번만 보내고, 성공하면 목록을 다시 불러와 이 상담(room)이 바뀔 때까지 잠근다 (맡기 · 종료 등이 두 번 가지 않게)
   const lock = useActionLock(room);
   const busy = lock.locked;
@@ -197,7 +216,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
           )}
         </div>
         {/* 11-04: 수신 상태는 버튼 줄 오른쪽 끝(대화창 바로 위) — 대화창 위 따로 한 줄을 대화 공간으로 돌린다 */}
-        <ConnectionStatus connected={chat.connected} />
+        {room.status !== 'CLOSED' && <ConnectionStatus connected={chat.connected} />}
       </div>
 
       {confirm && <ChatConfirmModal {...confirm} onClose={() => setConfirm(null)} />}
@@ -279,6 +298,7 @@ function FeedbackSummary({ version }) {
   const [rows, setRows] = useState(null);
   const [sort, setSort] = useState('latest');
   const [reportedOnly, setReportedOnly] = useState(false);
+  const [adminId, setAdminId] = useState(null); // 11-05: 상담원별로 보기 (null = 모든 상담원)
   const [items, setItems] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -291,16 +311,16 @@ function FeedbackSummary({ version }) {
   // 받은 개수가 한 번에 읽는 개수와 같으면 뒤에 더 있을 수 있다 → [더 보기]
   useEffect(() => {
     if (!open) return;
-    getAllFeedback(sort, reportedOnly)
+    getAllFeedback(sort, reportedOnly, 0, adminId)
       .then((list) => { setItems(list); setHasMore(list.length === FEEDBACK_PAGE_SIZE); })
       .catch(() => { setItems([]); setHasMore(false); });
-  }, [open, sort, reportedOnly, version]);
+  }, [open, sort, reportedOnly, adminId, version]);
 
   // 보완 13: [더 보기] — 이미 받은 개수만큼 건너뛰고 다음 50개를 뒤에 붙인다
   // items?.length: React Compiler 가 화면을 그릴 때 이 값을 미리 읽는다 → 아직 안 불러온(null) 때도 오류 없게
   function loadMore() {
     setLoadingMore(true);
-    getAllFeedback(sort, reportedOnly, items?.length ?? 0)
+    getAllFeedback(sort, reportedOnly, items?.length ?? 0, adminId)
       .then((list) => { setItems((prev) => [...prev, ...list]); setHasMore(list.length === FEEDBACK_PAGE_SIZE); })
       .catch(() => setHasMore(false))
       .finally(() => setLoadingMore(false));
@@ -326,9 +346,15 @@ function FeedbackSummary({ version }) {
               <table>
                 <thead><tr><th>상담원</th><th>평가 수</th><th>평균 별점</th><th>신고</th></tr></thead>
                 <tbody>
+                  {/* 11-05: 상담원 이름을 누르면 아래 전체 평가가 그 상담원 것만 (한 번 더 누르면 전체) */}
                   {rows.map((row) => (
-                    <tr key={row.adminId ?? 'none'}>
-                      <td>{row.nickName}</td>
+                    <tr key={row.adminId ?? 'none'} className={row.adminId != null && row.adminId === adminId ? 'is-selected' : undefined}>
+                      <td>
+                        {row.adminId == null ? row.nickName : (
+                          <button type="button" className="admin-chat-admin-link" aria-pressed={row.adminId === adminId}
+                            onClick={() => setAdminId((current) => (current === row.adminId ? null : row.adminId))}>{row.nickName}</button>
+                        )}
+                      </td>
                       <td>{row.count}</td>
                       <td>★ {row.averageRating}</td>
                       <td className={row.reportCount > 0 ? 'is-reported' : undefined}>{row.reportCount}</td>
@@ -339,6 +365,10 @@ function FeedbackSummary({ version }) {
 
               <div className="admin-chat-feedback-tools">
                 <strong>전체 평가</strong>
+                <select value={adminId ?? ''} onChange={(event) => setAdminId(event.target.value ? Number(event.target.value) : null)} aria-label="상담원">
+                  <option value="">모든 상담원</option>
+                  {rows.filter((row) => row.adminId != null).map((row) => <option key={row.adminId} value={row.adminId}>{row.nickName}</option>)}
+                </select>
                 <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="정렬">
                   {FEEDBACK_SORTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>

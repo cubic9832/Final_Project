@@ -1,0 +1,6 @@
+/* 11-05: /console/account 위쪽 줄 — 아래 계정 관리(.profile-page, 1120px 가운데)와 같은 폭 안에서 오른쪽 끝으로 */
+.admin-account-top {
+  max-width: 1120px;
+  margin-inline: auto;
+  justify-content: flex-end;
+}

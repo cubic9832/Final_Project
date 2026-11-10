@@ -1,4 +1,5 @@
 import { fuelLabels } from './candidatePresentation.js';
+import { accelerationDescription, seatingDescription } from './vehiclePreferenceDetails.js';
 
 const bodyLabels = { SEDAN: '세단', SUV: 'SUV', HATCHBACK: '해치백', WAGON: '왜건',
   VAN: '미니밴·승합', MINIVAN: '미니밴·승합', MPV: '미니밴·승합', PICKUP: '픽업트럭', BOX: '박스카', COUPE: '쿠페',
@@ -12,16 +13,16 @@ export default function VehiclePreferenceSummary({ vehicle, specifications, valu
   const sportiness = fact('exterior_sportiness') ?? values?.exterior_sportiness;
   const angularity = fact('exterior_angularity') ?? values?.exterior_angularity;
   const seconds = fact('seconds_0_100') ?? evidence?.acceleration_performance?.seconds_0_100;
-  const length = fact('length_mm') ?? vehicle.length_mm;
-  const seats = fact('seats') ?? vehicle.seats;
+  const length = vehicle.length_mm ?? fact('length_mm');
+  const seats = vehicle.seats ?? fact('seats');
   const rows = [
     ['연료', { PHEV: '플러그인 하이브리드', MILD_HYBRID: '마일드 하이브리드' }[vehicle.original_fuel] ?? fuelLabels[vehicle.fuel ?? fact('fuel')] ?? '정보 준비 중'],
     ['차체 형태', bodyLabels[vehicle.body_type ?? fact('body_type')] ?? '정보 준비 중'],
     ['크기', Number.isFinite(length) ? `${length <= 4200 ? '작게' : length >= 4800 ? '크게' : '보통'} · 전장 ${length.toLocaleString('ko-KR')}mm` : '정보 준비 중'],
-    ['탑승 인원', Number.isFinite(seats) ? `${seats}명` : typeof seats === 'string' && seats.startsWith('2+') ? '2+ 좌석' : vehicle.seats_label || '정보 준비 중'],
+    ['탑승 인원', seatingDescription(seats, vehicle.seat_options ?? fact('seat_options'), vehicle.seats_label)],
     ['외관 스타일', ordinalLabel(sportiness, styles)],
     ['차체 윤곽', ordinalLabel(angularity, contours)],
-    ['가속 성능', Number.isFinite(seconds) ? `0–100km/h 약 ${seconds}초` : '정보 준비 중'],
+    accelerationDescription(seconds, values?.acceleration_performance, evidence?.acceleration_performance),
   ];
   return <section className="vehicle-preference-summary" aria-label={`${vehicle.model} 취향 비교 정보`}>
     <h4>차량 특징</h4>

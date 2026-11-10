@@ -1,0 +1,5 @@
+# 11-05: 테스트에서만 덧붙는 설정 (main 의 application.yml 은 그대로 읽고, 같은 키만 이 값으로 바뀐다)
+# 테스트용 서버도 로컬 DB 에 붙기 때문에, 무응답 자동 종료(ChatIdleScheduler)가 돌면 실제 상담방에 경고 · 종료를 남긴다 → 테스트에서는 끈다
+chat:
+  idle-close:
+    enabled: false

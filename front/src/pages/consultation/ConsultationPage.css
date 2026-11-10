@@ -195,6 +195,17 @@
   background: var(--color-primary-hover);
 }
 
+/* 11-05: 흐름 끝 버튼 = 형철님 CTA 규칙(아이스 블루 배경 · 남색 글자 · 실선 테두리, 테마 토큰 --color-cta) — [상담 시작] · [새로 상담하기] */
+.consult-cta {
+  color: var(--color-cta-text);
+  background: var(--color-cta);
+  border: 1px solid var(--color-border-input);
+}
+
+.consult-cta:hover:not(:disabled) {
+  background: var(--color-cta-hover);
+}
+
 .consult-button:disabled,
 .consult-outline:disabled {
   opacity: 0.5;
@@ -230,4 +241,11 @@
 .consult-card .chat-thread .chat-board {
   height: calc(100vh - 430px);
   min-height: 240px;
+}
+
+/* 11-05: 대화 화면은 좌우가 너무 길면 말풍선이 멀어 읽기 불편 → 가운데 960px (위치 표시 · 제목 · 상담 카드 같은 폭, 880px 은 몇 글자 때문에 줄이 넘어가서 계정 관리와 같은 960px) */
+.consult-page {
+  max-width: 960px;
+  width: 100%;
+  margin-inline: auto;
 }

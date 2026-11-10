@@ -15,8 +15,8 @@ public class AdminAuditLogServiceImpl implements AdminAuditLogService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdminAuditLogResponse> getLogs(String action, int page, int size) {
-        return adminAuditLogMapper.findRecent(blankToNull(action), (page - 1) * size, size);
+    public List<AdminAuditLogResponse> getLogs(String action, int page, int size, String sort, String direction) {
+        return adminAuditLogMapper.findRecent(blankToNull(action), (page - 1) * size, size, sort, direction);
     }
 
     @Override

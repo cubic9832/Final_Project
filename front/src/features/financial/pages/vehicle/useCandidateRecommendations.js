@@ -1,10 +1,10 @@
+import { useFinancialNavigate } from '../../financialNavigation.js';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { buildCandidateRecommendation } from '../../buildCandidateRecommendation.js';
 import { getFinancialRecommendations } from '../../financialRecommendationApi.js';
 
 export default function useCandidateRecommendations(state) {
-  const navigate = useNavigate();
+  const navigate = useFinancialNavigate();
   const [notice, setNotice] = useState('');
   const [recommending, setRecommending] = useState(false);
   const pendingRequest = useRef(null);

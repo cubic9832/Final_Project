@@ -1,0 +1,2 @@
+/* 목록에서는 두 줄로 요약하고, 전체 내용은 각 화면의 상세에서 제공한다. */
+.admin-list-summary { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; overflow-wrap: anywhere; line-height: 1.6; }

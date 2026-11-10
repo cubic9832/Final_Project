@@ -7,5 +7,5 @@ export function toggleRecommendationComparison(current, id, result, diagnosis) {
   const candidate = result?.recommendations.find(item => item.vehicle.id === id);
   if (ids.length >= 3 || !candidate || !diagnosis?.values) return current;
   const recommendations = [...(current?.result.recommendations ?? []).filter(item => ids.includes(item.vehicle.id)), candidate];
-  return { result: { ...result, recommendations }, diagnosis, ids: [...ids, id] };
+  return { result: { ...result, recommendations }, recommendationResult: result, diagnosis, ids: [...ids, id] };
 }

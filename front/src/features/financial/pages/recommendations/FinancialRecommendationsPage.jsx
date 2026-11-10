@@ -1,5 +1,6 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import LoginRequiredModal from '../../../auth/components/LoginRequiredModal.jsx';
 import useAuthStore from '../../../../stores/useAuthStore.js';
@@ -12,8 +13,8 @@ import './FinancialRecommendationsPage.css';
 
 
 export default function FinancialRecommendationsPage() {
-  const { state } = useLocation();
-  const navigate = useNavigate();
+  const { state } = useFinancialLocation();
+  const navigate = useFinancialNavigate();
   const [loginRequired, setLoginRequired] = useState(false);
   const accessToken = useAuthStore(store => store.accessToken);
   const initialized = useAuthStore(store => store.initialized);

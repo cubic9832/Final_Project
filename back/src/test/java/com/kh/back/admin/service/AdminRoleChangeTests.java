@@ -29,6 +29,7 @@ class AdminRoleChangeTests {
     @Mock RefreshTokenMapper refreshTokenMapper;
     @Mock AdminAuditLogMapper adminAuditLogMapper;
     @Mock ChatRoomService chatRoomService;
+    @Mock com.kh.back.admin.repository.AdminPermissionRepository adminPermissions;
     @InjectMocks AdminMemberServiceImpl service;
 
     private static final Long SUPER_ADMIN_ID = 1L;

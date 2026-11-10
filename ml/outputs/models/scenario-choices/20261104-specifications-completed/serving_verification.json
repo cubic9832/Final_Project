@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "public_catalog_equal": true,
+  "public_count": 381,
+  "completed_rows": 39,
+  "length_missing": 0,
+  "seating_missing": 0,
+  "recommendation_smoke_count": 20,
+  "model_bundle": "20261104-specifications-completed",
+  "weights_retrained": false,
+  "evaluation_scope": "DB equality, complete public facts, financial and seating eligibility smoke test; no new population quality measurement."
+}

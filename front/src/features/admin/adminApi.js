@@ -2,7 +2,7 @@ import client from '../../shared/api/client';
 
 // 7단계: 관리자 API — /api/v1/admin/** 는 서버가 ADMIN 에게만 준다 (일반 회원 403, 비회원 401)
 
-// 회원 목록 한 페이지 (최근 가입 순). keyword: 닉네임 · 이메일 일부, role: USER · ADMIN (비우면 전체)
+// 회원 목록 한 페이지 (최근 가입 순). role: USER · ADMIN · SUPER_ADMIN · NOT_SUPER_ADMIN (비우면 전체)
 // → { members: [...], meta: { page, size, total, totalPages } }
 export const getAdminMembers = async ({ keyword, role, page, size = 10 }, signal) => {
   const res = await client.get('/admin/members', {
@@ -10,6 +10,20 @@ export const getAdminMembers = async ({ keyword, role, page, size = 10 }, signal
     signal,
   });
   return { members: res.data.data, meta: res.data.meta };
+};
+
+// 기존 API의 최대 50명 제한을 지켜 검색 결과 전체를 모은다.
+// 전체 조회에 성공했을 때만 반환하여 일부 페이지만 정렬되는 것을 방지한다.
+export const getAllAdminMembers = async ({ keyword, role }, signal) => {
+  const size = 50;
+  const first = await getAdminMembers({ keyword, role, page: 1, size }, signal);
+  const members = [...first.members];
+  for (let page = 2; page <= first.meta.totalPages; page += 1) {
+    signal?.throwIfAborted();
+    const next = await getAdminMembers({ keyword, role, page, size }, signal);
+    members.push(...next.members);
+  }
+  return members.map((member, index) => ({ ...member, listNumber: members.length - index }));
 };
 
 // 총관리자만: 회원 권한 바꾸기 (ADMIN = 관리자로 지정, USER = 관리자 해제). 바뀐 회원은 다시 로그인해야 적용된다
@@ -38,8 +52,8 @@ export const getMemberSummary = async (signal) => {
 };
 
 // 운영 로그 (관리자 작업 기록, 최근 순) → { logs: [...], meta }. action: ROLE_CHANGE (비우면 전체)
-export const getAuditLogs = async ({ action, page = 1, size = 20 } = {}, signal) => {
-  const res = await client.get('/admin/audit-logs', { params: { action: action || undefined, page, size }, signal });
+export const getAuditLogs = async ({ action, page = 1, size = 20, sort = '', direction = 'ASC' } = {}, signal) => {
+  const res = await client.get('/admin/audit-logs', { params: { action: action || undefined, page, size, sort, direction }, signal });
   return { logs: res.data.data, meta: res.data.meta };
 };
 

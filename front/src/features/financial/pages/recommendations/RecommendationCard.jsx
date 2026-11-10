@@ -1,16 +1,17 @@
+import { useFinancialLocation, useFinancialNavigate } from '../../financialNavigation.js';
 import { useState } from 'react';
 import { Car } from 'lucide-react';
 import theme from '../../../../styles/theme.js';
 import { candidateImage, candidateMoney, fuelLabels } from './candidatePresentation.js';
 import ExplainTerm from '../../../chatbot/ExplainTerm';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 
 
 export default function RecommendationCard({ candidate, rank, comparisonSelected, comparisonFull, onToggleComparison }) {
   const [failedSrc, setFailedSrc] = useState(null);
-  const navigate = useNavigate();
-  const { state } = useLocation();
+  const navigate = useFinancialNavigate();
+  const { state } = useFinancialLocation();
   const { vehicle, cost } = candidate;
   const image = candidateImage(vehicle);
 
@@ -21,7 +22,7 @@ export default function RecommendationCard({ candidate, rank, comparisonSelected
     <div className="financial-recommendation-card-body">
       <div className="financial-recommendation-aligned-summary"><div data-recommendation-measure="summary">
       <p className="financial-recommendation-category">{vehicle.brand} · <ExplainTerm term={vehicle.original_fuel || vehicle.fuel} context={`추천 차량 ${vehicle.brand} ${vehicle.model}의 연료 종류`}>{{MILD_HYBRID: '마일드 하이브리드', PHEV: '플러그인 하이브리드'}[vehicle.original_fuel] || fuelLabels[vehicle.fuel] || vehicle.fuel}</ExplainTerm></p>
-      {onToggleComparison && <label className="candidate-comparison-select"><input type="checkbox" aria-label={`${vehicle.model} 비교 선택`} checked={comparisonSelected} disabled={comparisonFull && !comparisonSelected} onChange={() => onToggleComparison(vehicle.id)} />{comparisonSelected ? '비교 목록에 담았어요' : '비교 목록에 담기'}</label>}
+      {onToggleComparison && <div className="candidate-comparison-actions"><label className="candidate-comparison-select"><input type="checkbox" aria-label={`${vehicle.model} 비교 선택`} checked={comparisonSelected} disabled={comparisonFull && !comparisonSelected} onChange={() => onToggleComparison(vehicle.id)} />{comparisonSelected ? '비교 목록에 담았어요' : '비교 목록에 담기'}</label><Link className="candidate-compare-link" to="/vehicles/compare" state={state}>차량 비교하기</Link></div>}
       <h2>{vehicle.model}</h2><p>{vehicle.year && `${vehicle.year}년형 · `}{vehicle.trim}</p>
 
       {candidate.seatingVerificationRequired && <p className="financial-candidate-alert">희망 인원 탑승 가능 여부를 확인해 주세요.</p>}

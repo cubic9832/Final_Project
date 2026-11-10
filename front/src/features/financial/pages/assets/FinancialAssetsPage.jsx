@@ -1,7 +1,8 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { useFinancialLocation } from '../../financialNavigation.js';
+import { Navigate } from 'react-router-dom';
 
 // Preserve bookmarked routes and saved inputs from the former separate step.
 export default function FinancialAssetsPage() {
-  const { state } = useLocation();
+  const { state } = useFinancialLocation();
   return <Navigate to="/financial" state={state} replace />;
 }

@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getSessions } from '../../features/auth/authApi';
-import AuthModal from '../../features/auth/components/AuthModal';
+import Modal from '../../shared/ui/Modal.jsx';
 import { getDiagnosisDetail, getMe, getRecentDiagnoses } from '../../features/auth/memberApi';
 import { isAdminRole, ROLE_LABELS } from '../../features/auth/roles';
 import { getCurrentTaste, getTasteCatalog } from '../../features/taste-test/tasteApi';
@@ -20,6 +20,7 @@ import {
 import { CardError, CardLoading } from './CardStatus';
 import { deviceName, drivingTag, formatDate, formatDateTime, genderLabel, purchaseTag } from './profileOptions';
 import './MyPage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
 
 // 서버의 role 값 → 화면에 보여 줄 이름 (7단계 공용 이름표: 일반 회원 · 관리자 · 총관리자)
 
@@ -107,7 +108,7 @@ export default function MyPage() {
   const diagnoses = useCardData(loadDiagnoses);
 
   return (
-    <div className="my-page">
+    <div className="my-page page-fade-in">
       <header className="my-heading">
         <div>
           <div className="my-title-row"><h1>마이페이지</h1></div>
@@ -219,10 +220,10 @@ function FavoritesCard({ state }) {
         </>
       )}
       {/* 관심차량이 있든 없든 같은 두 버튼 (비교 화면은 관심차량 없이도 차를 골라 비교할 수 있다).
-          주 버튼(남색)은 늘 [차량 찾기] — 관심차량을 모으는 출발점이라 */}
+          주 버튼은 늘 [차량 찾기] (11-05: 다른 기능으로 들어가는 버튼이라 CTA 색) — 관심차량을 모으는 출발점이라 */}
       {state.status === 'done' && (
         <div className="my-fav-actions">
-          <Link className="my-outline-button" to="/search">차량 찾기</Link>
+          <Link className="my-outline-button my-cta" to="/search">차량 찾기</Link>
           <Link className="my-outline-button my-soft-button" to="/vehicles/compare">비교하기 ({comparison.length}/3)</Link>
         </div>
       )}
@@ -278,7 +279,7 @@ function DiagnosisCard({ state }) {
         </>
       )}
       <div className="my-insight-actions">
-        <Link className="my-plan-button my-inline-button" to="/financial">{shown ? '새로 진단하기' : '재무 진단 하기'}</Link>
+        <Link className="my-plan-button my-inline-button my-cta" to="/financial">{shown ? '새로 진단하기' : '재무 진단 하기'}</Link>
         {shown && (
           <button type="button" className="my-outline-button my-soft-button" onClick={() => setDetailId(shown.analysisId)}>
             자세히 보기
@@ -329,7 +330,7 @@ function PlanCard() {
       {!plan && (
         <>
           <p className="my-empty">아직 저장한 구매계획이 없어요. 드림카 플래너에서 차량과 저축 계획을 세워 보세요.</p>
-          <Link className="my-plan-button my-inline-button" to="/dream-car">드림카 플래너 가기</Link>
+          <Link className="my-plan-button my-inline-button my-cta" to="/dream-car">드림카 플래너 가기</Link>
         </>
       )}
       {plan && (
@@ -383,7 +384,7 @@ function DiagnosisDetailModal({ analysisId, onClose }) {
   const loanTotal = detail?.loans?.reduce((sum, loan) => sum + loan.payment, 0) ?? 0;
 
   return (
-    <AuthModal title="재무 진단 자세히" subtitle={detail ? `${formatDateTime(detail.completedAt)} 진단` : undefined} onClose={onClose}>
+    <Modal title="재무 진단 자세히" subtitle={detail ? `${formatDateTime(detail.completedAt)} 진단` : undefined} onClose={onClose}>
       {state.status === 'loading' && <CardLoading label="진단 기록을 불러오는 중…" />}
       {state.status === 'error' && <CardError message="진단 기록을 불러오지 못했어요." onRetry={state.reload} />}
       {detail && (
@@ -416,7 +417,7 @@ function DiagnosisDetailModal({ analysisId, onClose }) {
           <p className="my-empty">추천받은 차량은 저장하지 않아요. 다시 보려면 새로 진단해 주세요.</p>
         </>
       )}
-    </AuthModal>
+    </Modal>
   );
 }
 
@@ -437,7 +438,7 @@ function TasteCard({ state }) {
       {state.status === 'done' && !state.data && (
         <>
           <p className="my-empty">아직 취향 테스트를 하지 않았어요. 8가지 질문으로 내 차량 취향을 알아보세요.</p>
-          <Link className="my-plan-button my-inline-button" to="/taste-test">취향 테스트 하기</Link>
+          <Link className="my-plan-button my-inline-button my-cta" to="/taste-test">취향 테스트 하기</Link>
         </>
       )}
       {state.status === 'done' && state.data && (

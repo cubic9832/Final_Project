@@ -58,3 +58,4 @@
 @media(prefers-reduced-motion:reduce) { .notification-menu-collapse { transition:none; } }
 
 .notification-item-menu .notification-delete { color:var(--color-danger); }
+.notification-panel-actions { display: flex; flex-shrink: 0; gap: var(--space-4); margin-inline-start: auto; }

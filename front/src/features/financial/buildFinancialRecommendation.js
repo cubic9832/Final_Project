@@ -16,7 +16,7 @@ export function buildFinancialRecommendation(state = {}) {
   const housing = amount(values.housing, '월 주거비');
   const otherLiving = amount(values.fixed, '월 고정 지출') + amount(values.living, '월 생활비')
     + amount(values.transport, '교통비', true) + amount(values.phone, '통신비', true);
-  const cash = amount(assets.deposit, '사용 가능 예금');
+  const cash = amount(assets.deposit, '사용 가능 목돈');
   const payment = amount(values.loan, '현재 대출 월 상환액', true);
   let debt = 0;
   if (!Array.isArray(loans)) errors.push('자산·부채 내역');

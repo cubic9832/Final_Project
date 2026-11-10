@@ -25,6 +25,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
     private final CurrentRoleLookup currentRoleLookup; // 7단계: 관리자 API 는 DB 의 지금 권한으로
+    private final AdminScreenAccess adminScreenAccess;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -66,7 +67,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/members/*/role").hasRole("SUPER_ADMIN")
                         // 7단계: 관리자 API 는 관리자(ADMIN) · 총관리자(SUPER_ADMIN)만 (토큰의 role → ROLE_…). 일반 회원 404(보완 11, 숨김), 비회원 401
                         // 조원이 /api/v1/admin/ 아래에 관리 API 를 만들면 이 규칙이 자동으로 걸린다
-                        .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/api/v1/admin/**").access((authentication, context) ->
+                            new org.springframework.security.authorization.AuthorizationDecision(adminScreenAccess.allowed(authentication.get(),context.getRequest())))
                         .anyRequest().authenticated())                                     // 나머지는 로그인 필요
 
                 // ④ 인증이 필요한데 없을 때의 응답 → 401 실패 봉투

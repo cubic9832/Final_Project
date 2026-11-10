@@ -30,7 +30,8 @@ public class ChatHistoryRepository {
 
     private final RowMapper<ChatHistoryResponse.Message> messageMapper = (rs, index) -> new ChatHistoryResponse.Message(
         rs.getLong("id"), rs.getString("role").equals("USER") ? "user" : "model",
-        PiiMasker.mask(rs.getString("content")), rs.getString("rating"));
+        PiiMasker.mask(rs.getString("content")), rs.getString("rating"),
+        !rs.getString("role").equals("USER") && com.kh.back.chatbot.service.ConsultSuggestion.needed(null, rs.getString("content"))); // 11-05
 
     public Long activeConversation(long userId) {
         return jdbc.query("SELECT id FROM chatbot_conversations WHERE user_id=? AND ended_at IS NULL",

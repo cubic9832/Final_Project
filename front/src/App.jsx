@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
 import { refreshAccessToken } from './shared/api/tokenRefresh';
+import AuthPending from './components/AuthPending';
 import GuestOnly from './components/GuestOnly';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
@@ -21,6 +22,7 @@ import FinancialResultPage from './features/financial/pages/result/FinancialResu
 import RecommendationDetailsPage from './features/financial/pages/recommendations/RecommendationDetailsPage';
 import FinancialRecommendationsPage from './features/financial/pages/recommendations/FinancialRecommendationsPage';
 import AdminPage from './pages/admin/AdminPage';
+import AdminAccountPage from './pages/admin/AdminAccountPage';
 import ConsultationPage from './pages/consultation/ConsultationPage';
 import MyPage from './pages/mypage/MyPage';
 import ProfilePage from './pages/mypage/ProfilePage';
@@ -30,7 +32,6 @@ import SignupPage from './pages/signup/SignupPage';
 import GoogleSignupPage from './pages/signup/GoogleSignupPage';
 import VehicleCatalogGate from './features/vehicle/components/VehicleCatalogGate';
 import { VehicleProvider } from './features/vehicle/VehicleContext';
-import { VehicleSearchPage } from './features/vehicle/pages/search/VehicleSearchPage';
 import { VehicleResultsPage } from './features/vehicle/pages/results/VehicleResultsPage';
 import VehicleDetailPage from './features/vehicle/pages/detail/VehicleDetailPage';
 import VehicleComparePage from './features/vehicle/pages/compare/VehicleComparePage';
@@ -40,6 +41,12 @@ import useAuthStore from './stores/useAuthStore';
 import DreamCarPlannerPage from './features/dream-car/pages/planner/DreamCarPlannerPage';
 import DreamCarCalculationGuidePage from './features/dream-car/pages/calculation-guide/DreamCarCalculationGuidePage';
 import SavingsProgressPage from './features/dream-car/pages/progress/SavingsProgressPage';
+
+function FinancialSessionRoutes() {
+  const initialized = useAuthStore(state => state.initialized);
+  const memberId = useAuthStore(state => state.member?.id);
+  return initialized ? <Outlet key={memberId ?? 'guest'} /> : <AuthPending />;
+}
 
 function App() {
   // 앱이 처음 열릴 때 한 번: refresh token 쿠키가 있으면 로그인 상태를 되살린다 (새로고침 · 브라우저 재시작 후 로그인 유지)
@@ -75,18 +82,20 @@ function App() {
           {/* 8단계: 1:1 상담 (마이페이지 · 콤파의 [1:1 상담] 버튼) — 마이페이지 아래 화면이라 /mypage/... */}
           <Route path="/mypage/consultation" element={<ConsultationPage />} />
         </Route>
-        <Route path="/financial" element={<FinancialPage />} />
-        <Route path="/financial/assets" element={<FinancialAssetsPage />} />
-        <Route path="/financial/credit" element={<FinancialCreditPage />} />
-        <Route path="/financial/environment" element={<FinancialEnvironmentPage />} />
-        <Route path="/financial/vehicle" element={<FinancialVehiclePage />} />
-        <Route path="/financial/review" element={<FinancialReviewPage />} />
-        <Route path="/financial/result" element={<FinancialResultPage />} />
-        <Route path="/financial/recommendations/details" element={<RecommendationDetailsPage />} />
-        <Route path="/financial/recommendations" element={<FinancialRecommendationsPage />} />
+        <Route element={<FinancialSessionRoutes />}>
+          <Route path="/financial" element={<FinancialPage />} />
+          <Route path="/financial/assets" element={<FinancialAssetsPage />} />
+          <Route path="/financial/credit" element={<FinancialCreditPage />} />
+          <Route path="/financial/environment" element={<FinancialEnvironmentPage />} />
+          <Route path="/financial/vehicle" element={<FinancialVehiclePage />} />
+          <Route path="/financial/review" element={<FinancialReviewPage />} />
+          <Route path="/financial/result" element={<FinancialResultPage />} />
+          <Route path="/financial/recommendations/details" element={<RecommendationDetailsPage />} />
+          <Route path="/financial/recommendations" element={<FinancialRecommendationsPage />} />
+        </Route>
         <Route path="/companies" element={<CompanyListPage />} />
         <Route path="/companies/:code" element={<CompanyDetailPage />} />
-        <Route path="/search" element={<VehicleCatalogGate><VehicleSearchPage /></VehicleCatalogGate>} />
+        <Route path="/search" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />
         <Route path="/vehicles" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />
         <Route path="/vehicles/compare" element={<VehicleComparePage />} />
         <Route path="/vehicles/:id" element={<VehicleCatalogGate><VehicleDetailPage /></VehicleCatalogGate>} />
@@ -99,6 +108,7 @@ function App() {
       {/* 관리자 로그인 화면은 없앴다: 관리자도 일반 로그인(/login) 후 헤더 · 마이페이지의 "관리자 대시보드" 로 들어온다 */}
       <Route path="/console" element={<RequireAdmin />}>
         <Route index element={<AdminPage />} />
+        <Route path="account" element={<AdminAccountPage />} />
       </Route>
     </Routes>
     </VehicleProvider>

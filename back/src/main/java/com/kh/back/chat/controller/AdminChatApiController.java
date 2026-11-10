@@ -38,6 +38,14 @@ public class AdminChatApiController {
     private final ChatRoomService chatRoomService;
     private final ChatQuickReplyService chatQuickReplyService;
     private final ChatFeedbackService chatFeedbackService;
+    private final com.kh.back.chat.mapper.ChatMapper chatMapper;
+
+    public record ChatQueueSummaryResponse(long waiting) {}
+
+    @GetMapping("/queue-summary")
+    public ApiResponse<ChatQueueSummaryResponse> queueSummary() {
+        return ApiResponse.ok(new ChatQueueSummaryResponse(chatMapper.countWaitingRooms()));
+    }
 
     // GET /api/v1/admin/chat/rooms?status=WAITING — 상담 목록 (없으면 전체, 최근 메시지 순)
     // 호출: AdminChatPanel.jsx 화면이 열릴 때 · /topic/admin/chat 알림을 받을 때 → chatApi.getAdminRooms
@@ -52,13 +60,15 @@ public class AdminChatApiController {
         return ApiResponse.ok(chatFeedbackService.getSummary(userId));
     }
 
-    // GET /api/v1/admin/chat/feedback?sort=low&reportedOnly=true&offset=50 — 전체 평가 목록 (총관리자만, 50개씩 · 보완 13)
+    // GET /api/v1/admin/chat/feedback?sort=low&reportedOnly=true&offset=50&adminId=3 — 전체 평가 목록 (총관리자만, 50개씩 · 보완 13)
+    // 11-05: adminId 가 있으면 그 상담원이 받은 평가만
     @GetMapping("/feedback")
     public ApiResponse<List<ChatFeedbackDto>> feedback(@AuthenticationPrincipal Long userId,
                                                        @RequestParam(defaultValue = "latest") String sort,
                                                        @RequestParam(defaultValue = "false") boolean reportedOnly,
-                                                       @RequestParam(defaultValue = "0") int offset) {
-        return ApiResponse.ok(chatFeedbackService.getFeedback(userId, sort, reportedOnly, offset));
+                                                       @RequestParam(defaultValue = "0") int offset,
+                                                       @RequestParam(required = false) Long adminId) {
+        return ApiResponse.ok(chatFeedbackService.getFeedback(userId, sort, reportedOnly, offset, adminId));
     }
 
     // GET /api/v1/admin/chat/rooms/{id}/feedback — 이 회원이 남긴 만족도 · 신고 (총관리자만)

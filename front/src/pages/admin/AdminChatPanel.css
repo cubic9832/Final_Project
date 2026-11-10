@@ -58,6 +58,40 @@
   background: var(--color-blue-tint);
 }
 
+/* 11-05: 내가 맡은 진행 중 상담 — 왼쪽 굵은 선으로 다른 상담과 구분 (선택돼도 선은 남는다) */
+.admin-chat-list li > button.is-mine {
+  border-left: 4px solid var(--color-primary);
+}
+
+/* 11-05: 만족도 표의 상담원 이름 = 그 상담원 평가만 보기 버튼 */
+.admin-chat-admin-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.admin-chat-admin-link[aria-pressed="true"] {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-chat-summary-body tr.is-selected td {
+  background: var(--color-blue-tint);
+}
+
+/* 11-05: 목록 묶음 이름 (내 상담 N · 다른 상담) */
+.admin-chat-list li.admin-chat-group {
+  padding: var(--space-4) var(--space-4) 0;
+  font-size: var(--font-caption);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
 .admin-chat-row {
   display: flex;
   align-items: center;

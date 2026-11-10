@@ -1,3 +1,5 @@
+import useAuthStore from '../../stores/useAuthStore.js';
+import { comparisonKey, readScopedFinancialState, scopeFinancialState } from '../financial/financialSession.js';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { applyProfilePreset, findProfilePreset } from '../preset/profilePresets';
@@ -30,28 +32,40 @@ export function VehicleProvider({ children }) {
     const preset = findProfilePreset(presetId);
     setSelection({ ...selection, ...(preset ? { ...applyProfilePreset(preset), comparison: selectPresetVehicles(preset.vehicleIds, vehicles) } : {}), presetId, presetResolved: catalog.status === 'ready' });
   }
-  const { conditions, comparison } = selection;
+  const { conditions } = selection;
   function setConditions(next) {
     setSelection((current) => ({ ...current, conditions: typeof next === 'function' ? next(current.conditions) : next }));
   }
-  const [financialComparison, setFinancialComparison] = useState(() => {
+  const authInitialized = useAuthStore(state => state.initialized);
+  const memberId = useAuthStore(state => state.member?.id ?? null);
+  const [savedFinancialComparison, setFinancialComparison] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('financial-vehicle-comparison'));
+      const saved = JSON.parse(sessionStorage.getItem(comparisonKey));
       return isFinancialRecommendationResult(saved?.result) && saved?.diagnosis?.values && Array.isArray(saved.ids) && saved.ids.length <= 3 && saved.ids.every(id => saved.result.recommendations.some(candidate => candidate.vehicle.id === id)) ? saved : null;
     } catch { return null; }
   });
+  const financialComparison = authInitialized
+    ? readScopedFinancialState(savedFinancialComparison, memberId) : null;
+  const recommendedComparisonIds = (financialComparison?.ids ?? []).map(String)
+    .filter(id => vehicles.some(vehicle => vehicle.id === id));
+  const comparison = presetId
+    ? selection.comparison
+    : [...new Set([...recommendedComparisonIds, ...selection.comparison])].slice(0, 3);
   function saveFinancialComparison(next) {
-    setFinancialComparison(next);
+    const scoped = next ? scopeFinancialState(next) : null;
+    setFinancialComparison(scoped);
     try {
-      if (next) localStorage.setItem('financial-vehicle-comparison', JSON.stringify(next));
-      else localStorage.removeItem('financial-vehicle-comparison');
+      if (scoped) sessionStorage.setItem(comparisonKey, JSON.stringify(scoped));
+      else sessionStorage.removeItem(comparisonKey);
       setStorageError('');
     } catch { setStorageError('브라우저 저장 공간을 사용할 수 없어 이번 방문 중에만 저장됩니다.'); }
   }
   function toggleFinancialComparison(id, result, diagnosis) {
+    if (!financialComparison?.ids.includes(id) && !comparison.includes(String(id)) && comparison.length >= 3) return;
     saveFinancialComparison(toggleRecommendationComparison(financialComparison, id, result, diagnosis));
   }
   const [favorites, setFavorites] = useState(readSaved);
+  const favoriteComparison = [...new Set(favorites)].filter(id => vehicles.some(vehicle => vehicle.id === id));
   const [storageError, setStorageError] = useState('');
   function toggleFavorite(id) {
     const next = favorites.includes(id) ? favorites.filter((item) => item !== id) : [...favorites, id];
@@ -64,7 +78,13 @@ export function VehicleProvider({ children }) {
     try { localStorage.removeItem('vehicle-favorites'); } catch { /* 저장 공간을 못 쓰면 지울 것도 없다 */ }
   }
   function toggleComparison(id) {
-    setSelection((current) => ({ ...current, comparison: current.comparison.includes(id) ? current.comparison.filter((item) => item !== id) : current.comparison.length < 3 ? [...current.comparison, id] : current.comparison }));
+    if (comparison.includes(id)) {
+      const recommendedId = financialComparison?.ids.find(item => String(item) === id);
+      if (!presetId && recommendedId !== undefined) toggleFinancialComparison(recommendedId);
+      setSelection(current => ({ ...current, comparison: current.comparison.filter(item => item !== id) }));
+    } else if (comparison.length < 3) {
+      setSelection(current => ({ ...current, comparison: [...comparison, id].filter(item => !recommendedComparisonIds.includes(item) || presetId) }));
+    }
   }
-  return <VehicleContext.Provider value={{ vehicles, planningVehicles: catalog.planningVehicles, catalogStatus: catalog.status, catalogError: catalog.error, retryCatalog: () => { setCatalog({ status: 'loading', vehicles: [], planningVehicles: [], error: '' }); setAttempt((value) => value + 1); }, conditions, setConditions, comparison, toggleComparison, financialComparison, toggleFinancialComparison, favorites, toggleFavorite, clearFavorites, storageError }}>{children}</VehicleContext.Provider>;
+  return <VehicleContext.Provider value={{ vehicles, planningVehicles: catalog.planningVehicles, catalogStatus: catalog.status, catalogError: catalog.error, retryCatalog: () => { setCatalog({ status: 'loading', vehicles: [], planningVehicles: [], error: '' }); setAttempt((value) => value + 1); }, conditions, setConditions, comparison, toggleComparison, financialComparison, toggleFinancialComparison, favoriteComparison, favorites, toggleFavorite, clearFavorites, storageError }}>{children}</VehicleContext.Provider>;
 }

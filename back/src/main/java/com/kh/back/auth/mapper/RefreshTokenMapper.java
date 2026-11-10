@@ -37,4 +37,7 @@ public interface RefreshTokenMapper {
 
     // 6단계: 다른 기기 모두 로그아웃 — 지금 기기(keepToken)만 남기고 지운다. 지운 행 수를 돌려준다
     int deleteOthers(@Param("userId") Long userId, @Param("keepToken") String keepToken);
+
+    // 11-06: 로그인 기록은 계정당 최근 keep 개만 — 새로 로그인하면 가장 오래 안 쓴 것부터 지운다 (지운 행 수)
+    int deleteBeyondLatest(@Param("userId") Long userId, @Param("keep") int keep);
 }

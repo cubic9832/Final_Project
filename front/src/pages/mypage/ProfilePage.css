@@ -781,3 +781,11 @@
 .profile-page .profile-edit-buttons .my-outline-button {
   height: 42px;
 }
+
+/* 11-05: 기본 정보 · 개인 정보 2칸이 화면 끝까지 퍼지지 않게 가운데 1120px (회원가입과 같은 폭)
+   960px 은 차량 구매 정보 선택 버튼 글자가 빽빽했다 */
+.profile-page {
+  max-width: 1120px;
+  width: 100%;
+  margin-inline: auto;
+}

@@ -16,5 +16,6 @@ public interface ChatFeedbackService {
 
     List<ChatFeedbackSummary> getSummary(Long actorId);
 
-    List<ChatFeedbackDto> getFeedback(Long actorId, String sort, boolean reportedOnly, int offset);
+    // adminId: null 이면 모든 상담원, 있으면 그 상담원이 받은 평가만 (11-05)
+    List<ChatFeedbackDto> getFeedback(Long actorId, String sort, boolean reportedOnly, int offset, Long adminId);
 }

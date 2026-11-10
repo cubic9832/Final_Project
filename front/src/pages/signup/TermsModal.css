@@ -44,3 +44,18 @@
   color: var(--color-text);
   white-space: nowrap;
 }
+
+/* 11-05: 서비스 이용약관 조항 (제목 + 문단) */
+.terms-article {
+  margin-top: var(--space-12);
+}
+
+.terms-article h3 {
+  margin-bottom: var(--space-4);
+  color: var(--color-text);
+  font-size: var(--font-body);
+}
+
+.terms-article p + p {
+  margin-top: var(--space-4);
+}

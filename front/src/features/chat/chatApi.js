@@ -58,9 +58,10 @@ export const warnRoom = async (roomId, reason) => {
 export const getFeedbackSummary = async () => (await client.get('/admin/chat/feedback/summary')).data.data;
 
 // 전체 평가 목록 (FEEDBACK_PAGE_SIZE 개씩, offset 만큼 건너뛰고). sort: low 평점 낮은순 · high 높은순 · latest 최신순, reportedOnly: 신고만
+// adminId: 그 상담원이 받은 평가만 (없으면 전체 — 11-05)
 export const FEEDBACK_PAGE_SIZE = 50; // 서버 ChatFeedbackServiceImpl.PAGE_SIZE 와 같게
-export const getAllFeedback = async (sort, reportedOnly, offset = 0) =>
-  (await client.get('/admin/chat/feedback', { params: { sort, reportedOnly, offset } })).data.data;
+export const getAllFeedback = async (sort, reportedOnly, offset = 0, adminId = null) =>
+  (await client.get('/admin/chat/feedback', { params: { sort, reportedOnly, offset, adminId: adminId ?? undefined } })).data.data;
 
 // 이 회원이 남긴 만족도 · 신고 → [{ rating, comment, reported, reportReason, adminNickName, createdAt }]
 export const getRoomFeedback = async (roomId) => (await client.get(`/admin/chat/rooms/${roomId}/feedback`)).data.data;
@@ -89,3 +90,7 @@ export const restrictionLabel = (value) => {
 
 // 서버 실패 봉투의 안내 문구 (없으면 fallback)
 export const chatErrorMessage = (error, fallback) => error?.response?.data?.error?.message ?? fallback;
+
+// 전체 대기 건수: 상담 목록의 최대 100건 제한과 별도로 조회한다.
+export const getChatQueueSummary = async signal =>
+  (await client.get('/admin/chat/queue-summary', { signal })).data.data;
