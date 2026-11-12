@@ -56,7 +56,6 @@ public class SecurityConfig {
                         //        토큰 검사는 연결 직후 STOMP CONNECT 에서 StompAuthInterceptor 가 한다 (강의 샘플 step4 와 같음)
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/vehicles/**").permitAll() // 차량 조회는 누구나 (비회원 차량 찾기)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll() // 종목 조회 예제
                         // 모델 관리: 추천 요청은 누구나 (비회원 재무 진단도 추천을 받는다). 비율대로 여러 추천 서버 중 하나로 넘긴다
                         .requestMatchers("/api/v1/recommendation/**").permitAll()
                         // 모델 관리: 모델별 트래픽 비율 바꾸기는 모든 사용자에게 영향 → 총관리자만 (아래 관리자 규칙보다 먼저)

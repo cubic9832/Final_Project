@@ -98,7 +98,7 @@ class AdminAccessTests {
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.available").value(true))
-                .andExpect(jsonPath("$.data.runName").value("20261103-unified-managed-3m"))
+                .andExpect(jsonPath("$.data.runName").value("20261104-specifications-completed"))
                 .andExpect(jsonPath("$.data.history.length()").value(30))
                 .andExpect(jsonPath("$.data.testPairAccuracy").isNumber());
         mvc.perform(get("/api/v1/admin/model-report")
