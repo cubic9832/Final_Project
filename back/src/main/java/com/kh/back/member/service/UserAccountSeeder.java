@@ -66,7 +66,7 @@ public class UserAccountSeeder {
                     5_500_000, 0, 3_600_000, 10_000_000, 20_000_000,
                     List.of(new Loan("주택담보대출", 250_000_000L, 1_200_000), new Loan("자동차대출", 6_000_000L, 350_000))),
             // 20대 · 면허만 있음 · 대출 없음
-            new Persona("첫차고민중", "01000000104", LocalDate.of(1999, 11, 18), "FEMALE", "NONE", "UNDECIDED",
+            new Persona("유나첫차", "01000000104", LocalDate.of(1999, 11, 18), "FEMALE", "NONE", "UNDECIDED",
                     2_400_000, 0, 1_500_000, 8_000_000, 18_000_000,
                     List.of()),
             // 50대 · 임대 소득 · 여유 자금 많음
