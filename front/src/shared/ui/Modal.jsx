@@ -2,10 +2,11 @@
 // 어두운 배경, 제목·닫기 버튼, Esc·바깥 클릭 닫기, 포커스 이동, 변경 폐기 확인을 맡는다.
 // 각 팝업은 이 틀 안에 내용(children)만 넣는다.
 // children 을 함수로 넘기면 requestClose 를 받아 "취소" 버튼에도 같은 닫기 규칙을 쓸 수 있다.
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 import theme from '../../styles/theme';
 import './Modal.css';
+import useUnsavedChanges from '../navigation/useUnsavedChanges.js';
 
 const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])';
 
@@ -17,12 +18,13 @@ export default function Modal({
   dismissible = true, // false: 위험한 작업이라 바깥 클릭·Esc로 닫지 않고 버튼으로만 닫는다
   isDirty = false, // true: 저장하지 않은 변경이 있어 닫기 전에 폐기 여부를 묻는다
   busy = false, // true: 저장 중이라 닫지 않는다
+  protectNavigation = true,
   size = 'md',
   className = '',
 }) {
   const titleId = useId();
   const dialogRef = useRef(null);
-  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+  const guard = useUnsavedChanges(protectNavigation && isDirty, { busy: protectNavigation && isDirty && busy, inline: true });
 
   // 열릴 때: 팝업 안 첫 입력·버튼으로 포커스, 뒤 화면 스크롤 막기
   // 닫힐 때: 스크롤을 되돌리고, 팝업을 열었던 버튼으로 포커스를 돌려준다
@@ -44,8 +46,7 @@ export default function Modal({
   // 닫기 요청: 저장 중이면 무시하고, 변경이 있으면 팝업 안에서 폐기 여부를 먼저 묻는다
   function requestClose() {
     if (busy) return;
-    if (isDirty) setConfirmingDiscard(true);
-    else onClose();
+    guard.requestLeave(onClose);
   }
 
   // Esc 닫기, Tab 키 포커스가 팝업 밖으로 나가지 않게 한다
@@ -98,14 +99,14 @@ export default function Modal({
           {typeof children === 'function' ? children(requestClose) : children}
         </div>
 
-        {confirmingDiscard && (
+        {guard.confirming && (
           <div className="auth-modal-discard" role="alert">
             <p>수정한 내용을 저장하지 않고 닫을까요?</p>
             <div className="auth-modal-actions">
-              <button className="auth-modal-button" type="button" onClick={() => setConfirmingDiscard(false)}>
+              <button className="auth-modal-button" type="button" onClick={guard.cancelLeave}>
                 계속 수정
               </button>
-              <button className="auth-modal-button auth-modal-button-primary" type="button" onClick={onClose}>
+              <button className="auth-modal-button auth-modal-button-primary" type="button" onClick={guard.confirmLeave}>
                 저장하지 않고 닫기
               </button>
             </div>

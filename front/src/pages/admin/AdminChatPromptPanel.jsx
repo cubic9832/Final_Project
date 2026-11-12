@@ -8,6 +8,7 @@ import './components/AdminListSummary.css';
 import { nextTableSort, paginateTableRows } from './adminTableData.js';
 import { sortPromptVersions } from './promptBoardData.js';
 import { formatAdminDate, formatAdminDateTime } from './adminDateFormat.js';
+import useUnsavedChanges from '../../shared/navigation/useUnsavedChanges.js';
 
 const columns = [
   { key: 'version', label: '버전', width: 10 },
@@ -31,6 +32,8 @@ export default function AdminChatPromptPanel({ state, onRefresh, onView }) {
   const [confirm, setConfirm] = useState(null);
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
+  const [initialForm, setInitialForm] = useState('');
+  const { requestLeave } = useUnsavedChanges(Boolean(form && JSON.stringify(form) !== initialForm), { busy });
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [page, setPage] = useState(0);
@@ -43,8 +46,12 @@ export default function AdminChatPromptPanel({ state, onRefresh, onView }) {
   }
 
   function openForm(prompt) {
-    setForm(prompt ? { version: '', content: prompt.content, description: '' } : { ...emptyForm });
-    setError(''); setNotice(''); setConfirm(null);
+    requestLeave(() => {
+      const next = prompt ? { version: '', content: prompt.content, description: '' } : { ...emptyForm };
+      setInitialForm(JSON.stringify(next));
+      setForm(next);
+      setError(''); setNotice(''); setConfirm(null);
+    });
   }
   async function execute(action, success) {
     if (pending.current) return;
@@ -70,7 +77,7 @@ export default function AdminChatPromptPanel({ state, onRefresh, onView }) {
       <label>변경 설명<textarea required maxLength={500} rows={2} placeholder="이전 버전에서 바꾼 내용을 적어 주세요." value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} disabled={busy} /></label>
       <label>답변 지침<textarea required maxLength={16000} rows={12} placeholder="콤파의 답변 범위, 형식과 주의사항을 입력해 주세요." value={form.content} onChange={event => setForm({ ...form, content: event.target.value })} disabled={busy} /></label>
       <p>등록한 본문은 수정하지 않습니다. 변경이 필요하면 기존 버전을 복사해 새 버전을 등록하세요.</p>
-      <div className="compa-prompt-actions"><button type="button" className="admin-outline-button" disabled={busy} onClick={() => { setForm(null); setError(''); }}>취소</button><button type="submit" className="admin-primary-button" disabled={busy}>{busy ? '등록 중…' : '등록'}</button></div>
+      <div className="compa-prompt-actions"><button type="button" className="admin-outline-button" disabled={busy} onClick={() => requestLeave(() => { setForm(null); setError(''); })}>취소</button><button type="submit" className="admin-primary-button" disabled={busy}>{busy ? '등록 중…' : '등록'}</button></div>
     </form>}
     {confirm && <section className="compa-prompt-confirm" aria-label="프롬프트 적용 확인">
       <h3>{confirm.version} 버전을 적용할까요?</h3><p>현재 버전을 전환합니다. 이미 처리 중인 답변과 기존 기록의 버전은 유지됩니다.</p>

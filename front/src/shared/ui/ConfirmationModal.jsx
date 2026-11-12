@@ -5,7 +5,7 @@ import './ConfirmationModal.css';
 export default function ConfirmationModal({ title, message, guidance, guidanceLabel = '확인 사항', onClose,
   onConfirm, confirmLabel = '확인', cancelLabel = '취소', busy = false, error }) {
   return <Modal title={title} className="notice-modal" size="md"
-    onClose={onClose} busy={busy} dismissible={!onConfirm}>
+    onClose={onClose} busy={busy} dismissible={!onConfirm} protectNavigation={false}>
     <div className="notice-modal-content">
       <p className="notice-modal-message">{message}</p>
       {guidance && <div className="notice-modal-guidance"><strong>{guidanceLabel}</strong><p>{guidance}</p></div>}
