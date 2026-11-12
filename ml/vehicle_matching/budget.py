@@ -26,11 +26,9 @@ def recommendation_budget(profile, vehicles, costs):
     cap = monthly_vehicle_cap(profile)
     financed = 0
     if cap is not None and profile.vehicle_payment_months:
-        # The cheapest running cost leaves the most room for an installment; each
-        # vehicle is still checked against its own running cost in assess().
-        running = min((costs[v.id]['monthly_running_cost'] for v in vehicles), default=None)
-        if running is not None:
-            financed = math.floor(financed_amount(cap - running, profile.vehicle_payment_months))
+        # Purchase capacity comes from the selected installment, independently of
+        # catalog eligibility. Running costs are checked separately in assess().
+        financed = math.floor(financed_amount(cap, profile.vehicle_payment_months))
     upper = math.floor(funds) + financed
     if profile.purchase_price_ceiling:
         upper = min(upper, math.floor(profile.purchase_price_ceiling))

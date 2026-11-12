@@ -90,7 +90,7 @@ class CandidateService:
             reasons.append(f"최소 여유자금을 남긴 월 가용자금 중 유지비 비중 {affordability['runningCostRatio']*100:.1f}%")
             if cost['monthly_vehicle_cap'] is not None:
                 installment_text = f"할부 월 {cost['monthly_payment']:,.0f}원({cost['financing_months']}개월) + " if cost['monthly_payment'] else ''
-                reasons.append(f"월 소득의 {profile.vehicle_income_ratio}% 한도 {cost['monthly_vehicle_cap']:,.0f}원 안에서 "
+                reasons.append(f"월 소득의 {profile.vehicle_income_ratio}% 할부 한도 {cost['monthly_vehicle_cap']:,.0f}원 기준 · "
                                f"{installment_text}유지비 {cost['monthly_running_cost']:,.0f}원")
             reasons.append('구매·유지비와 최소 인원을 충족한 후보 중 학습한 모델 점수순으로 추천' if self.ml_only else
                            '구매·유지비와 최소 인원을 충족한 후보 중 중요한 선호 조건을 우선하고, 같은 조건에서는 모델 점수순으로 추천')

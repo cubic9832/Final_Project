@@ -29,21 +29,21 @@ class IncomeRatioFinancingTests(unittest.TestCase):
         self.assertEqual(cost['monthly_total'], cost['monthly_payment'] + cost['monthly_running_cost'])
         self.assertEqual(cost['monthly_vehicle_cap'], 1800000)
 
-    def test_monthly_total_above_income_share_is_excluded_even_with_spare_savings(self):
-        cheap = vehicle(price=10000000)
-        cost = assess(household(vehicle_income_ratio=5), cheap)
+    def test_running_cost_is_separate_from_installment_cap(self):
+        cost = assess(household(vehicle_income_ratio=5), vehicle(price=10000000))
         self.assertGreater(cost['monthly_running_cost'], 300000)
-        self.assertEqual(cost['exclusions'], ['exceeds-income-ratio'])
-        self.assertEqual(cost['funding_source'], 'income')
+        self.assertTrue(cost['eligible'])
 
-    def test_boundary_at_exact_cap_is_eligible_and_one_won_less_is_not(self):
-        car = vehicle(price=70000000)
-        total = assess(household(vehicle_income_ratio=30, vehicle_payment_months=36), car)['monthly_total']
-        # 소득 1원 단위로 한도를 total 에 정확히 맞춘다 (100% 비율: 한도 = 월 가용자금).
-        exact = household(vehicle_income_ratio=100, vehicle_payment_months=36,
-                          monthly_income=1500000 + 200000 + 1000000 + total)
-        self.assertTrue(assess(exact, car)['eligible'])
-        self.assertIn('exceeds-income-ratio', assess(replace(exact, monthly_income=exact.monthly_income - 1), car)['exclusions'])
+    def test_installment_above_cap_is_excluded(self):
+        cost = assess(household(vehicle_income_ratio=5, vehicle_payment_months=24), vehicle(price=70000000))
+        self.assertIn('exceeds-income-ratio', cost['exclusions'])
+
+    def test_total_cost_still_requires_available_monthly_income(self):
+        profile = household(vehicle_income_ratio=100, vehicle_payment_months=24,
+                            monthly_income=3000000, monthly_expenses=2700000, monthly_savings=0)
+        cost = assess(profile, vehicle(price=57000000))
+        self.assertLessEqual(cost['monthly_payment'], cost['monthly_vehicle_cap'])
+        self.assertIn('insufficient-monthly-buffer', cost['exclusions'])
 
     def test_income_share_never_exceeds_money_left_each_month(self):
         cost = assess(household(vehicle_income_ratio=100, vehicle_payment_months=12), vehicle())
@@ -60,16 +60,26 @@ class IncomeRatioFinancingTests(unittest.TestCase):
 
 
 class IncomeRatioBudgetTests(unittest.TestCase):
-    def test_price_upper_adds_principal_repayable_by_cap_minus_cheapest_running_cost(self):
+    def test_price_upper_adds_principal_repayable_by_installment_cap(self):
         cars = [vehicle(id='a', model='A', price=40000000), vehicle(id='b', model='B', price=70000000)]
         profile = household(vehicle_income_ratio=30, vehicle_payment_months=36)
         costs = {car.id: assess(profile, car) for car in cars}
         band = recommendation_budget(profile, cars, costs)
-        financed = int(financed_amount(1800000 - costs['a']['monthly_running_cost'], 36))
+        financed = int(financed_amount(1800000, 36))
         self.assertEqual(band['policy'], 'income-ratio-financing-band-v1')
         self.assertEqual(band['financedAmount'], financed)
         self.assertEqual(band['upper'], FUNDS + financed)
         self.assertGreater(band['upper'], FUNDS)
+
+    def test_empty_candidates_do_not_remove_financing_capacity(self):
+        profile = household(liquid_assets=1000000, emergency_reserve=0,
+                            monthly_income=3000000, monthly_expenses=1000000,
+                            existing_monthly_payment=104000, monthly_savings=0,
+                            vehicle_income_ratio=25, vehicle_payment_months=24)
+        band = recommendation_budget(profile, [], {})
+        self.assertGreater(band['upper'], 17000000)
+        car = vehicle(price=13860000)
+        self.assertTrue(assess(profile, car)['eligible'])
 
     def test_zero_ratio_keeps_cash_only_band(self):
         band = recommendation_budget(household(), [vehicle()], {'example': assess(household(), vehicle())})

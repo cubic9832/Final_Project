@@ -23,7 +23,7 @@ export default function FinancialAnalysis({ totals, result, compact = false }) {
       <span className="analysis-icon"><Wallet size={theme.iconSize.lg} aria-hidden /></span>
       <p className="analysis-label">내 차량 구매 예산</p>
       <h2>{budget ? <>{candidateMoney(budget.financialUpper)}<small>까지</small></> : '예산 정보를 확인해 주세요'}</h2>
-      <p>{financed ? `목돈 ${candidateMoney(budget.availablePurchaseFunds)}에 월 ${candidateMoney(budget.monthlyVehicleCap)} 한도로 ${budget.financingMonths}개월 할부를 더한 기준이에요.` : '차량 구매·유지에 쓰기로 한 목돈 기준이에요.'}</p>
+      <p>{financed ? `목돈 ${candidateMoney(budget.availablePurchaseFunds)}에 월 할부금 ${candidateMoney(budget.monthlyVehicleCap)} 한도로 ${budget.financingMonths}개월 할부 원금을 더한 기준이에요. 유지비는 별도로 계산해요.` : '차량 구매·유지에 쓰기로 한 목돈 기준이에요.'}</p>
       {['cash-importance-band-v1', 'income-ratio-financing-band-v1'].includes(budget?.policy) && <div className="analysis-price-band"><span>선택한 가성비로 찾을 가격대</span><strong>{candidateMoney(budget.lower)} ~ {candidateMoney(budget.upper)}</strong></div>}
     </article>
     <article className="analysis-panel" id={compact ? 'analysis-monthly-panel' : undefined} role={compact ? 'tabpanel' : undefined} aria-labelledby={compact ? 'analysis-monthly-tab' : undefined} hidden={compact && activePanel !== 'monthly'}>
