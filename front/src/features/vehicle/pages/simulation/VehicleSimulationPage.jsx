@@ -11,9 +11,9 @@ import '../../styles/VehiclePages.css';
 export default function VehicleSimulationPage() {
   const { id } = useParams();
   const navigationState = readScopedFinancialState(useLocation().state);
-  const { vehicles, conditions: storedConditions, financialComparison, usingPresetConditions } = useVehicle();
+  const { vehicles, conditions: storedConditions, financialComparison, comparisonMode, finance: catalogFinance } = useVehicle();
   const vehicle = vehicles.find((v) => v.id === id);
-  const { conditions, finance: initialFinance } = navigationState?.purchaseScenario ?? purchaseScenario(vehicle, storedConditions, usingPresetConditions ? null : financialComparison);
+  const { conditions, finance: initialFinance } = navigationState?.purchaseScenario ?? purchaseScenario(vehicle, storedConditions, comparisonMode === 'recommendation' ? financialComparison : null, catalogFinance);
   const initialDownPayment = Math.min(conditions.downPayment, vehicle?.price ?? 0, conditions.cash);
   const [downPaymentInput, setDownPaymentInput] = useState(null);
   const downPayment = downPaymentInput === null ? initialDownPayment : (Number(downPaymentInput) || 0);

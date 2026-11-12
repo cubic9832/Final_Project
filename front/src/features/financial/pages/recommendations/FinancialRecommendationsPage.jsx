@@ -20,8 +20,8 @@ export default function FinancialRecommendationsPage() {
   const initialized = useAuthStore(store => store.initialized);
   const diagnosis = state?.diagnosis;
   const result = state?.result;
-  const { financialComparison, toggleFinancialComparison, storageError } = useVehicle();
-  const comparisonIds = financialComparison?.ids ?? [];
+  const { financialComparison, comparisonMode, toggleFinancialComparison, storageError } = useVehicle();
+  const comparisonIds = comparisonMode === 'recommendation' ? financialComparison?.ids ?? [] : [];
   if (!diagnosis?.values || !isFinancialRecommendationResult(result)) return <Navigate to="/financial" replace />;
   const candidates = result.recommendations.slice(0, 9);
   const views = buildRecommendationView({ ...result, recommendations: candidates });

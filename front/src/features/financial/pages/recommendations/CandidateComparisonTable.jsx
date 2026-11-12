@@ -1,18 +1,14 @@
 import { useVehicle } from '../../../vehicle/useVehicle.js';
-import { useState } from 'react';
 import { Check } from 'lucide-react';
 import VehicleArtwork from '../../../vehicle/components/VehicleArtwork.jsx';
 import theme from '../../../../styles/theme.js';
 import { candidateImage, candidateMoney } from './candidatePresentation.js';
 
-export default function CandidateComparisonTable({ views, canToggleVehicles }) {
-  const { toggleComparison } = useVehicle();
-  const [excludedIds, setExcludedIds] = useState([]);
-  function toggleVehicle(id) {
-    toggleComparison(String(id));
-    setExcludedIds(ids => ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id]);
-  }
-  const includedViews = views.filter(view => !excludedIds.includes(view.id));
+export default function CandidateComparisonTable({ views, canToggleVehicles, selectedIds, onToggleVehicle }) {
+  const { comparison, toggleComparison } = useVehicle();
+  const selected = (selectedIds ?? comparison).map(String);
+  const toggleVehicle = onToggleVehicle ?? toggleComparison;
+  const includedViews = canToggleVehicles ? views.filter(view => selected.includes(String(view.id))) : views;
   const lengths = includedViews.map(view => view.candidate.vehicle.length_mm)
     .filter(length => Number.isFinite(length) && length > 0);
   const longest = Math.max(...lengths);
@@ -90,8 +86,8 @@ export default function CandidateComparisonTable({ views, canToggleVehicles }) {
     </div> : <p role="status">아래에서 차량을 선택하면 비교 정보가 표시됩니다.</p>}
     {canToggleVehicles && <div className="financial-recommendations-actions" role="group" aria-label="비교할 차량 선택">
       {views.map(({ id, candidate: { vehicle } }) => {
-        const included = !excludedIds.includes(id);
-        return <button key={id} type="button" className="candidate-comparison-remove" onClick={() => toggleVehicle(id)} aria-pressed={included}>
+        const included = selected.includes(String(id));
+        return <button key={id} type="button" className="candidate-comparison-remove" onClick={() => toggleVehicle(id)} disabled={!included && selected.length >= 3} aria-pressed={included}>
           <Check size={theme.iconSize.sm} aria-hidden="true" style={{ visibility: included ? 'visible' : 'hidden' }} />
           {vehicle.brand} {vehicle.model} {vehicle.trim}
         </button>;
