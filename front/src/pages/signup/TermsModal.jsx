@@ -3,7 +3,6 @@
 //   - 서비스 이용약관: 실제로 있는 기능 · 규칙만 (재무 진단 · 차량 추천 · 콤파 · 1:1 상담 · 계정 정지 · 탈퇴)
 //   - 개인정보 수집 · 이용: 코드에서 실제로 저장하는 항목 · 쓰는 곳 · 탈퇴할 때 처리 (MemberServiceImpl.withdraw 기준)
 //   - [선택] 약관(차량 추천 업데이트 수신)은 없앴다 — 필수 2개만
-// 법률 검토를 거친 문구가 아니라서 맨 위에 안내를 남긴다
 import Modal from '../../shared/ui/Modal.jsx';
 import './TermsModal.css';
 
@@ -87,7 +86,6 @@ const PRIVACY_ROWS = [
 function ServiceBody() {
   return (
     <>
-      <p className="terms-example">법률 검토 전 문구입니다. 실제 운영 전에 검토가 필요합니다.</p>
       {SERVICE_ARTICLES.map((article) => (
         <section key={article.title} className="terms-article">
           <h3>{article.title}</h3>
@@ -101,7 +99,6 @@ function ServiceBody() {
 function PrivacyBody() {
   return (
     <>
-      <p className="terms-example">법률 검토 전 문구입니다. 실제 운영 전에 검토가 필요합니다.</p>
       <table className="terms-table">
         <thead>
           <tr>
