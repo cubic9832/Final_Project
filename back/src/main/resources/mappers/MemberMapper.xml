@@ -97,4 +97,6 @@
         DELETE FROM chat_quick_reply WHERE admin_id = #{userId}
     </delete>
 
+    <delete id="deleteRecommendationInputs">DELETE FROM user_recommendation_inputs WHERE user_id = #{userId}</delete>
+    <select id="lockRecommendationInputsOwner" resultType="java.lang.Long">SELECT id FROM users WHERE id = #{userId} FOR UPDATE</select>
 </mapper>

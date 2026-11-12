@@ -8,6 +8,8 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface MemberMapper {
+    void deleteRecommendationInputs(Long userId);
+    Long lockRecommendationInputsOwner(Long userId);
 
     MemberDto findById(Long id);
 

@@ -1,3 +1,4 @@
+import RecommendationInputsProvider from './features/financial/RecommendationInputsProvider.jsx';
 import { useEffect } from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
@@ -42,7 +43,7 @@ import SavingsProgressPage from './features/dream-car/pages/progress/SavingsProg
 function FinancialSessionRoutes() {
   const initialized = useAuthStore(state => state.initialized);
   const memberId = useAuthStore(state => state.member?.id);
-  return initialized ? <Outlet key={memberId ?? 'guest'} /> : <AuthPending />;
+  return initialized ? <RecommendationInputsProvider key={memberId ?? 'guest'}><Outlet /></RecommendationInputsProvider> : <AuthPending />;
 }
 
 function App() {

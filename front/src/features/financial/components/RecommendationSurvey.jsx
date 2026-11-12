@@ -1,10 +1,18 @@
+import { recommendationQuestionHasError } from '../recommendationInputs.js';
+import { useRecommendationInputSave } from '../useRecommendationInputSave.js';
 import { useEffect, useRef, useState } from 'react';
 import { Check, LoaderCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import theme from '../../../styles/theme.js';
 import SurveySummary from './SurveySummary.jsx';
 import './RecommendationSurvey.css';
 
-export default function RecommendationSurvey({ phase, index, total, question, value, onChange, onBack, onNext, nextLabel = '다음', busy = false, disabled = false, error, loading, diagnosis, children, formRef, canGoBack = true, summaryItems, summaryMode = 'budget', onEditSummary, onBudgetChange }) {
+export default function RecommendationSurvey({ phase, index, total, question, value, onChange, onBack, onNext, nextLabel = '다음', busy: externalBusy = false, disabled = false, error, loading, diagnosis, children, formRef, canGoBack = true, beforeNext, summaryItems, summaryMode = 'budget', onEditSummary, onBudgetChange }) {
+  const [saving, setSaving] = useState(false);
+  const busy = externalBusy || saving;
+  const inputPersistence = useRecommendationInputSave();
+  const saveInputs = inputPersistence?.save;
+  const hasSavedFieldError = recommendationQuestionHasError(question.id, inputPersistence?.fieldErrors ?? []);
+  const submitting = useRef(false);
   const heading = useRef(null);
   const [optionPagination, setOptionPagination] = useState({ questionId: question.id, page: 0 });
   const optionPage = optionPagination.questionId === question.id ? optionPagination.page : 0;
@@ -21,7 +29,19 @@ export default function RecommendationSurvey({ phase, index, total, question, va
     <p className="survey-introduction">재무 상태와 차량 취향에 맞는 나만의 차량을 찾아보세요.</p>
     <div className="survey-progress-label"><span>{phase}</span><span>{index + 1} / {total}</span></div>
     <progress className="survey-progress" value={index + 1} max={total} aria-label={`${phase} 진행 상황`} />
-    <form ref={formRef} onSubmit={event => { event.preventDefault(); if (!disabled && !busy) onNext(); }}>
+    <form ref={formRef} onSubmit={async event => {
+      event.preventDefault();
+      if (disabled || busy || submitting.current || (beforeNext && !beforeNext())) return;
+      submitting.current = true;
+      setSaving(true);
+      const area = question.id === 'review' ? undefined : phase === '재무 정보' ? 'financial' : 'vehicle';
+      try {
+        if (!saveInputs || await saveInputs(area, diagnosis)) onNext();
+      } finally {
+        submitting.current = false;
+        setSaving(false);
+      }
+    }}>
       <section className="survey-question" aria-labelledby="survey-title">
         <div className="survey-body"><div className="survey-answer" key={question.id}>
         <p className="survey-eyebrow">{question.category}</p>
@@ -38,6 +58,7 @@ export default function RecommendationSurvey({ phase, index, total, question, va
         </fieldset>}
         {optionPageCount > 1 && <nav className="survey-page-controls" aria-label="선택지 페이지"><button type="button" aria-label="이전 선택지" disabled={busy || !currentOptionPage} onClick={() => setOptionPage(currentOptionPage - 1)}><ChevronLeft size={16} aria-hidden /></button><span aria-live="polite">{currentOptionPage + 1} / {optionPageCount}</span><button type="button" aria-label="다음 선택지" disabled={busy || currentOptionPage === optionPageCount - 1} onClick={() => setOptionPage(currentOptionPage + 1)}><ChevronRight size={16} aria-hidden /></button></nav>}
         {children}
+        {hasSavedFieldError && <p role="alert" className="survey-status">입력값의 형식과 범위를 확인해 주세요.</p>}
         </div>
         </div><SurveySummary diagnosis={diagnosis} items={summaryItems} mode={summaryMode} onEdit={onEditSummary} editingDisabled={busy} onBudgetChange={onBudgetChange} /></div>
       </section>
@@ -47,7 +68,7 @@ export default function RecommendationSurvey({ phase, index, total, question, va
         {error && <p role={busy ? 'status' : 'alert'} className="survey-status">{error}</p>}
         <div className="survey-actions">
           {canGoBack && <button type="button" className="survey-previous" onClick={onBack} disabled={busy}>이전</button>}
-          <button type="submit" className={`survey-next${question.id === 'review' ? ' survey-submit' : ''}`} disabled={disabled || busy} aria-busy={busy}>{busy && <LoaderCircle className="survey-spinner" size={theme.iconSize.md} aria-hidden />}{busy ? '내 차를 찾고 있어요…' : nextLabel}</button>
+          <button type="submit" className={`survey-next${question.id === 'review' ? ' survey-submit' : ''}`} disabled={disabled || busy} aria-busy={busy}>{busy && <LoaderCircle className="survey-spinner" size={theme.iconSize.md} aria-hidden />}{saving ? '입력 저장 중…' : busy ? '내 차를 찾고 있어요…' : nextLabel}</button>
         </div>
       </div>
     </form>
