@@ -4,6 +4,7 @@ import com.kh.back.admin.repository.AdminPermissionRepository;
 import com.kh.back.admin.repository.AdminPermissionRepository.Role;
 import com.kh.back.admin.mapper.AdminAuditLogMapper;
 import com.kh.back.common.exception.ApiException;
+import com.kh.back.chat.service.ChatRoomService;
 import com.kh.back.common.security.CurrentRoleLookup;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class AdminPermissionService {
     private final CurrentRoleLookup roles;
     private final AdminMemberService members;
     private final AdminAuditLogMapper audit;
+    private final ChatRoomService chatRooms;
 
     public record Access(String role, boolean superAdmin, List<String> screens) {}
     public Access access(Long userId) {
@@ -46,6 +48,10 @@ public class AdminPermissionService {
         if (!known.containsAll(screens) || screens.size()!=new HashSet<>(screens).size()) throw invalid("사용할 화면을 확인해 주세요.");
         Role before=id == null ? null : findRole(id);
         if (before != null && before.systemRole()) throw invalid("기존 관리자 호환 역할은 수정할 수 없습니다. 다른 업무 역할로 교체해 주세요.");
+        if (before != null && before.version()!=version) throw conflict();
+        if (before != null && before.screens().contains("CHAT") && !screens.contains("CHAT")) {
+            chatRooms.requireNoActiveRoomsOf(repository.chatAdminsDependingOnRole(id));
+        }
         try {
             if (id == null) id=repository.createRole(name.strip(),description.strip());
             else if (repository.updateRole(id,version,name.strip(),description.strip()) != 1) throw conflict();
@@ -77,6 +83,10 @@ public class AdminPermissionService {
         Set<Long> known=new HashSet<>(repository.roles().stream().map(Role::id).toList());
         if (!known.containsAll(ids) || ids.size()!=new HashSet<>(ids).size()) throw invalid("배정할 역할을 확인해 주세요.");
         Map<Long,Role> definitions=new HashMap<>(); repository.roles().forEach(r -> definitions.put(r.id(),r));
+        boolean keepsChat=ids.stream().anyMatch(id -> definitions.get(id).screens().contains("CHAT"));
+        if (!keepsChat && repository.allowedScreens(userId).contains("CHAT")) {
+            chatRooms.requireNoActiveRoomsOf(List.of(userId));
+        }
         for (long id:before) if (!ids.contains(id)) audit.insert(actor,"ADMIN_ROLE_REVOKE","MEMBER",userId,definitions.get(id).code()+" · "+definitions.get(id).name());
         for (long id:ids) if (!before.contains(id)) audit.insert(actor,"ADMIN_ROLE_GRANT","MEMBER",userId,definitions.get(id).code()+" · "+definitions.get(id).name());
         if (ids.isEmpty()) {

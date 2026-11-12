@@ -85,8 +85,22 @@ class AdminRoleChangeTests {
         service.changeRole(SUPER_ADMIN_ID, 7L, "USER");
 
         verify(adminMemberMapper).revokeAdmin(7L);
-        verify(chatRoomService).releaseRoomsOf(7L); // 8단계: 맡던 상담은 대기로
+        verify(chatRoomService).requireNoActiveRoomsOf(java.util.List.of(7L));
         verify(adminAuditLogMapper).insert(SUPER_ADMIN_ID, "ROLE_CHANGE", "MEMBER", 7L, "ADMIN → USER");
+    }
+
+    @Test
+    void 진행_중인_상담이_있으면_관리자_전체_권한도_회수하지_않는다() {
+        when(adminMemberMapper.findRole(7L)).thenReturn("ADMIN");
+        org.mockito.Mockito.doThrow(new ApiException(org.springframework.http.HttpStatus.CONFLICT,
+                "ACTIVE_CHAT_ASSIGNED", "진행 중인 상담이 있습니다."))
+                .when(chatRoomService).requireNoActiveRoomsOf(java.util.List.of(7L));
+        assertThatThrownBy(() -> service.changeRole(SUPER_ADMIN_ID, 7L, "USER"))
+                .isInstanceOfSatisfying(ApiException.class, e -> assertThat(e.getCode()).isEqualTo("ACTIVE_CHAT_ASSIGNED"));
+        verify(adminMemberMapper, never()).revokeAdmin(anyLong());
+        verify(chatRoomService, never()).releaseRoomsOf(anyLong());
+        verify(refreshTokenMapper, never()).deleteByUserId(anyLong());
+        verify(adminAuditLogMapper, never()).insert(any(), any(), any(), any(), any());
     }
 
     @Test

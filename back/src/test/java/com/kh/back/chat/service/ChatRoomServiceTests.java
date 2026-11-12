@@ -43,6 +43,7 @@ class ChatRoomServiceTests {
     static final long SUPER = 1L;
     static final long ROOM = 10L;
 
+    @Mock com.kh.back.admin.repository.AdminPermissionRepository adminPermissions;
     @Mock ChatMapper chatMapper;
     @Mock ChatBroadcaster broadcaster;
     @Mock CurrentRoleLookup currentRoleLookup;
@@ -362,6 +363,37 @@ class ChatRoomServiceTests {
         verify(chatMapper).releaseByAdmin(ADMIN);
         verify(broadcaster).roomChanged(ROOM, ChatRoomDto.WAITING);
         verify(broadcaster).roomChanged(11L, ChatRoomDto.WAITING);
+    }
+
+    @Test
+    void 진행_중_상담이_있으면_건수와_조치_안내로_권한_회수를_거절한다() {
+        when(chatMapper.findActiveRoomIdsByAdmin(ADMIN)).thenReturn(List.of(ROOM, 11L));
+        when(chatMapper.findActiveRoomIdsByAdmin(OTHER_ADMIN)).thenReturn(List.of(12L));
+        assertThatThrownBy(() -> service.requireNoActiveRoomsOf(List.of(ADMIN, OTHER_ADMIN, ADMIN)))
+                .isInstanceOfSatisfying(ApiException.class, failure -> {
+                    assertThat(failure.getCode()).isEqualTo("ACTIVE_CHAT_ASSIGNED");
+                    assertThat(failure.getStatus()).isEqualTo(org.springframework.http.HttpStatus.CONFLICT);
+                    assertThat(failure.getMessage()).contains("3건", "다른 담당자에게 넘기거나 종료");
+                });
+        verify(chatMapper, never()).releaseByAdmin(anyLong());
+        org.mockito.Mockito.verifyNoInteractions(broadcaster);
+    }
+
+    @Test
+    void 진행_중인_담당_상담이_없으면_권한_변경을_허용한다() {
+        service.requireNoActiveRoomsOf(List.of(ADMIN));
+        service.requireNoActiveRoomsOf(List.of());
+        verify(chatMapper, never()).releaseByAdmin(anyLong());
+    }
+
+    @Test
+    void 회수된_상담_권한으로는_새_상담을_맡을_수_없다() {
+        when(adminScreenAccess.canUse(ADMIN, "CHAT")).thenReturn(false);
+        assertCode(() -> service.assign(ADMIN, ROOM), "CHAT_FORBIDDEN");
+        verify(chatMapper, never()).assign(anyLong(), anyLong());
+        var ordered = org.mockito.Mockito.inOrder(adminPermissions, adminScreenAccess);
+        ordered.verify(adminPermissions).lock();
+        ordered.verify(adminScreenAccess).canUse(ADMIN, "CHAT");
     }
 
     // ── 9단계: 계정 정지 ──

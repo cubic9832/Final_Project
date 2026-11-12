@@ -26,6 +26,19 @@ public class AdminPermissionRepository {
             JOIN admin_permissions p ON p.id=r.permission_id WHERE a.user_id=?
             """,String.class,userId);
     }
+    // 이 역할의 상담 화면을 제거하면 실제 상담 접근 권한을 잃는 일반 관리자만 찾는다.
+    public List<Long> chatAdminsDependingOnRole(long roleId) {
+        return jdbc.queryForList("""
+            SELECT a.user_id FROM admin_account_roles a
+            JOIN admin_accounts account ON account.user_id=a.user_id AND account.role='ADMIN'
+            WHERE a.role_id=? AND NOT EXISTS (
+                SELECT 1 FROM admin_account_roles other_role
+                JOIN admin_role_permissions permission ON permission.role_id=other_role.role_id
+                JOIN admin_permissions screen ON screen.id=permission.permission_id AND screen.code='CHAT'
+                WHERE other_role.user_id=a.user_id AND other_role.role_id<>a.role_id
+            ) ORDER BY a.user_id
+            """,Long.class,roleId);
+    }
     public List<Role> roles() {
         Map<Long,List<String>> screens = new HashMap<>();
         jdbc.query("SELECT r.role_id,p.code FROM admin_role_permissions r JOIN admin_permissions p ON p.id=r.permission_id ORDER BY p.display_order", rs -> {
