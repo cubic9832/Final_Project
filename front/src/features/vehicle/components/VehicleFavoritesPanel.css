@@ -9,13 +9,12 @@
 .vehicle-count-chips { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 .vehicle-count-chip { padding: var(--space-4) var(--space-8); border-radius: var(--radius-pill); background: var(--color-blue-tint); color: var(--color-primary); font-size: var(--font-caption); font-weight: 700; white-space: nowrap; }
 
-/* 클릭 카드 목록: summary는 한 줄씩, selector는 그리드로 펼친다. */
+/* 클릭 카드 목록: summary는 세로로 쌓고, selector는 가로 한 줄로 둔다. */
 .vehicle-select-list { display: grid; gap: var(--space-8); margin: 0; padding: 0; list-style: none; }
 .vehicle-favorites-summary .vehicle-select-list { max-height: 272px; overflow-y: auto; padding-right: var(--space-4); }
-/* 최대 10대: 넓은 화면 4열(3줄), 1024px 이하 3열, 768px 이하 2열, 480px 이하 1열 */
-.vehicle-favorites-selector .vehicle-select-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-/* 비교 화면 카드는 한 줄(이름 · 트림)로 줄이고, 좁은 화면에서는 목록 높이를 제한해 스크롤한다. */
-.vehicle-favorites-selector .vehicle-select-list { max-height: 196px; overflow-y: auto; padding-right: var(--space-4); }
+/* 비교 화면은 최대 10대를 한 줄에 두고, 넘치면 가로로 스크롤한다. */
+.vehicle-favorites-selector .vehicle-select-list { display: flex; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: var(--space-8); scroll-snap-type: x proximity; scrollbar-width: thin; }
+.vehicle-favorites-selector .vehicle-select-list > li { flex: 0 0 232px; scroll-snap-align: start; }
 .vehicle-favorites-selector .vehicle-select-item { padding-right: 0; }
 .vehicle-favorites-selector .vehicle-select-card { gap: var(--space-8); min-height: 40px; padding: 0 var(--space-8); }
 .vehicle-favorites-selector .vehicle-select-icon { width: 20px; height: 20px; }
@@ -44,6 +43,5 @@
 .vehicle-favorites-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 .vehicle-favorites-panel.my-card-fill .vehicle-favorites-actions { margin-top: auto; }
 
-@media (max-width: 1024px) { .vehicle-favorites-selector .vehicle-select-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 768px) { .vehicle-favorites-panel.panel { padding: var(--space-16); } .vehicle-favorites-selector .vehicle-select-list { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } }
-@media (max-width: 480px) { .vehicle-favorites-selector .vehicle-select-list { grid-template-columns: 1fr; max-height: 232px; } }
+@media (max-width: 768px) { .vehicle-favorites-panel.panel { padding: var(--space-16); } }
+@media (max-width: 480px) { .vehicle-favorites-selector .vehicle-select-list > li { flex-basis: 208px; } }
