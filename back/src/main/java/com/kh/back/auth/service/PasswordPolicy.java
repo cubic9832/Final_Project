@@ -11,6 +11,9 @@ import java.util.Locale;
  */
 public final class PasswordPolicy {
 
+    /** SignupRequest 의 @Size · @Pattern 과 같은 길이 · 문자 종류 규칙: 8~20자, 영문 · 숫자 · 특수문자 포함, 공백 없음 (시드 계정 검사용) */
+    public static final String FORMAT = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9])\\S{8,20}$";
+
     // 너무 흔해서 금지하는 비밀번호 (소문자로 바꿔 포함 여부를 본다)
     private static final List<String> COMMON_WORDS = List.of(
             "password", "passw0rd", "p@ssw0rd", "qwerty", "1q2w3e4r", "iloveyou", "admin", "letmein", "welcome");

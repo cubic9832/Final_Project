@@ -25,8 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminAccountSeeder {
 
     static final String SEED_NICKNAME = "총관리자";
-    // 회원가입(SignupRequest)과 같은 길이 · 문자 종류 규칙: 8~20자, 영문 · 숫자 · 특수문자 포함, 공백 없음
-    private static final String PASSWORD_FORMAT = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z0-9])\\S{8,20}$";
 
     private final MemberMapper memberMapper;
     private final AdminMemberMapper adminMemberMapper;
@@ -65,7 +63,7 @@ public class AdminAccountSeeder {
         }
         // 회원가입과 같은 비밀번호 규칙 (약한 비밀번호로 총관리자가 생기지 않게)
         String violation = PasswordPolicy.check(password, email);
-        if (!password.matches(PASSWORD_FORMAT) || violation != null) {
+        if (!password.matches(PasswordPolicy.FORMAT) || violation != null) {
             log.warn("admin seed skipped: password does not meet the password policy");
             return;
         }
