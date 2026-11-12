@@ -23,6 +23,6 @@ export default function VehicleCard({ model }) {
     </div>
     <p className="muted">{vehicle.type} · {energyPrices[vehicle.fuel]?.label ?? vehicle.fuel}</p>
     <div className="vehicle-metrics" aria-live="polite"><div><small>예상 차량가</small><strong>{formatAmount(vehicle.price)}</strong></div><div><small>{vehicle.fuel === 'ELECTRIC' ? '복합전비' : '복합연비'}</small><strong title={vehicle.efficiencyBasis}>{formatVehicleEfficiency(vehicle)}</strong></div></div>
-    <label className="compare-check"><input type="checkbox" checked={selected} onChange={() => toggleFavorite(vehicle.id)} />관심 차량 목록에 추가</label>
+    <label className="compare-check"><input type="checkbox" checked={selected} onChange={() => toggleFavorite(vehicle.id)} />관심차량에 담기</label>
   </article>;
 }

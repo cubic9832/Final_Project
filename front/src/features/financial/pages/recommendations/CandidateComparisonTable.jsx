@@ -1,14 +1,17 @@
 import { useVehicle } from '../../../vehicle/useVehicle.js';
-import { Check } from 'lucide-react';
+import { COMPARISON_LIMIT } from '../../../vehicle/recommendationComparison.js';
 import VehicleArtwork from '../../../vehicle/components/VehicleArtwork.jsx';
-import theme from '../../../../styles/theme.js';
+import { VehicleSelectCard } from '../../../vehicle/components/VehicleFavoritesPanel.jsx';
 import { candidateImage, candidateMoney } from './candidatePresentation.js';
 
 export default function CandidateComparisonTable({ views, canToggleVehicles, selectedIds, onToggleVehicle }) {
   const { comparison, toggleComparison } = useVehicle();
   const selected = (selectedIds ?? comparison).map(String);
   const toggleVehicle = onToggleVehicle ?? toggleComparison;
-  const includedViews = canToggleVehicles ? views.filter(view => selected.includes(String(view.id))) : views;
+  // 선택 목록이 주어지면 선택 방식과 관계없이 선택한 차량만 표에 보여 준다.
+  const includedViews = canToggleVehicles || selectedIds ? views.filter(view => selected.includes(String(view.id))) : views;
+  // 4대 이상이면 10대까지 한 화면에서 훑을 수 있도록 표를 압축한다.
+  const compact = includedViews.length > 3;
   const lengths = includedViews.map(view => view.candidate.vehicle.length_mm)
     .filter(length => Number.isFinite(length) && length > 0);
   const longest = Math.max(...lengths);
@@ -68,8 +71,16 @@ export default function CandidateComparisonTable({ views, canToggleVehicles, sel
   ];
 
   return <>
-    {includedViews.length ? <div className="candidate-comparison-table-wrap" tabIndex={0} role="region" aria-label="추천 후보 공통 지표 비교표">
-    <table className="candidate-comparison-table"><caption className="sr-only">차량 비용 및 제원 비교</caption>
+    {canToggleVehicles && <ul className="vehicle-select-list comparison-preset-select" aria-label="비교할 차량 선택">
+      {views.map(({ id, candidate: { vehicle } }) => {
+        const included = selected.includes(String(id));
+        return <li key={id}><VehicleSelectCard name={[vehicle.brand, vehicle.model].filter(Boolean).join(' ')} detail={vehicle.trim}
+          selected={included} disabled={!included && selected.length >= COMPARISON_LIMIT} onToggle={() => toggleVehicle(id)} /></li>;
+      })}
+    </ul>}
+    {includedViews.length > 1 && <p className="candidate-comparison-scroll-help">좌우로 스크롤해 선택한 차량 {includedViews.length}대를 비교하세요.</p>}
+    {includedViews.length ? <div className={`candidate-comparison-table-wrap${compact ? ' is-compact' : ''}`} tabIndex={0} role="region" aria-label="선택 차량 공통 지표 비교표">
+    <table className={`candidate-comparison-table${compact ? ' is-compact' : ''}`} style={{ '--comparison-columns': includedViews.length }}><caption className="sr-only">차량 비용 및 제원 비교</caption>
       <thead><tr><th scope="col">비교 항목</th>{includedViews.map(({ id, candidate: { vehicle } }) => {
         const name = [vehicle.brand, vehicle.model].filter(Boolean).join(' ');
         return <th scope="col" key={id}>
@@ -79,19 +90,10 @@ export default function CandidateComparisonTable({ views, canToggleVehicles, sel
         </th>;
       })}</tr></thead>
       {groups.map(([title, items]) => <tbody key={title}>
-        <tr className="candidate-comparison-group"><th scope="rowgroup" colSpan={includedViews.length + 1}>{title}</th></tr>
+        <tr className="candidate-comparison-group"><th scope="rowgroup" colSpan={includedViews.length + 1}><span className="candidate-comparison-group-title">{title}</span></th></tr>
         {items.map(([label, value]) => <tr key={label}><th scope="row">{label}</th>{includedViews.map(view => <td key={view.id}>{value(view)}</td>)}</tr>)}
       </tbody>)}
     </table>
-    </div> : <p role="status">아래에서 차량을 선택하면 비교 정보가 표시됩니다.</p>}
-    {canToggleVehicles && <div className="financial-recommendations-actions" role="group" aria-label="비교할 차량 선택">
-      {views.map(({ id, candidate: { vehicle } }) => {
-        const included = selected.includes(String(id));
-        return <button key={id} type="button" className="candidate-comparison-remove" onClick={() => toggleVehicle(id)} disabled={!included && selected.length >= 3} aria-pressed={included}>
-          <Check size={theme.iconSize.sm} aria-hidden="true" style={{ visibility: included ? 'visible' : 'hidden' }} />
-          {vehicle.brand} {vehicle.model} {vehicle.trim}
-        </button>;
-      })}
-    </div>}
+    </div> : <p role="status">비교할 차량을 선택하면 비교 정보가 표시됩니다.</p>}
   </>;
 }

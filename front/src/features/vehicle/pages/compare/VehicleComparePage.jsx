@@ -1,5 +1,5 @@
 import { purchaseScenario } from '../../purchaseScenario.js';
-import { useState } from 'react';
+import VehicleFavoritesPanel from '../../components/VehicleFavoritesPanel.jsx';
 import useAuthStore from '../../../../stores/useAuthStore.js';
 import { readScopedFinancialState, scopeFinancialState } from '../../../financial/financialSession.js';
 import { buildRecommendationView, describePreference } from '../../../financial/pages/recommendations/buildRecommendationView.js';
@@ -9,6 +9,7 @@ import VehicleCatalogGate from '../../components/VehicleCatalogGate.jsx';
 import FinancialCandidateComparison from '../../../financial/pages/recommendations/FinancialCandidateComparison.jsx';
 import { useVehicle } from '../../useVehicle';
 import { calculateCosts, formatAmount } from '../../vehicleData';
+import { COMPARISON_LIMIT } from '../../recommendationComparison.js';
 import { findProfilePreset } from '../../../preset/profilePresets';
 import '../../styles/VehiclePages.css';
 
@@ -17,7 +18,8 @@ export default function VehicleComparePage() {
   const member = useAuthStore(store => store.member);
   const state = readScopedFinancialState(routeState, member?.id ?? null);
   const [params] = useSearchParams();
-  if (params.get('source') === 'catalog' && !params.has('preset')) return <Navigate to='/vehicles/compare' replace state={state} />;
+  // 이전 차량 목록·관심차량 비교 주소도 하나의 차량 비교 화면으로 연다.
+  if (['catalog', 'favorites'].includes(params.get('source')) && !params.has('preset')) return <Navigate to='/vehicles/compare' replace state={state} />;
   return <VehicleCatalogGate><CatalogVehicleComparePage /></VehicleCatalogGate>;
 }
 
@@ -28,20 +30,18 @@ function CatalogVehicleComparePage() {
   const [params] = useSearchParams();
   const presetId = params.get('preset');
   const preset = findProfilePreset(presetId);
-  const favoritesOnly = params.get('source') === 'favorites' && !presetId;
-  const { vehicles, planningVehicles, conditions, finance, comparisonMode, comparisonOptions, comparisonNotice, comparison, favoriteComparison, financialComparison } = useVehicle();
-  const [favoriteStart, setFavoriteStart] = useState(0);
-  const lastFavoriteStart = Math.max(0, favoriteComparison.length - 3);
-  const start = Math.min(favoriteStart, lastFavoriteStart);
-  const comparisonIds = favoritesOnly ? favoriteComparison.slice(start, start + 3) : comparison;
-  const optionIds = favoritesOnly ? comparisonIds : comparisonOptions;
-  const availableVehicles = optionIds.map(id => vehicles.find(vehicle => vehicle.id === id)).filter(Boolean);
-  const selected = comparisonIds.map((id) => vehicles.find((vehicle) => vehicle.id === id)).filter(Boolean);
+  const { vehicles, planningVehicles, conditions, finance, comparisonMode, comparisonOptions, comparisonNotice, comparison, favorites, financialComparison } = useVehicle();
+  const availableVehicles = comparisonOptions.map(id => vehicles.find(vehicle => vehicle.id === id)).filter(Boolean);
+  const selected = comparison.map((id) => vehicles.find((vehicle) => vehicle.id === id)).filter(Boolean);
+  // 예시 프리셋은 관심차량에 저장하지 않으므로 프리셋 차량 안에서만 고른다.
+  const selector = !preset && <VehicleFavoritesPanel variant="selector" />;
+  // 관심차량 선택 카드에 개수가 보이므로 헤더 배지는 프리셋 비교에서만 쓴다.
+  const badges = preset && <span className="vehicle-badge">비교 선택 {comparison.length} / {COMPARISON_LIMIT}</span>;
   if (presetId !== null && !preset) return <section className="vehicle-page panel vehicle-empty"><h1>프로필을 찾을 수 없습니다.</h1><p>메인에서 예시 프로필을 다시 선택해 주세요.</p><Link className="vehicle-button primary" to="/">프리셋 선택하기</Link></section>;
-  const recommendationViews = !favoritesOnly && !preset && comparisonMode === 'recommendation' && financialComparison
+  const recommendationViews = !preset && comparisonMode === 'recommendation' && financialComparison
     ? buildRecommendationView(financialComparison.result)
     : [];
-  const recommendationState = favoritesOnly ? null : state?.result && state?.diagnosis ? state : financialComparison && {
+  const recommendationState = state?.result && state?.diagnosis ? state : financialComparison && {
     diagnosis: financialComparison.diagnosis,
     result: financialComparison.recommendationResult ?? financialComparison.result,
   };
@@ -91,20 +91,25 @@ function CatalogVehicleComparePage() {
     };
   });
   const comparisonViews = recommendationViews.length ? recommendationViews : catalogViews;
-  if (comparisonViews.length) return <FinancialCandidateComparison key={presetId} comparisonViews={comparisonViews} selectedIds={comparisonIds} canToggleVehicles={!favoritesOnly}
-    controls={favoritesOnly && <nav className="vehicle-actions" aria-label="관심 차량 비교 이동">
-      <button type="button" className="vehicle-button" disabled={start === 0} onClick={() => setFavoriteStart(start - 1)}>이전</button>
-      <button type="button" className="vehicle-button" disabled={start === lastFavoriteStart} onClick={() => setFavoriteStart(start + 1)}>다음</button>
-    </nav>}>
-    {comparisonNotice && !favoritesOnly && <p role="status">{comparisonNotice}</p>}
-    <p>{comparisonMode === 'recommendation' && !favoritesOnly ? '추천 비교 · 추천 결과의 진단 조건과 비용을 사용합니다.' : `일반 비교 · 모든 차량에 공통 ${finance.months}개월·연 ${finance.rate}% 조건을 적용합니다.`}</p>
-    <div className="financial-recommendations-actions">
-      {selected.map(vehicle => <Link key={vehicle.id} className="candidate-open-comparison" to={`/vehicles/${vehicle.id}/simulation`} state={scopeFinancialState({ purchaseScenario: purchaseScenario(vehicle, conditions, comparisonMode === 'recommendation' && !favoritesOnly ? financialComparison : null, finance) })}>{vehicle.name} 조건 시뮬레이션</Link>)}
-    </div>
+  if (comparisonViews.length) return <FinancialCandidateComparison key={presetId} comparisonViews={comparisonViews} selectedIds={comparison} canToggleVehicles={Boolean(preset)} controls={badges} selector={selector}>
+    {comparisonNotice && <p role="status">{comparisonNotice}</p>}
+    <p>{comparisonMode === 'recommendation' ? '추천 비교 · 추천 결과의 진단 조건과 비용을 사용합니다.' : `일반 비교 · 모든 차량에 공통 ${finance.months}개월·연 ${finance.rate}% 조건을 적용합니다.`}</p>
+    {/* 최대 10대의 시뮬레이션 링크를 한 줄 칩으로 모아 높이를 고정한다. */}
+    {selected.length > 0 && <nav className="comparison-simulation-links" aria-label="차량별 조건 시뮬레이션">
+      <span className="comparison-simulation-label">조건 시뮬레이션</span>
+      <div className="comparison-simulation-scroll">
+        {selected.map(vehicle => <Link key={vehicle.id} className="comparison-simulation-link" aria-label={`${vehicle.name} 조건 시뮬레이션`} to={`/vehicles/${vehicle.id}/simulation`} state={scopeFinancialState({ purchaseScenario: purchaseScenario(vehicle, conditions, comparisonMode === 'recommendation' ? financialComparison : null, finance) })}>{vehicle.name}</Link>)}
+      </div>
+    </nav>}
     <div className="financial-recommendations-actions">
       {!preset && recommendationState && <Link className="candidate-open-comparison" to="/financial/recommendations" state={scopeFinancialState(recommendationState)}>추천 결과로 돌아가기</Link>}
       <Link className="candidate-open-comparison" to="/financial">내 정보 입력하고 비교하기</Link>
     </div>
   </FinancialCandidateComparison>;
-  return <div className="vehicle-page"><div className="vehicle-heading split"><div><h1>차량 비교</h1><p>최대 3대의 구매비용과 유지비, 재무 적합도를 같은 기준으로 비교합니다.</p></div><span className="vehicle-badge">{selected.length} / 3 선택</span></div><div className="vehicle-content-fade"><section className="panel vehicle-empty"><h2>비교할 차량을 선택해 주세요.</h2><p>{favoritesOnly ? '차량 목록에서 관심 차량을 추가하면 3대씩 비교할 수 있습니다.' : '추천 차량이나 차량 상세에서 최대 3대를 추가할 수 있습니다.'}</p><Link className="vehicle-button primary" to="/vehicles">차량 선택하기</Link></section><div className="vehicle-actions"><Link className="vehicle-button cta" to="/financial">내 정보 입력하고 비교하기</Link></div>{!preset && <VehicleEnergyCostNote />}</div></div>;
+  return <div className="vehicle-page"><div className="vehicle-heading split"><div><h1>차량 비교</h1><p>관심차량 중 최대 {COMPARISON_LIMIT}대를 골라 구매비용과 유지비, 재무 적합도를 같은 기준으로 비교합니다.</p></div>{badges}</div><div className="vehicle-content-fade">
+    <section className="comparison-board" aria-label="차량 비교">
+      {selector}
+      {favorites.length > 0 && <div className="comparison-board-table"><div className="comparison-board-empty"><h2>비교할 차량을 선택해 주세요.</h2><p>위 차량 카드를 누르면 비교표가 표시됩니다.</p></div></div>}
+    </section>
+    <div className="vehicle-actions"><Link className="vehicle-button cta" to="/financial">내 정보 입력하고 비교하기</Link></div>{!preset && <VehicleEnergyCostNote />}</div></div>;
 }
