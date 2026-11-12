@@ -27,6 +27,7 @@ import { deviceName, DRIVING_OPTIONS, formatDateTime, PURCHASE_OPTIONS } from '.
 import './MyPage.css';
 import './ProfilePage.css';
 import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
+import useUnsavedChanges from '../../shared/navigation/useUnsavedChanges.js';
 
 const NICKNAME_MIN = 2;
 const NICKNAME_MAX = 12;
@@ -84,6 +85,7 @@ export default function ProfilePage({ inConsole = false }) {
 
   // 계정 관리 팝업: 'password' | 'password-setup' | 'account' | null (11-05: 이메일 알림 팝업 없앰)
   const [modal, setModal] = useState(null);
+  const { requestLeave } = useUnsavedChanges(Boolean(me && form && changedFields(form, me).length), { busy: saving });
 
   // 내 정보 불러오기
   useEffect(() => {
@@ -322,10 +324,6 @@ export default function ProfilePage({ inConsole = false }) {
       </nav>
       <header className="profile-heading">
         <h1>개인정보 · 계정 관리</h1>
-        {/* 마이페이지 제목 아래 설명과 같은 방식: 이 화면에서 할 수 있는 일을 한 줄로 */}
-        <p>{isAdmin
-          ? '관리자 계정의 닉네임 · 개인정보를 고치고, 로그인된 기기와 비밀번호를 관리하세요.'
-          : '닉네임 · 생년월일 같은 개인정보를 고치고, 로그인된 기기와 비밀번호를 관리하세요.'}</p>
       </header>
 
       {me.socialOnly && (!me.birthDate || !me.gender) && (
@@ -341,16 +339,17 @@ export default function ProfilePage({ inConsole = false }) {
           <div>
             <h2>개인정보 수정</h2>
             <p>
-              {changed.length
-                ? <>바꾼 항목 <strong>{changed.length}개</strong>: {changed.map((key) => FIELD_LABELS[key]).join(' · ')}</>
-                : '바꾼 항목만 저장됩니다. 아래 세 영역을 한 번에 저장합니다.'}
-              {' '}<span className="form-required" aria-hidden="true">*</span> 표시는 필수 항목입니다.
+              {changed.length > 0 && (
+                <>바꾼 항목 <strong>{changed.length}개</strong>: {changed.map((key) => FIELD_LABELS[key]).join(' · ')}{' '}</>
+              )}
+              <span className="form-required" aria-hidden="true">*</span> 표시는 필수 입력사항입니다.
             </p>
           </div>
           <div className="profile-edit-buttons">
             {/* 11-03: 저장 실패 문구는 버튼 왼쪽 같은 줄 — 설명 아래에 끼면 아래 입력칸이 모두 밀렸다 */}
             {saveError && <p className="profile-save-error" role="alert">{saveError}</p>}
-            <Link className="my-outline-button profile-small-button" to={isAdmin ? '/console' : '/mypage'}>취소</Link>
+            <button className="my-outline-button profile-small-button" type="button" disabled={saving}
+              onClick={() => requestLeave(() => navigate(isAdmin ? '/console' : '/mypage'))}>취소</button>
             <button className="profile-dark-button" type="submit" disabled={saving || changed.length === 0}>
               {saving ? '저장 중…' : '저장'}
             </button>
@@ -360,7 +359,6 @@ export default function ProfilePage({ inConsole = false }) {
         <div className="profile-grid">
           <div className="profile-column">
             <h3 className="profile-column-title">기본 정보</h3>
-            <p className="profile-card-desc">다른 회원에게 보이는 이름입니다.</p>
 
             <div className="profile-field">
               <label htmlFor="profile-nickname">닉네임<span className="form-required" aria-hidden="true"> *</span></label>
@@ -378,8 +376,9 @@ export default function ProfilePage({ inConsole = false }) {
                 ) : checkedNickname && checkedNickname === form.nickname.trim() ? (
                   <p className="profile-ok" id="profile-nickname-msg" role="status">사용할 수 있는 닉네임입니다.</p>
                 ) : (
-                  // 11-03: 안내 줄을 늘 두어 경고 · 확인 문구가 떠도 아래 칸이 움직이지 않게 (생년월일 · 전화번호와 같은 방식)
-                  <p className="profile-hint" id="profile-nickname-msg">바꾸면 [중복 확인]을 눌러 주세요.</p>
+                  <p className="profile-hint" id="profile-nickname-msg">
+                    {changed.includes('nickname') ? '변경한 닉네임의 중복 확인을 눌러 주세요.' : '\u00a0'}
+                  </p>
                 )}
               </div>
             </div>
@@ -415,7 +414,7 @@ export default function ProfilePage({ inConsole = false }) {
 
           <div className="profile-column">
             <h3 className="profile-column-title">개인 정보</h3>
-            <p className="profile-card-desc">연령대별 추천 · 통계에 사용합니다. 다른 회원에게 보이지 않습니다.</p>
+            <p className="profile-card-desc">추천·통계에 사용되며 다른 회원에게 공개되지 않습니다.</p>
 
             <div className="profile-field">
               <label htmlFor="profile-birth">생년월일<span className="form-required" aria-hidden="true"> *</span></label>
@@ -425,14 +424,14 @@ export default function ProfilePage({ inConsole = false }) {
                 {ageError ? (
                   // 만 18세 미만: 저장하지 않고, 다시 확인하거나 탈퇴하도록 안내 (서버도 AGE_RESTRICTED 로 거절)
                   <p className="profile-age-error" role="alert">
-                    <strong>만 {MIN_SIGNUP_AGE}세 이상만 입력할 수 있습니다.</strong> 생년월일을 다시 확인해 주세요.<br />
+                    <strong>만 {MIN_SIGNUP_AGE}세 이상 이용 가능합니다.</strong> 생년월일을 다시 확인해 주세요.<br />
                     만 {MIN_SIGNUP_AGE}세 미만이라면 서비스를 이용할 수 없으니 아래 계정 관리의{' '}
                     <a href="#profile-withdraw">회원 탈퇴</a>를 해 주세요.
                   </p>
                 ) : errors.birthDate ? (
                   <p className="profile-error">{errors.birthDate}</p>
                 ) : (
-                  <p className="profile-hint">만 {MIN_SIGNUP_AGE}세 이상만 입력할 수 있습니다.</p>
+                  <p className="profile-hint">만 {MIN_SIGNUP_AGE}세 이상 이용 가능합니다.</p>
                 )}
               </div>
             </div>
@@ -473,7 +472,7 @@ export default function ProfilePage({ inConsole = false }) {
         <div className="profile-section-head">
           <div>
             <h2 id="profile-account-title">계정 관리</h2>
-            <p>각 항목은 누르면 바로 처리됩니다. (위 저장 버튼과 별개)</p>
+            <p>계정 관리 항목은 변경 즉시 적용됩니다.</p>
           </div>
         </div>
         <ul className="profile-account-list">
@@ -512,9 +511,7 @@ export default function ProfilePage({ inConsole = false }) {
                   )}
                 </ul>
               )}
-              {/* 11-06: 기기가 아니라 "로그인 한 번" 이 한 줄 — 같은 크롬이라도 다시 로그인하거나 주소(localhost · 공용 서버)가 다르면 늘어난다 (조장 질문) */}
-              <small>로그인할 때마다 한 줄씩 생겨요. 같은 브라우저라도 로그아웃 없이 다시 로그인하면 늘어나고, 최근 5개까지만 남아요.</small>
-              <small>모르는 기기가 있으면 [로그아웃]을 누르고 비밀번호를 바꿔 주세요. 이미 열려 있던 화면은 최대 30분 안에 로그아웃됩니다.</small>
+              <small>모르는 기기가 있다면 로그아웃하고 비밀번호를 변경해 주세요.</small>
             </div>
             <button className="my-outline-button profile-small-button" type="button" onClick={handleLogoutOthers}
               disabled={sessionBusy || sessionStatus !== 'done' || otherSessions.length === 0}>
@@ -544,8 +541,10 @@ export default function ProfilePage({ inConsole = false }) {
         </ul>
         <div className="profile-withdraw" id="profile-withdraw">
           {me.role === 'SUPER_ADMIN' ? (
-            // 7단계: 총관리자는 탈퇴할 수 없다 (관리자 권한을 줄 사람이 없어지므로 — 서버도 403 SUPER_ADMIN_WITHDRAW)
-            <span>총관리자는 탈퇴할 수 없습니다. 다른 총관리자를 먼저 지정해 주세요.</span>
+            // 본인 확인 후 서버에서 마지막 총관리자인지 검사한다.
+            <button type="button" onClick={() => setModal('account')}>
+              회원 탈퇴
+            </button>
           ) : me.role === 'ADMIN' ? (
             // 11-05: 일반 관리자도 직접 탈퇴하지 않는다 — 총관리자가 권한을 빼면 일반 회원이 되어 탈퇴할 수 있다 (서버도 403 ADMIN_WITHDRAW)
             <span>관리자는 직접 탈퇴할 수 없습니다. 총관리자에게 관리자 권한 해제를 요청한 뒤 탈퇴해 주세요.</span>

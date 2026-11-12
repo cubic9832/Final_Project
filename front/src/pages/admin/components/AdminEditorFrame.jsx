@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import theme from '../../../styles/theme.js';
 import ConfirmationModal from '../../../shared/ui/ConfirmationModal.jsx';
 import './AdminEditorFrame.css';
+import useUnsavedChanges from '../../../shared/navigation/useUnsavedChanges.js';
 
 // 등록·수정 화면의 복귀, 변경 폐기, 삭제 확인, 하단 작업 위치를 함께 관리한다.
 export default function AdminEditorFrame({ title, children, onCancel, isDirty = false, busy = false,
@@ -13,8 +14,9 @@ export default function AdminEditorFrame({ title, children, onCancel, isDirty = 
   const [deleteReason, setDeleteReason] = useState(null);
   const checking = useRef(false);
   const heading = useRef(null);
+  const { requestLeave } = useUnsavedChanges(isDirty, { busy: busy || checkingDelete });
   useEffect(() => { heading.current?.focus(); }, []);
-  function close() { if (!busy && !checking.current) { if (isDirty) setConfirmation('discard'); else onCancel(); } }
+  function close() { if (!busy && !checking.current) requestLeave(onCancel); }
   async function requestDelete() {
     if (busy || checking.current) return;
     checking.current = true; setCheckingDelete(true); setDeleteReason(null);
@@ -34,7 +36,6 @@ export default function AdminEditorFrame({ title, children, onCancel, isDirty = 
     </footer>
     {confirmation === 'delete-blocked' && <ConfirmationModal title="삭제할 수 없습니다" message={deleteReason?.message} guidance={deleteReason?.guidance} guidanceLabel="삭제 전 필요한 조치" onClose={() => setConfirmation('')} />}
     {confirmation === 'delete' && <ConfirmationModal title="삭제하시겠습니까?" message={deleteMessage} busy={busy} error={deleteError} onClose={() => setConfirmation('')} onConfirm={onDelete} confirmLabel="삭제" />}
-    {confirmation === 'discard' && <ConfirmationModal title="변경사항을 저장하지 않고 나갈까요?" message="목록으로 돌아가면 작성 중인 변경사항이 사라집니다." busy={busy} onClose={() => setConfirmation('')} onConfirm={onCancel} cancelLabel="계속 작성" confirmLabel="저장하지 않고 나가기" />}
 
   </section>;
 }

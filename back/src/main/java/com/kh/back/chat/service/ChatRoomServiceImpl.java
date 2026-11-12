@@ -46,6 +46,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             + IDLE_CLOSE_MINUTES + "분 안에 답이 없으면 상담이 자동으로 종료됩니다.";
     static final String UNRESTRICTED_NOTICE = "상담 제한이 풀렸습니다. [새로 상담하기]로 다시 상담할 수 있어요.";
 
+    private final com.kh.back.admin.repository.AdminPermissionRepository adminPermissions;
     private final ChatMapper chatMapper;
     private final ChatBroadcaster broadcaster;
     private final CurrentRoleLookup currentRoleLookup;
@@ -194,6 +195,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     @Override
     @Transactional
     public void assign(Long adminId, Long roomId) {
+        adminPermissions.lock(); // 권한 회수 검사와 상담 배정을 같은 순서로 직렬화한다.
         requireAdminActor(adminId, "상담 화면을 사용할 권한이 없습니다.");
         ChatRoomDto room = requireRoom(roomId);
         if (chatMapper.assign(roomId, adminId) == 0) {
@@ -209,6 +211,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     @Override
     @Transactional
     public void transfer(Long actorId, Long roomId, Long toAdminId, String reason) {
+        adminPermissions.lock();
         ChatRoomDto room = requireRoom(roomId);
         if (!ChatRoomDto.ACTIVE.equals(room.getStatus())) {
             throw new ApiException(HttpStatus.CONFLICT, "CHAT_NOT_ACTIVE", "진행 중인 상담만 넘길 수 있습니다.");
@@ -301,7 +304,18 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         broadcaster.roomChanged(roomId, ChatRoomDto.CLOSED);
     }
 
-    // 관리자에서 해제될 때 (AdminMemberServiceImpl.changeRole): 맡던 진행 중 상담을 대기로 → 다른 관리자가 다시 맡는다
+    @Override
+    @Transactional(readOnly = true)
+    public void requireNoActiveRoomsOf(List<Long> adminIds) {
+        long count = adminIds.stream().distinct()
+                .mapToLong(id -> chatMapper.findActiveRoomIdsByAdmin(id).size()).sum();
+        if (count > 0) {
+            throw new ApiException(HttpStatus.CONFLICT, "ACTIVE_CHAT_ASSIGNED",
+                    "현재 진행 중인 담당 상담이 " + count + "건 있습니다. 상담을 다른 담당자에게 넘기거나 종료한 뒤 권한을 변경해 주세요.");
+        }
+    }
+
+    // 회원 탈퇴 등 별도 계정 정리에서 담당 배정을 해제할 때 사용한다.
     @Override
     @Transactional
     public void releaseRoomsOf(Long adminId) {

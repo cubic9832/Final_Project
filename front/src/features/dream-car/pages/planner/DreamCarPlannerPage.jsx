@@ -14,6 +14,7 @@ import PlanField from './PlanField.jsx';
 import PurchaseCostDialog from './PurchaseCostDialog.jsx';
 import { purchasePlanUpdatedEvent, savePurchasePlanWithProgress } from '../../purchasePlanSync';
 import { currentDate } from '../../savingsProgress';
+import useUnsavedChanges from '../../../../shared/navigation/useUnsavedChanges.js';
 
 const money = value => `${Math.round(value).toLocaleString('ko-KR')}만 원`;
 const fuels = { GASOLINE: '가솔린', HYBRID: '하이브리드', ELECTRIC: '전기', DIESEL: '디젤', LPG: 'LPG', HYDROGEN: '수소' };
@@ -48,8 +49,15 @@ function DreamCarPlannerPageContent({ catalog }) {
   useEffect(() => { heading.current?.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }, [step]);
   const models = [...new Set(catalog.map(car => `${car.brand} ${car.model}`))];
   const [plan, setPlan] = useState(() => readPlan(catalog));
+  const [savedPlan, setSavedPlan] = useState(plan);
+  const { allowLeave } = useUnsavedChanges(JSON.stringify(plan) !== JSON.stringify(savedPlan));
   useEffect(() => {
-    function sync(event) { if (!event.key || event.key === storageKey) setPlan(readPlan(catalog)); }
+    function sync(event) {
+      if (!event.key || event.key === storageKey) {
+        const next = readPlan(catalog);
+        setPlan(next); setSavedPlan(next);
+      }
+    }
     window.addEventListener('storage', sync);
     window.addEventListener(purchasePlanUpdatedEvent, sync);
     return () => { window.removeEventListener('storage', sync); window.removeEventListener(purchasePlanUpdatedEvent, sync); };
@@ -73,6 +81,7 @@ function DreamCarPlannerPageContent({ catalog }) {
   function save() {
     try {
       savePurchasePlanWithProgress(plan, result.target, currentDate(), vehicle);
+      setSavedPlan(plan);
       return true;
     } catch (error) { setNotice(error.message || '브라우저 저장 공간을 사용할 수 없습니다.'); return false; }
   }
@@ -113,7 +122,7 @@ function DreamCarPlannerPageContent({ catalog }) {
     </div>
     <div className={`dream-flow-actions${step === 2 ? ' is-final' : ''}`}>
       <button type="button" className="dream-reset" disabled={step === 0} onClick={() => { setNotice(''); setStep(step - 1); }}>이전</button>
-      {step < 2 ? <button type="button" className="dream-save" disabled={!stepValid} onClick={() => { setNotice(''); setStep(step + 1); }}>다음</button> : <button type="button" className="dream-save" disabled={!valid} onClick={() => { if (save()) navigate('/dream-car/progress'); }}>구매 계획 저장</button>}
+      {step < 2 ? <button type="button" className="dream-save" disabled={!stepValid} onClick={() => { setNotice(''); setStep(step + 1); }}>다음</button> : <button type="button" className="dream-save" disabled={!valid} onClick={() => { if (save()) allowLeave(() => navigate('/dream-car/progress')); }}>구매 계획 저장</button>}
     </div>
     {notice && <p className="dream-flow-notice" role="status">{notice}</p>}
     {costsOpen && <PurchaseCostDialog vehicle={vehicle} inputs={inputs} onClose={() => setCostsOpen(false)} onSave={next => { setPlan(current => ({ ...current, inputs: next })); setNotice('계산 기준을 적용했습니다.'); setCostsOpen(false); }} />}

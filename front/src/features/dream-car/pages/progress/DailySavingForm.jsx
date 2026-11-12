@@ -4,7 +4,7 @@ import { recordDailySaving } from '../../savingsProgress';
 import theme from '../../../../styles/theme';
 import SavingDatePicker from './SavingDatePicker';
 
-export default function DailySavingForm({ plan, asOfDate, record, onSave, onCancel, onDirtyChange }) {
+export default function DailySavingForm({ plan, asOfDate, record, onSave, onCancel, onSaved, onDirtyChange }) {
   const [date, setDate] = useState(record?.date || asOfDate);
   const [amount, setAmount] = useState(record?.amount?.toString() ?? '');
   const [memo, setMemo] = useState(record?.memo ?? '');
@@ -17,7 +17,7 @@ export default function DailySavingForm({ plan, asOfDate, record, onSave, onCanc
     if (amount.trim() === '' || !/^\d+(\.\d{1,2})?$/.test(amount)) { setError('저축액을 소수점 둘째 자리까지 숫자로 입력해 주세요.'); return; }
     try {
       const next = recordDailySaving(plan, date, Number(amount), memo, asOfDate, crypto.randomUUID(), record?.id);
-      if (onSave(next)) { setAmount(''); setMemo(''); setError(''); onCancel(); }
+      if (onSave(next)) { setAmount(''); setMemo(''); setError(''); onDirtyChange?.(false); (onSaved || onCancel)(); }
     } catch (failure) { setError(failure.message); }
   }
   return <section className="savings-card savings-entry"><div className="savings-section-heading"><div className="savings-icon"><Plus size={theme.iconSize.md} aria-hidden /></div><div><h2>{record ? '저축 기록 수정' : '나의 저축 기록'}</h2><p>매일 조금씩, 한 번에 모아도 괜찮아요.</p></div></div><form onSubmit={submit}>

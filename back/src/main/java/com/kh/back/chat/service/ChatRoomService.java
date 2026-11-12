@@ -42,6 +42,9 @@ public interface ChatRoomService {
 
     void warn(Long actorId, Long roomId, String reason);
 
+    // 권한 변경 전에 진행 중인 담당 상담을 확인한다. 호출자는 권한 변경 잠금을 먼저 얻는다.
+    void requireNoActiveRoomsOf(List<Long> adminIds);
+
     void releaseRoomsOf(Long adminId);
 
     void closeForSuspension(Long userId);

@@ -11,6 +11,7 @@ import { nextTableSort } from './adminTableData.js';
 import { formatAdminDate } from './adminDateFormat.js';
 import './AdminChatbotPanel.css';
 import './components/AdminListSummary.css';
+import useUnsavedChanges from '../../shared/navigation/useUnsavedChanges.js';
 
 const tableColumns = [
   { key: 'number', label: '번호', width: 8 },
@@ -28,6 +29,7 @@ const ratingLabels = { LIKE: '좋아요', DISLIKE: '싫어요' };
 const failureMessage = (failure) => failure.response?.data?.detail || failure.response?.data?.error?.message || '조회하지 못했습니다. 다시 시도해 주세요.';
 
 export default function AdminChatbotPanel() {
+  const { requestNavigation } = useUnsavedChanges(false);
   const [tab, setTab] = useState('history');
   const [historySearch, setHistorySearch] = useState('');
   const [reload, setReload] = useState(0);
@@ -44,11 +46,11 @@ export default function AdminChatbotPanel() {
   function refresh() { setPrompts(current => ({ ...current, status: 'loading', error: '' })); setReload(value => value + 1); }
   return <div className="admin-panel-stack compa-admin">
     <div className="compa-admin-tabs" role="tablist" aria-label="콤파 관리">
-      <button id="compa-history-tab" role="tab" aria-selected={tab === 'history'} aria-controls="compa-history-panel" type="button" onClick={() => setTab('history')}>대화·평가 기록</button>
-      <button id="compa-prompts-tab" role="tab" aria-selected={tab === 'prompts'} aria-controls="compa-prompts-panel" type="button" onClick={() => { setTab('prompts'); refresh(); }}>프롬프트 관리</button>
+      <button id="compa-history-tab" role="tab" aria-selected={tab === 'history'} aria-controls="compa-history-panel" type="button" onClick={() => { if (tab !== 'history') requestNavigation(() => setTab('history')); }}>대화·평가 기록</button>
+      <button id="compa-prompts-tab" role="tab" aria-selected={tab === 'prompts'} aria-controls="compa-prompts-panel" type="button" onClick={() => { if (tab !== 'prompts') requestNavigation(() => { setTab('prompts'); refresh(); }); }}>프롬프트 관리</button>
     </div>
     <section id={tab === 'history' ? 'compa-history-panel' : 'compa-prompts-panel'} role="tabpanel" aria-labelledby={tab === 'history' ? 'compa-history-tab' : 'compa-prompts-tab'}>
-      {tab === 'prompts' ? <AdminChatPromptPanel state={prompts} onRefresh={refresh} onView={version => { setHistorySearch(version); setTab('history'); }} /> :
+      {tab === 'prompts' ? <AdminChatPromptPanel state={prompts} onRefresh={refresh} onView={version => requestNavigation(() => { setHistorySearch(version); setTab('history'); })} /> :
         <ChatbotHistory key={historySearch} initialKeyword={historySearch} />}
     </section>
   </div>;

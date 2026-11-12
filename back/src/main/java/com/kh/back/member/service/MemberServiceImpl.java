@@ -148,11 +148,6 @@ public class MemberServiceImpl implements MemberService {
     @Transactional(noRollbackFor = ApiException.class)
     public void withdraw(Long userId, String password, String confirmText) {
         MemberDto member = findMember(userId);
-        // 7단계: 총관리자가 탈퇴하면 관리자 권한을 줄 사람이 없어진다 → 막는다 (총관리자를 바꾸려면 DB 에서 먼저 다른 회원을 지정)
-        if ("SUPER_ADMIN".equals(member.getRole())) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "SUPER_ADMIN_WITHDRAW",
-                    "총관리자는 탈퇴할 수 없습니다. 다른 총관리자를 먼저 지정해 주세요.");
-        }
         // 11-05: 일반 관리자도 직접 탈퇴하지 않는다 — 총관리자가 권한을 빼면(회원 관리) 일반 회원이 되고, 그때 탈퇴한다
         // (직원 계정은 본인이 아니라 운영 쪽이 회수 · 운영 로그의 작업자가 갑자기 "탈퇴한 회원" 으로 바뀌지 않게)
         if ("ADMIN".equals(member.getRole())) {
@@ -181,6 +176,18 @@ public class MemberServiceImpl implements MemberService {
         }
         passwordChangeLimiter.reset(userId);
 
+        if ("SUPER_ADMIN".equals(member.getRole())) {
+            // 잠금 조회는 다른 탈퇴가 끝난 뒤의 최신 상태를 읽으며, 정리 작업 전에 검사한다.
+            var superAdminIds = memberMapper.lockSuperAdminIds();
+            if (!superAdminIds.contains(userId)) {
+                throw new ApiException(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원 정보를 찾을 수 없습니다.");
+            }
+            if (superAdminIds.size() <= 1) {
+                throw new ApiException(HttpStatus.CONFLICT, "SUPER_ADMIN_WITHDRAW",
+                        "마지막 총관리자는 탈퇴할 수 없습니다. 다른 총관리자를 먼저 지정해 주세요.");
+            }
+        }
+
         // 보완 15 (11-03 회의): 회원 줄은 남기고 "탈퇴 회원" 으로 바꾼다 — 1:1 상담 · 만족도 · 신고 · 콤파 대화는 그대로 남는다
         // 개인 데이터는 지우고, 이메일 · 닉네임은 알아볼 수 없는 값으로 → 같은 이메일로 다시 가입하면 새 회원 (예전 기록과 연결 안 됨)
 
@@ -189,8 +196,8 @@ public class MemberServiceImpl implements MemberService {
         memberMapper.deleteSocialAccounts(userId);
         memberMapper.deleteAgreements(userId);
         memberMapper.deleteCurrentTaste(userId);
-        // 11-05 부터 관리자는 위에서 막혀 여기 오지 않는다 — 탈퇴 규칙이 바뀌어도 맡던 상담 · 권한이 남지 않게 정리 코드는 둔다
-        if ("ADMIN".equals(member.getRole())) {
+        // 일반 관리자는 직접 탈퇴할 수 없고, 탈퇴 가능한 총관리자는 상담 배정·권한을 정리한다.
+        if ("SUPER_ADMIN".equals(member.getRole())) {
             chatRoomService.releaseRoomsOf(userId); // 맡던 진행 중 상담 → 대기 (다른 관리자가 다시 맡는다)
             memberMapper.deleteAdminAccount(userId);
             memberMapper.deleteQuickReplies(userId);

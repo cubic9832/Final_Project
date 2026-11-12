@@ -90,7 +90,7 @@ function SavingsProgressPageContent() {
 
         </aside></div>
       {recordModalOpen && <Modal title={editingRecord ? '저축 기록 수정' : '저축 기록하기'} subtitle="작은 저축도 내 차를 향한 한 걸음이에요." size="md" isDirty={recordDirty} onClose={closeRecordModal}>
-        <div className="savings-record-modal"><DailySavingForm key={`${plan.id}-${editingRecord?.id || 'new'}`} {...{ plan, asOfDate }} record={editingRecord} onDirtyChange={setRecordDirty} onCancel={closeRecordModal} onSave={next => persist(state.plans.map(item => item.id === plan.id ? next : item), '저축 기록을 저장했습니다. 월 합계와 차트에 반영했어요.')} /></div>
+        {requestClose => <div className="savings-record-modal"><DailySavingForm key={`${plan.id}-${editingRecord?.id || 'new'}`} {...{ plan, asOfDate }} record={editingRecord} onDirtyChange={setRecordDirty} onCancel={requestClose} onSaved={closeRecordModal} onSave={next => persist(state.plans.map(item => item.id === plan.id ? next : item), '저축 기록을 저장했습니다. 월 합계와 차트에 반영했어요.')} /></div>}
       </Modal>}
     </>}
   </div>;

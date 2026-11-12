@@ -61,7 +61,8 @@ function AccountEditor({ initial, accounts, roles, screens, me, onClose, onSaved
   const [resultPage, setResultPage] = useState(1); const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const pending = useRef(false);
   const oldIds = target?.roleIds || [];
-  const dirty = [...selected].sort().join() !== [...oldIds].sort().join();
+  const rolesChanged = [...selected].sort().join() !== [...oldIds].sort().join();
+  const dirty = (!initial.account && Boolean(target)) || rolesChanged;
   useEffect(() => {
     if (initial.account) return;
     const controller = new AbortController();
@@ -93,7 +94,7 @@ function AccountEditor({ initial, accounts, roles, screens, me, onClose, onSaved
     catch (failure) { setError(permissionError(failure)); }
     finally { pending.current = false; setBusy(false); }
   }
-  return <AdminEditorFrame title={initial.account ? '관리자 권한 변경' : '관리자 권한 부여'} onCancel={onClose} busy={busy} isDirty={dirty} formId={formId} canSave={Boolean(target)} saveDisabled={!dirty} saveLabel={oldIds.length && !selected.length ? '권한 회수' : '저장'}><section className="admin-card permission-form">
+  return <AdminEditorFrame title={initial.account ? '관리자 권한 변경' : '관리자 권한 부여'} onCancel={onClose} busy={busy} isDirty={dirty} formId={formId} canSave={Boolean(target)} saveDisabled={!rolesChanged} saveLabel={oldIds.length && !selected.length ? '권한 회수' : '저장'}><section className="admin-card permission-form">
     {!target ? <><PermissionSearch placeholder="회원 닉네임·이메일 검색" value={query} onChange={setQuery} onSubmit={search} />{listLoading && <p role="status">회원 목록을 불러오는 중입니다.</p>}{results && <><div className="permission-member-scroll" role="region" aria-label="권한을 부여할 회원 목록" aria-busy={busy} tabIndex={0}><ul className="permission-member-results">{results.map(member => <li key={member.id}><span>{member.nickName} <small>{member.emailMasked}</small></span><button type="button" className="admin-outline-button" disabled={busy || Number(me?.id) === member.id || member.role === 'SUPER_ADMIN'} onClick={() => choose(member)}>선택</button></li>)}</ul>{results.length === 0 && <p>조건에 맞는 회원이 없습니다.</p>}</div>{totalPages > 1 && <Pagination page={resultPage - 1} totalPages={totalPages} onChange={next => search(null, next + 1)} />}</>}</> : <form id={formId} onSubmit={save} className="permission-form">
       <dl className="permission-account-info"><div><dt>대상 회원</dt><dd><strong>{target.nickName}</strong></dd></div>{target.createdAt && <div><dt>등록일</dt><dd>{formatAdminDateTime(target.createdAt)}</dd></div>}</dl>
       <PermissionSelection label="부여할 업무 권한" description="허용할 업무를 선택하세요. 여러 권한을 함께 부여할 수 있습니다." items={roles.map(role => ({ value: role.id, label: role.name, description: role.screens.length ? screens.filter(screen => role.screens.includes(screen.code)).map(screen => screen.name).join(' · ') : '사용 가능한 화면 없음' }))} values={selected} onChange={setSelected} disabled={busy} />

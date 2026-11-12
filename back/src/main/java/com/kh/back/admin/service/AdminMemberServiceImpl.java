@@ -37,7 +37,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     private final RefreshTokenMapper refreshTokenMapper;
     private final AdminAuditLogMapper adminAuditLogMapper; // V13: 운영 로그
     private final com.kh.back.admin.repository.AdminPermissionRepository adminPermissions;
-    private final ChatRoomService chatRoomService; // 8단계: 관리자에서 해제되면 맡던 상담을 대기로
+    private final ChatRoomService chatRoomService; // 진행 중인 상담이 있으면 관리자 권한 회수를 차단한다.
 
     @Override
     @Transactional(readOnly = true)
@@ -86,6 +86,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     @Override
     @Transactional
     public void changeRole(Long actorId, Long targetId, String role) {
+        adminPermissions.lock();
         if (actorId.equals(targetId)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "SELF_ROLE_CHANGE", "자기 자신의 권한은 바꿀 수 없습니다.");
         }
@@ -101,8 +102,8 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         }
         // 보완 11: 권한은 admin_accounts 표 — 일반 회원으로 되돌리면 표에서 지우고, 관리자로 지정하면 넣는다 (누가 지정했는지는 운영 로그에 남는다)
         if ("USER".equals(role)) {
+            chatRoomService.requireNoActiveRoomsOf(List.of(targetId));
             adminMemberMapper.revokeAdmin(targetId);
-            chatRoomService.releaseRoomsOf(targetId); // 8단계: 맡던 진행 중 상담 → 대기 (다른 관리자가 다시 맡는다)
         } else {
             adminMemberMapper.grantAdmin(targetId, role); // 누가 지정했는지는 아래 운영 로그(ROLE_CHANGE)에 남는다
             if ("ADMIN".equals(role) && !"ADMIN".equals(current)) adminPermissions.assignLegacyRole(targetId);
