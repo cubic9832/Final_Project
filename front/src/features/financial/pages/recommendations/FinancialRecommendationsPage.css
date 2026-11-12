@@ -174,7 +174,7 @@
 .candidate-comparison-table thead th:first-child { width: 18%; vertical-align: bottom; }
 .candidate-comparison-table small { display: block; color: var(--color-muted); font-size: var(--font-caption); font-weight: 400; }
 .candidate-comparison-table thead th:not(:first-child) { background: var(--color-surface); }
-.candidate-comparison-artwork { position: relative; display: grid; place-items: center; height: 160px; margin-bottom: var(--space-12); border-radius: var(--radius-sm); background: var(--color-background); }
+.candidate-comparison-artwork { position: relative; display: grid; place-items: center; height: 200px; margin-bottom: var(--space-12); border-radius: var(--radius-sm); background: var(--color-background); }
 .candidate-comparison-artwork .vehicle-photo { position: absolute; inset: 0; width: 100%; height: 100%; padding: var(--space-8); box-sizing: border-box; object-fit: contain; object-position: center; }
 .candidate-comparison-remove { display: inline-flex; align-items: center; gap: var(--space-4); min-height: 40px; margin-top: var(--space-8); padding-inline: var(--space-8); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text-sub); font-size: var(--font-caption); cursor: pointer; }
 .candidate-comparison-remove:hover { background: var(--color-blue-tint); color: var(--color-primary); }
@@ -228,3 +228,51 @@
   .financial-recommendations-page .recommendations-result-actions { grid-template-columns:1fr; }
   .recommendations-result-actions > .candidate-open-comparison { grid-column:1; }
 }
+
+/* 선택한 차량 수만큼 열을 늘리고 표 영역 안에서 좌우로 스크롤한다.
+   4대부터(최대 10대)는 열·이미지를 줄이고, 표 높이를 화면 안으로 제한해 머리행을 고정한다. */
+.candidate-comparison-table-wrap { max-width: 100%; overscroll-behavior: contain; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.candidate-comparison-table { --comparison-label-width: 200px; --comparison-column-width: 280px; min-width: max(720px, calc(var(--comparison-label-width) + var(--comparison-columns, 2) * var(--comparison-column-width))); }
+.candidate-comparison-table th[scope="row"], .candidate-comparison-table thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--color-background); }
+.candidate-comparison-table thead th:first-child { width: var(--comparison-label-width); }
+.candidate-comparison-table thead th:not(:first-child) { scroll-snap-align: start; scroll-margin-left: var(--comparison-label-width); }
+.candidate-comparison-scroll-help { color: var(--color-text-sub); font-size: var(--font-body); margin-top: var(--space-16); }
+
+.candidate-comparison-table-wrap.is-compact { max-height: min(80vh, 760px); overflow: auto; }
+.candidate-comparison-table.is-compact { --comparison-label-width: 152px; --comparison-column-width: 224px; }
+.candidate-comparison-table.is-compact thead th { position: sticky; top: 0; z-index: 2; }
+.candidate-comparison-table.is-compact thead th:first-child { z-index: 3; }
+.candidate-comparison-table.is-compact th, .candidate-comparison-table.is-compact td { padding: var(--space-12); line-height: 1.5; }
+.candidate-comparison-table.is-compact .candidate-comparison-artwork { height: 140px; margin-bottom: var(--space-8); }
+.candidate-comparison-table.is-compact .candidate-comparison-model { display: block; overflow: hidden; font-size: var(--font-body); text-overflow: ellipsis; white-space: nowrap; }
+.candidate-comparison-table.is-compact thead small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 480px) {
+  .candidate-comparison-table, .candidate-comparison-table.is-compact { --comparison-label-width: 104px; --comparison-column-width: 176px; }
+  .candidate-comparison-table .candidate-comparison-artwork { height: 120px; }
+}
+
+/* 차량 비교 카드: 선택 영역과 비교표를 한 카드 안에서 구분선으로 나눈다. */
+.comparison-board { display: flex; flex-direction: column; gap: var(--space-16); padding: var(--space-24); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
+.comparison-board-table { min-width: 0; }
+.comparison-board > .vehicle-favorites-panel + .comparison-board-table { padding-top: var(--space-16); border-top: 1px solid var(--color-border); }
+.comparison-board .candidate-comparison-scroll-help { margin-top: 0; font-size: var(--font-caption); }
+.comparison-board .candidate-comparison-table-wrap { margin-top: var(--space-8); }
+.comparison-board .comparison-preset-select { display: flex; margin-bottom: var(--space-16); padding-bottom: var(--space-8); overflow-x: auto; scrollbar-width: thin; }
+.comparison-board .comparison-preset-select > li { flex: 0 0 232px; }
+.comparison-board-empty { padding: var(--space-24); border-radius: var(--radius-md); background: var(--color-background); text-align: center; }
+.comparison-board-empty h2 { color: var(--color-primary); font-size: var(--font-subtitle); }
+.comparison-board-empty p { margin-top: var(--space-8); color: var(--color-text-sub); font-size: var(--font-body); }
+@media (max-width: 768px) { .comparison-board { padding: var(--space-16); } }
+@media (max-width: 480px) { .comparison-board .comparison-preset-select > li { flex-basis: 208px; } }
+/* 가로 스크롤 중에도 구분 행 제목을 왼쪽에 고정한다. */
+.candidate-comparison-group-title { position: sticky; left: var(--space-12); }
+
+/* 조건 시뮬레이션 링크: 선택 대수와 관계없이 한 줄, 넘치면 가로 스크롤 */
+.comparison-simulation-links { display: flex; align-items: center; gap: var(--space-12); min-width: 0; margin-top: var(--space-16); }
+.comparison-simulation-label { flex: none; color: var(--color-primary); font-size: var(--font-caption); font-weight: 700; }
+.comparison-simulation-scroll { display: flex; flex: 1; gap: var(--space-8); min-width: 0; padding-block: var(--space-4); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.comparison-simulation-link { display: inline-flex; flex: none; align-items: center; min-height: 40px; padding-inline: var(--space-16); border: 1px solid var(--color-border-input, var(--color-border)); border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-primary); font-size: var(--font-body); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.comparison-simulation-link:hover { border-color: var(--color-blue); background: var(--color-blue-tint); }
+.comparison-simulation-link:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+@media (max-width: 480px) { .comparison-simulation-links { flex-direction: column; align-items: stretch; gap: var(--space-4); } }

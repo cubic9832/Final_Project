@@ -51,7 +51,7 @@ export default function AboutPreviewPage() {
     </section>
 
     <section id="about-preview-comparison" data-reveal className="about-preview-container about-preview-comparison-section" aria-labelledby="about-preview-comparison-title">
-      <div className="about-preview-comparison-copy"><p className="about-preview-kicker">차량 비교 · 최대 3대를 한눈에</p><h2 id="about-preview-comparison-title">마음에 드는 차들,<br />같은 기준으로 비교하세요.</h2><p>구매 가격부터 월 유지비, 장기 보유 비용까지.<br />후보를 나란히 놓고 내 생활에 맞는 차를 찾아보세요.</p><ul><li>차량 가격과 할부금 비교</li><li>유류비·보험료·세금 등 유지비 확인</li><li>3년 총비용과 구매 후 월 여유 자금 확인</li></ul><Link className="about-preview-cta" to="/vehicles/compare">차량 비교하러 가기 <ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></div>
+      <div className="about-preview-comparison-copy"><p className="about-preview-kicker">차량 비교 · 최대 10대를 한눈에</p><h2 id="about-preview-comparison-title">마음에 드는 차들,<br />같은 기준으로 비교하세요.</h2><p>구매 가격부터 월 유지비, 장기 보유 비용까지.<br />후보를 나란히 놓고 내 생활에 맞는 차를 찾아보세요.</p><ul><li>차량 가격과 할부금 비교</li><li>유류비·보험료·세금 등 유지비 확인</li><li>3년 총비용과 구매 후 월 여유 자금 확인</li></ul><Link className="about-preview-cta" to="/vehicles/compare">차량 비교하러 가기 <ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></div>
       <VehicleComparisonExample />
     </section>
 

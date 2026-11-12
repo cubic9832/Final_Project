@@ -1,7 +1,9 @@
+import VehicleFavoritesPanel from '../../features/vehicle/components/VehicleFavoritesPanel.jsx';
+import { dreamCarStorageKey } from '../../features/dream-car/dreamCarStorage.js';
 // 마이페이지 (/mypage) — 6단계: 요약 + 바로가기. 자세한 내용은 각 기능 화면에서 본다
 // 카드마다 따로 불러오고(불러오는 중 · 실패 · 비어 있음), 한 카드가 실패해도 나머지는 보인다
 // 개인정보 수정 · 비밀번호 · 탈퇴 등 계정 관리는 /mypage/profile (ProfilePage) 로 옮겼다
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getSessions } from '../../features/auth/authApi';
 import Modal from '../../shared/ui/Modal.jsx';
@@ -11,7 +13,6 @@ import { getCurrentTaste, getTasteCatalog } from '../../features/taste-test/tast
 import { savedTasteAnswers } from '../../features/taste-test/serverTasteFlow';
 import { writeMemberTasteDraft } from '../../features/taste-test/tasteDraftStorage';
 import useAuthStore from '../../stores/useAuthStore';
-import { getVehicles } from '../../features/vehicle/vehicleApi';
 import { useVehicle } from '../../features/vehicle/useVehicle';
 import { calculatePurchasePlan } from '../../features/dream-car/purchasePlan';
 import {
@@ -24,20 +25,8 @@ import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이�
 
 // 서버의 role 값 → 화면에 보여 줄 이름 (7단계 공용 이름표: 일반 회원 · 관리자 · 총관리자)
 
-// 차량 화면(조원 VehicleContext)이 관심차량을 저장하는 브라우저 저장소 키 — 회원별 DB 저장은 아직 없음
-const FAVORITES_KEY = 'vehicle-favorites';
-
 // 원 단위 금액 → "62만 원" (마이너스면 "-12만 원")
 const formatManwon = (won) => `${Math.round(won / 10000).toLocaleString('ko-KR')}만 원`;
-
-function readFavoriteIds() {
-  try {
-    const value = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    return Array.isArray(value) ? value : [];
-  } catch {
-    return []; // 저장소를 쓸 수 없는 환경이면 없는 것으로
-  }
-}
 
 // 카드 하나의 불러오기 상태를 다루는 작은 도우미: { status: 'loading' | 'done' | 'error', data, reload }
 function useCardData(load) {
@@ -94,17 +83,9 @@ function startNewTaste(memberId, data) {
 // 재무 진단 기록 최대 20건 (재무 진단 결과 화면에서 저장한 기록, 최신 순, 서버 최대 20). 없으면 []
 const loadDiagnoses = () => getRecentDiagnoses(20);
 
-const loadFavorites = async () => {
-  const ids = readFavoriteIds();
-  if (!ids.length) return [];
-  const vehicles = await getVehicles();
-  return ids.map((id) => vehicles.find((vehicle) => vehicle.id === id)).filter(Boolean);
-};
-
 export default function MyPage() {
   const profile = useCardData(loadProfile);
   const taste = useCardData(loadTaste);
-  const favorites = useCardData(loadFavorites);
   const diagnoses = useCardData(loadDiagnoses);
 
   return (
@@ -123,7 +104,10 @@ export default function MyPage() {
       </div>
 
       <div className="my-row-three">
-        <FavoritesCard state={favorites} />
+        <VehicleFavoritesPanel className="my-card my-card-fill" actions={<>
+          <Link className="my-outline-button my-cta" to="/search">차량 찾기</Link>
+          <Link className="my-outline-button my-soft-button" to="/vehicles/compare">차량 비교</Link>
+        </>} />
 
         <PlanCard />
 
@@ -180,53 +164,6 @@ function ProfileCard({ state }) {
         {/* 7단계: 관리자 · 총관리자는 일반 로그인 후 여기서도 관리자 대시보드로 */}
         {isAdminRole(me.role) && <Link className="my-outline-button my-soft-button" to="/console">관리자 대시보드</Link>}
       </div>
-    </section>
-  );
-}
-
-// 관심차량 — 차량 화면에서 [관심차량 저장] 한 차량 (이 브라우저에 저장된 목록, 조원 기능)
-function FavoritesCard({ state }) {
-  // 비교 화면에 담긴 차 수 (조원 VehicleContext, 읽기만) — 차량 상세의 "비교에 추가 (n/3)" 와 같은 표기
-  const { comparison } = useVehicle();
-
-  return (
-    <section className="my-card my-card-fill" aria-labelledby="my-favorites-title">
-      <div className="my-insight-head">
-        <div>
-          <h2 id="my-favorites-title">관심차량</h2>
-          <p>이 브라우저에 저장한 차량</p>
-        </div>
-      </div>
-      {state.status === 'loading' && <CardLoading />}
-      {state.status === 'error' && <CardError message="관심차량을 불러오지 못했습니다." onRetry={state.reload} />}
-      {state.status === 'done' && state.data.length === 0 && (
-        <>
-          <p className="my-empty">아직 저장한 관심차량이 없어요. 차량 상세에서 [관심차량 저장]을 눌러 보세요.</p>
-        </>
-      )}
-      {state.status === 'done' && state.data.length > 0 && (
-        <>
-          {/* 저장한 차를 모두 보여 주고, 4대부터는 목록 안에서 스크롤 (높이는 MyPage.css .my-fav-list) */}
-          <ul className="my-fav-list">
-            {state.data.map((vehicle) => (
-              <li key={vehicle.id}>
-                <Link className="my-fav-line" to={`/vehicles/${vehicle.id}`}>
-                  <strong>{vehicle.name}</strong>
-                  <span>상세 보기 →</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      {/* 관심차량이 있든 없든 같은 두 버튼 (비교 화면은 관심차량 없이도 차를 골라 비교할 수 있다).
-          주 버튼은 늘 [차량 찾기] (11-05: 다른 기능으로 들어가는 버튼이라 CTA 색) — 관심차량을 모으는 출발점이라 */}
-      {state.status === 'done' && (
-        <div className="my-fav-actions">
-          <Link className="my-outline-button my-cta" to="/search">차량 찾기</Link>
-          <Link className="my-outline-button my-soft-button" to="/vehicles/compare">비교하기 ({comparison.length}/3)</Link>
-        </div>
-      )}
     </section>
   );
 }
@@ -297,27 +234,30 @@ function DiagnosisCard({ state }) {
 // 계산은 플래너가 내보내는 함수를 그대로 써서 플래너 화면과 같은 숫자가 나온다. 회원별 DB 저장이 생기면 그쪽으로 바꾼다
 function readPlan(catalog) {
   try {
-    const plans = JSON.parse(localStorage.getItem(progressStorageKey) || '[]');
-    const active = Array.isArray(plans) ? plans.filter(isProgressPlan).at(-1) : null;
+    const plans = JSON.parse(localStorage.getItem(dreamCarStorageKey(progressStorageKey)) || '[]');
+    if (!Array.isArray(plans) || !plans.every(isProgressPlan)) throw new Error('Invalid savings records');
+    const active = plans.at(-1);
     if (active) {
       return { kind: 'progress', name: active.name, trim: active.trim, target: active.target,
         ...calculateSavingsProgress(active, currentMonth()) };
     }
-    const saved = JSON.parse(localStorage.getItem(planStorageKey));
+    const saved = JSON.parse(localStorage.getItem(dreamCarStorageKey(planStorageKey)));
     const vehicle = catalog.find((car) => car.id === saved?.vehicleId);
     const result = vehicle && saved?.inputs && calculatePurchasePlan(vehicle.price / 10000, saved.inputs);
     if (result) {
       return { kind: 'plan', name: `${vehicle.brand} ${vehicle.model}`, trim: vehicle.trim, target: result.target,
         monthlySaving: saved.inputs.monthlySaving, targetMonths: saved.inputs.targetMonths };
     }
-  } catch { /* 저장소를 못 쓰거나 형식이 다르면 계획 없음으로 */ }
+    if (saved) throw new Error('Invalid purchase plan');
+  } catch { return { error: '저장된 구매계획을 읽지 못했습니다. 브라우저 저장 공간과 데이터 형식을 확인해 주세요.' }; }
   return null;
 }
 
 function PlanCard() {
   // 구매 계획의 차량 정보는 차량 목록에서 찾는다 (조원 VehicleContext, 읽기만)
   const { planningVehicles = [] } = useVehicle();
-  const plan = useMemo(() => readPlan(planningVehicles), [planningVehicles]);
+  const [planSnapshot, setPlanSnapshot] = useState(null);
+  const plan = planSnapshot?.catalog === planningVehicles ? planSnapshot.plan : readPlan(planningVehicles);
 
   return (
     <section className="my-plan my-card-fill" aria-labelledby="my-plan-title">
@@ -327,13 +267,14 @@ function PlanCard() {
           <p>드림카 플래너에서 이 브라우저에 저장한 계획</p>
         </div>
       </div>
+      {plan?.error && <p role="alert">{plan.error} <button type="button" onClick={() => setPlanSnapshot({ catalog: planningVehicles, plan: readPlan(planningVehicles) })}>다시 확인</button></p>}
       {!plan && (
         <>
           <p className="my-empty">아직 저장한 구매계획이 없어요. 드림카 플래너에서 차량과 저축 계획을 세워 보세요.</p>
           <Link className="my-plan-button my-inline-button my-cta" to="/dream-car">드림카 플래너 가기</Link>
         </>
       )}
-      {plan && (
+      {plan && !plan.error && (
         <>
           {/* 차량 아래 한 줄에 트림 · 목표 달성 월 (줄을 따로 두면 카드 높이가 늘어나서) */}
           <div className="my-plan-car">

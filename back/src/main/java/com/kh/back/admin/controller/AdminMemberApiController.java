@@ -38,10 +38,12 @@ public class AdminMemberApiController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String sort,
+            @RequestParam(defaultValue = "ASC") String direction) {
         page = Math.max(page, 1);
         size = Math.min(Math.max(size, 1), 50); // 한 번에 최대 50명
-        List<AdminMemberResponse> members = adminMemberService.getMembers(keyword, role, page, size);
+        List<AdminMemberResponse> members = adminMemberService.getMembers(keyword, role, page, size, sort, direction);
         int total = adminMemberService.countMembers(keyword, role);
         return ApiResponse.ok(members, PageMeta.of(page, size, total));
     }

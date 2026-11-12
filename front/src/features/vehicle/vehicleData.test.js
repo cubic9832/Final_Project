@@ -11,7 +11,7 @@ test('zero interest divides only the outstanding principal', () => {
   assert.equal(result.interest, 0);
 });
 test('fully paid vehicle has no installment or interest but retains running costs', () => {
-  const result = calculateCosts(vehicles[0], { ...defaultConditions, downPayment: vehicles[0].price });
+  const result = calculateCosts(vehicles[0], { ...defaultConditions, cash: vehicles[0].price, downPayment: vehicles[0].price });
   assert.equal(result.installment, 0);
   assert.equal(result.interest, 0);
   assert.ok(result.total > 0);

@@ -1,3 +1,4 @@
+import RecommendationInputsProvider from './features/financial/RecommendationInputsProvider.jsx';
 import { useEffect } from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
@@ -42,7 +43,7 @@ import SavingsProgressPage from './features/dream-car/pages/progress/SavingsProg
 function FinancialSessionRoutes() {
   const initialized = useAuthStore(state => state.initialized);
   const memberId = useAuthStore(state => state.member?.id);
-  return initialized ? <Outlet key={memberId ?? 'guest'} /> : <AuthPending />;
+  return initialized ? <RecommendationInputsProvider key={memberId ?? 'guest'}><Outlet /></RecommendationInputsProvider> : <AuthPending />;
 }
 
 function App() {
@@ -53,6 +54,7 @@ function App() {
       .finally(() => useAuthStore.getState().setInitialized());
   }, []);
 
+  const memberId = useAuthStore(state => state.member?.id ?? 'guest');
   return (
     <VehicleProvider>
     <Routes>
@@ -60,9 +62,9 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPreviewPage />} />
         <Route path="/about-preview" element={<Navigate to="/about" replace />} />
-        <Route path="/dream-car" element={<DreamCarPlannerPage />} />
+        <Route path="/dream-car" element={<DreamCarPlannerPage key={memberId} />} />
         <Route path="/dream-car/calculation-guide" element={<DreamCarCalculationGuidePage />} />
-        <Route path="/dream-car/progress" element={<SavingsProgressPage />} />
+        <Route path="/dream-car/progress" element={<SavingsProgressPage key={memberId} />} />
         {/* 보완 1 추가: 로그인 · 회원가입은 로그인 전에만 — 이미 로그인했으면 GuestOnly 가 메인으로 보낸다 */}
         <Route element={<GuestOnly />}>
           <Route path="/login" element={<LoginPage />} />
@@ -73,7 +75,7 @@ function App() {
         {/* 로그인이 필요한 화면 — 로그인 전이면 RequireAuth 가 /login 으로 보낸다 */}
         <Route element={<RequireAuth />}>
           <Route path="/taste-test" element={<TasteTestPage />} />
-          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/mypage" element={<MyPage key={memberId} />} />
           {/* 6단계: 개인정보 · 계정 관리 */}
           <Route path="/mypage/profile" element={<ProfilePage />} />
           {/* 8단계: 1:1 상담 (마이페이지 · 콤파의 [1:1 상담] 버튼) — 마이페이지 아래 화면이라 /mypage/... */}

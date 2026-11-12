@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Compass, Car, ClipboardList, BookOpen, ChevronRight, Info, X, Send, RotateCcw } from 'lucide-react';
 import theme from '../../styles/theme';
 import { sendChatMessage, sendChatGuide, getChatHistory, clearChatHistory } from './chatApi';
@@ -26,6 +27,7 @@ const categories = [
 ];
 
 export default function ChatWidget() {
+  const consultation = useLocation().pathname === '/mypage/consultation';
   const open = useChatStore((state) => state.open);
   const setOpen = useChatStore((state) => state.setOpen);
   const questionRequest = useChatStore((state) => state.questionRequest);
@@ -210,7 +212,7 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="chat-widget">
+    <div className={`chat-widget${consultation ? ' is-consultation' : ''}`}>
       {open && (
         <section className="chat-panel" id="chat-panel" ref={panel} role="region" aria-labelledby="chat-title">
           <header className="chat-header">

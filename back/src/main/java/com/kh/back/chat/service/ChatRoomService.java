@@ -27,6 +27,8 @@ public interface ChatRoomService {
 
     // ── 관리자 (관리자 · 총관리자) ──
     List<ChatRoomDto> getRooms(Long viewerId, String status);
+    List<ChatRoomDto> getRooms(Long viewerId, String status, int offset);
+    ChatRoomDto getRoom(Long viewerId, Long roomId);
 
     List<ChatAdminOption> getAdmins();
 

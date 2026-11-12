@@ -56,7 +56,8 @@ function AccountEditor({ initial, accounts, roles, screens, me, onClose, onSaved
   const formId = useId();
   const [target, setTarget] = useState(initial.account || null);
   const [selected, setSelected] = useState(initial.account?.roleIds || []);
-  const [query, setQuery] = useState(initial.search || ''); const [results, setResults] = useState(null);
+  const [query, setQuery] = useState(initial.search || '');
+  const [appliedQuery, setAppliedQuery] = useState(initial.search || ''); const [results, setResults] = useState(null);
   const [listLoading, setListLoading] = useState(!initial.account);
   const [resultPage, setResultPage] = useState(1); const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const pending = useRef(false);
@@ -78,7 +79,7 @@ function AccountEditor({ initial, accounts, roles, screens, me, onClose, onSaved
   async function search(event, page = 1) {
     event?.preventDefault(); if (pending.current || listLoading) return;
     pending.current = true; setBusy(true); setError('');
-    try { const response = await getAdminMembers({ keyword: query.trim(), role: 'NOT_SUPER_ADMIN', page, size: 20 }); setResults(response.members); setResultPage(page); setTotalPages(response.meta.totalPages); }
+    try { const response = await getAdminMembers({ keyword: event ? query.trim() : appliedQuery, role: 'NOT_SUPER_ADMIN', page, size: 20 }); setAppliedQuery(event ? query.trim() : appliedQuery); setResults(response.members); setResultPage(page); setTotalPages(response.meta.totalPages); }
     catch (failure) { setError(permissionError(failure)); }
     finally { pending.current = false; setBusy(false); }
   }

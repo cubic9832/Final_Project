@@ -14,6 +14,7 @@ public class DiagnosisRow {
     private Long snapshotId;
     private Long analysisId;
     private Long userId;
+    private String requestId;
     private Long modelVersionId;
     private Long monthlyIncome;
     private Long monthlyExpense;

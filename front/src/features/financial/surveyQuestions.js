@@ -13,7 +13,7 @@ export function environmentQuestions(scenarioMode, vehicle = {}) {
     importance('costImportance', '차량 비용을 얼마나 아끼고 싶으세요?', '구매 가능한 예산 안에서 추천 가격대를 정해요.', [
       '취향이 더 중요해요', '균형 잡힌 차량을 원해요', '비용을 아끼고 싶어요',
     ]),
-    { id: 'incomeRatio', category: '매달 차에 쓸 돈', title: '월 소득의 몇 %까지 차에 쓸 수 있나요?', description: '할부금과 보험료·세금·정비비·연료비 같은 유지비를 합친 금액이에요. 목돈만 고르면 매달 소득은 유지비에만 쓰고, 일시불로 살 수 있는 차만 추천해요.', compact: true,
+    { id: 'incomeRatio', category: '매달 차에 쓸 돈', title: '월 소득의 몇 %까지 할부금으로 쓸 수 있나요?', description: '목돈에 선택한 월 할부액으로 상환 가능한 금액을 더해 차량을 찾아요. 유지비는 별도로 계산하고, 할부금과 유지비를 내고도 월 여유자금이 남는지 확인해요. 목돈만 고르면 매달 소득은 유지비에만 쓰고, 일시불로 살 수 있는 차만 추천해요.', compact: true,
       options: incomeRatioValues.map(value => value === '0' ? { value, label: '목돈만' } : { value, label: `${value}%까지` }) },
   ];
   if (vehicle.incomeRatio && vehicle.incomeRatio !== '0') questions.push(

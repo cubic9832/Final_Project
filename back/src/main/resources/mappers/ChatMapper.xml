@@ -170,8 +170,8 @@
         <where>
             <if test="status != null">r.status = #{status}</if>
         </where>
-        ORDER BY COALESCE(r.last_message_at, r.created_at) DESC
-        LIMIT 100
+        ORDER BY COALESCE(r.last_message_at, r.created_at) DESC, r.id DESC
+        LIMIT 100 OFFSET #{offset}
     </select>
 
     <insert id="insertMessage" useGeneratedKeys="true" keyProperty="id" keyColumn="id">

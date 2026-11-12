@@ -33,6 +33,7 @@ class AdminAccessTests {
     @Autowired MockMvc mvc;
     @Autowired JwtProvider jwtProvider;
     @MockitoBean CurrentRoleLookup currentRoleLookup;
+    @MockitoBean com.kh.back.recommendation.RecommendationUpstreamRegistry runtimeCatalog;
     @MockitoBean com.kh.back.admin.repository.AdminPermissionRepository permissions;
 
     @BeforeEach
@@ -109,6 +110,9 @@ class AdminAccessTests {
     // 추천 관리: 추천 서버가 쓰는 후보 차량 목록(catalog.json), 일반 회원 404
     @Test
     void 관리자는_추천_후보_차량을_볼_수_있다() throws Exception {
+        var upstream = new com.kh.back.recommendation.RecommendationUpstreamRegistry.Upstream("http://runtime.test", true, "test", "test", true, 1, 1);
+        when(runtimeCatalog.upstreams()).thenReturn(java.util.List.of(upstream));
+        when(runtimeCatalog.candidates(upstream)).thenReturn(tools.jackson.databind.json.JsonMapper.builder().build().readTree("[{\"id\":\"runtime-car\",\"brand\":\"실행 후보\",\"price\":23980000}]"));
         mvc.perform(get("/api/v1/admin/recommendation-candidates")
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
                 .andExpect(status().isOk())

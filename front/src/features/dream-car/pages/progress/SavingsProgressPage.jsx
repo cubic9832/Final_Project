@@ -1,3 +1,4 @@
+import { dreamCarStorageKey } from '../../dreamCarStorage.js';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ChartNoAxesCombined, CarFront, Plus, Trophy } from 'lucide-react';
@@ -17,12 +18,12 @@ import './SavingsProgressPage.css';
 
 function readProgress() {
   try {
-    const raw = localStorage.getItem(progressStorageKey);
+    const raw = localStorage.getItem(dreamCarStorageKey(progressStorageKey));
     if (!raw) return { plans: [], error: '' };
     const plans = JSON.parse(raw);
     if (!Array.isArray(plans) || !plans.every(plan => isProgressPlan(plan) && (plan.recurringRules === undefined || Array.isArray(plan.recurringRules) && plan.recurringRules.every(isRecurringRule)))) throw new Error();
     const updated = plans.map(plan => applyRecurringSavings(plan, currentDate()));
-    if (updated.some((plan, index) => plan !== plans[index])) localStorage.setItem(progressStorageKey, JSON.stringify(updated));
+    if (updated.some((plan, index) => plan !== plans[index])) localStorage.setItem(dreamCarStorageKey(progressStorageKey), JSON.stringify(updated));
     return { plans: updated, error: '' };
   } catch { return { plans: [], error: '저장된 실행 기록을 읽을 수 없습니다. 브라우저 저장 공간 또는 데이터 상태를 확인해 주세요. 기존 데이터를 덮어쓰지 않았습니다.' }; }
 }
@@ -56,7 +57,7 @@ function SavingsProgressPageContent() {
   const editingRecord = plan ? getSavingRecords(plan).find(record => record.id === editingId) : null;
   function persist(plans, message) {
     if (state.error) { setNotice('저장된 데이터 오류를 먼저 확인해 주세요. 기존 기록을 덮어쓰지 않았습니다.'); return false; }
-    try { localStorage.setItem(progressStorageKey, JSON.stringify(plans)); setState({ plans, error: '' }); setNotice(message); window.dispatchEvent(new Event(purchasePlanUpdatedEvent)); return true; } catch { setNotice('저장 공간을 사용할 수 없어 저장하지 못했습니다. 입력값을 유지했으니 다시 시도해 주세요.'); return false; }
+    try { localStorage.setItem(dreamCarStorageKey(progressStorageKey), JSON.stringify(plans)); setState({ plans, error: '' }); setNotice(message); window.dispatchEvent(new Event(purchasePlanUpdatedEvent)); return true; } catch { setNotice('저장 공간을 사용할 수 없어 저장하지 못했습니다. 입력값을 유지했으니 다시 시도해 주세요.'); return false; }
   }
   function closeRecordModal() { setRecordModalOpen(false); setEditingId(null); setRecordDirty(false); }
   function openRecordModal(id = null) { setEditingId(id); setRecordDirty(false); setRecordModalOpen(true); }

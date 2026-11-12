@@ -94,7 +94,7 @@ export default function VehicleEditor({ vehicle, onCancel, onSave, saving = fals
         <button type="button" className="admin-outline-button" disabled={readingImage || saving} onClick={() => picker.current?.click()}><ImagePlus size={theme.iconSize.sm} aria-hidden="true" />{readingImage ? '이미지 읽는 중' : draft.image ? '이미지 변경' : '이미지 선택'}</button>{draft.image && <button type="button" className="admin-outline-button" disabled={readingImage || saving} onClick={() => { change('image', ''); change('imageFile', null); if (picker.current) picker.current.value = ''; }}>이미지 제거</button>}<p className="vehicle-editor-hint">WebP, PNG, JPG · 최대 5MB<br />배경 없는 전면 사선 이미지를 권장해요.</p>{imageError && <p className="vehicle-editor-error" role="alert">{imageError}</p>}
         <div className="vehicle-editor-preview-info"><small>{draft.brand || '브랜드'} · {draft.fuel}</small><h4>{draft.model || '모델명'}</h4><p>{draft.trim || '트림명'}</p><strong>{draft.price ? formatVehiclePrice(draft.price) : '가격 미입력'}</strong></div>
       </section>
-      <section className="admin-card"><div className="admin-card-heading"><div><h3>관리 상태</h3><p>목록에 표시할 상태를 선택하세요.</p></div></div>{field('status', '상태', { options: vehicleStatuses })}<p className="vehicle-editor-hint">공개한 차량만 다음 추천 요청부터 반영됩니다. 판매 종료로 변경하면 추천에서 제외됩니다.</p></section>
+      <section className="admin-card"><div className="admin-card-heading"><div><h3>관리 상태</h3><p>목록에 표시할 상태를 선택하세요.</p></div></div>{field('status', '상태', { options: vehicleStatuses })}<p className="vehicle-editor-hint">공개 차량의 가격·제원·상태를 변경하면 학습 데이터와의 불일치로 추천이 일시 중단될 수 있습니다. 관리자 문서의 카탈로그 동기화·재학습 절차를 완료한 뒤 추천을 확인해 주세요.</p></section>
     </aside></div>
     {saveError && <p className="vehicle-editor-error" role="alert">{saveError}</p>}
     </AdminEditorFrame>

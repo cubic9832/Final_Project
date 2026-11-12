@@ -1,7 +1,7 @@
 package com.kh.back.admin.dto;
 
 /**
- * 7단계: 관리자 추천 관리 — 추천 서버가 쓰는 후보 차량 한 건 (학습 결과 폴더의 catalog.json 에서 화면에 필요한 칸만).
+ * 7단계: 관리자 추천 관리 — 추천 서버가 쓰는 후보 차량 한 건 (실행 중인 추천 서버에서 화면에 필요한 칸만).
  *
  * @param price       차량 가격 (원)
  * @param fuel        연료 코드 (GASOLINE · HYBRID · DIESEL · LPG · ELECTRIC)

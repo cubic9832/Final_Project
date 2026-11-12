@@ -4,15 +4,18 @@ export const defaultConditions = { income: 300, expenses: 90, debt: 25, cash: 15
 export const defaultFinance = { months: 48, rate: 5.5, distance: 15000 };
 export const formatAmount = (value) => `${Math.round(value).toLocaleString('ko-KR')}만 원`;
 export function calculateCosts(vehicle, conditions, finance = defaultFinance) {
-  const principal = Math.max(0, vehicle.price - conditions.downPayment);
+  const downPayment = Math.max(0, Math.min(vehicle.price, conditions.cash, conditions.downPayment));
+  const principal = Math.max(0, vehicle.price - downPayment);
   const rate = finance.rate / 1200;
-  const installment = rate === 0 ? principal / finance.months : principal * rate / (1 - (1 + rate) ** -finance.months);
+  const installment = principal === 0 || finance.months === 0 ? 0 : rate === 0 ? principal / finance.months : principal * rate / (1 - (1 + rate) ** -finance.months);
   const energyPrice = energyPrices[vehicle.fuel ?? 'GASOLINE'];
   const fuel = energyPrice && vehicle.efficiency > 0 ? finance.distance / 12 / vehicle.efficiency * energyPrice.price / 10000 : null;
   const insurance = 9;
   const tax = vehicle.type.includes('경') ? 1 : 2;
   const maintenance = 3;
-  const total = installment + fuel + insurance + tax + maintenance;
-  const available = Math.max(0, (conditions.income - conditions.expenses - conditions.debt) * 0.4);
-  return { installment, fuel, insurance, tax, maintenance, total, interest: installment * finance.months - principal, available, remaining: available - total, score: Math.max(0, Math.min(99, Math.round(100 - Math.max(0, total - conditions.limit) * 1.5))) };
+  const baselineFuel = energyPrice && vehicle.efficiency > 0 ? finance.baselineDistance / 12 / vehicle.efficiency * energyPrice.price / 10000 : 0;
+  const running = Number.isFinite(finance.baselineRunning) ? finance.baselineRunning + fuel - baselineFuel : fuel + insurance + tax + maintenance;
+  const total = installment + running;
+  const available = conditions.monthlyAvailable ?? Math.max(0, (conditions.income - conditions.expenses - conditions.debt) * 0.4);
+  return { downPayment, cashRemaining: conditions.cash - downPayment, installment, fuel, insurance, tax, maintenance, total, interest: finance.months === 0 ? 0 : installment * finance.months - principal, available, remaining: available - total, score: Math.max(0, Math.min(99, Math.round(100 - Math.max(0, total - conditions.limit) * 1.5))) };
 }

@@ -1,0 +1,10 @@
+CREATE TABLE user_recommendation_inputs (
+ user_id BIGINT NOT NULL PRIMARY KEY,
+ financial_inputs JSON NULL,
+ vehicle_preferences JSON NULL,
+ schema_version INT NOT NULL DEFAULT 1,
+ version BIGINT NOT NULL DEFAULT 1,
+ created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ CONSTRAINT fk_recommendation_inputs_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

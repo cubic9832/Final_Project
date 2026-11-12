@@ -249,3 +249,7 @@
   width: 100%;
   margin-inline: auto;
 }
+
+@media (max-width: 768px) {
+  .consult-page { padding-bottom: 104px; }
+}

@@ -16,6 +16,8 @@ public interface DiagnosisMapper {
     // 같은 이름 · 버전이 이미 있으면 아무것도 안 함 (UNIQUE uq_model_version)
     void insertModelVersion(@Param("modelName") String modelName, @Param("versionLabel") String versionLabel);
 
+    Long lockMember(@Param("userId") Long userId);
+    Long findByRequestId(@Param("userId") Long userId, @Param("requestId") String requestId);
     void insertSnapshot(DiagnosisRow row);
 
     void insertFinancialProfile(DiagnosisRow row);

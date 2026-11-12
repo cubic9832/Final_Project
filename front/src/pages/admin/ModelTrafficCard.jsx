@@ -40,7 +40,7 @@ export default function ModelTrafficCard({ models, upstreams, trafficConfigured,
   const fingerprint = weightFingerprint(models);
   const [draft, setDraft] = useState({ base: null, values: {} });
   // 켜기 · 끄기 · 저장은 한 번에 하나. 성공하면 새 목록(models)이 올 때까지 잠근다 (useActionLock)
-  const lock = useActionLock(models);
+  const lock = useActionLock(models, { waitForRefresh: false });
   const [action, setAction] = useState(''); // 'save' · 'start:<모델>' · 'stop:<모델>' — 잠긴 동안만 뜻이 있다
   const [error, setError] = useState('');
   const pending = lock.locked ? action : '';

@@ -38,7 +38,7 @@ class Profile:
     preferred_body_type: str = 'any'
     body_importance: int = 3
     preferred_height: str = 'any'
-    # Share of monthly income the user allows for installment + running costs.
+    # Share of monthly income the user allows for installments.
     vehicle_income_ratio: int = 0
     vehicle_payment_months: int = 0
 
@@ -173,7 +173,7 @@ def assess(profile: Profile, vehicle: Vehicle, assumptions=Assumptions()):
     reserve_months = 12
     # A user-chosen income limit is not bypassed by drawing down remaining savings.
     asset_supported = recommendation and not income_ratio and required_drawdown > 0 and cash_after_purchase >= required_drawdown * reserve_months
-    if cap is not None and math.isfinite(monthly_cost) and monthly_cost > cap:
+    if cap is not None and math.isfinite(payment) and payment > cap:
         reasons.append('exceeds-income-ratio')
     if available - monthly_cost < profile.minimum_buffer and not asset_supported:
         reasons.append('insufficient-monthly-buffer')

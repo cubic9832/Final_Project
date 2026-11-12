@@ -42,7 +42,10 @@ export function getAge(birthDate, today = new Date()) {
 // 생년월일 입력칸(type="date")의 값은 'YYYY-MM-DD' 문자열
 export function validateBirthDate(value, today = new Date()) {
   if (!value) return '생년월일을 입력해 주세요.';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '생년월일이 올바르지 않습니다.';
   const birth = new Date(`${value}T00:00:00`);
+  const [year, month, day] = value.split('-').map(Number);
+  if (birth.getFullYear() !== year || birth.getMonth() + 1 !== month || birth.getDate() !== day) return '생년월일이 올바르지 않습니다.';
   if (Number.isNaN(birth.getTime()) || birth >= today || birth.getFullYear() < 1900) {
     return '생년월일이 올바르지 않습니다.';
   }

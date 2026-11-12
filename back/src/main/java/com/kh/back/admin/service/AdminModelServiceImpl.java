@@ -275,13 +275,19 @@ public class AdminModelServiceImpl implements AdminModelService {
 
     @Override
     public List<AdminCandidate> getCandidates() {
-        Path dir = findRunDir();
-        if (dir == null || !Files.exists(dir.resolve("catalog.json"))) {
-            return List.of();
-        }
         try {
+            List<Upstream> alive = registry.upstreams().stream().filter(Upstream::up).toList();
+            if (alive.isEmpty()) throw new IllegalStateException("No recommendation server");
+            Map<String, JsonNode> runtime = new java.util.LinkedHashMap<>();
+            for (Upstream upstream : alive) {
+                for (JsonNode vehicle : registry.candidates(upstream)) {
+                    String id = vehicle.path("id").asString();
+                    JsonNode previous = runtime.putIfAbsent(id, vehicle);
+                    if (previous != null && !previous.equals(vehicle)) throw new IllegalStateException("Runtime catalogs disagree");
+                }
+            }
             List<AdminCandidate> candidates = new ArrayList<>();
-            for (JsonNode v : read(dir.resolve("catalog.json"))) {
+            for (JsonNode v : runtime.values()) {
                 candidates.add(new AdminCandidate(v.path("id").asString(null), v.path("brand").asString(null),
                         v.path("model").asString(null), v.path("trim").asString(null), v.path("year").asString(null),
                         longOrNull(v.path("price")), v.path("fuel").asString(null),
@@ -293,8 +299,8 @@ public class AdminModelServiceImpl implements AdminModelService {
             }
             return candidates;
         } catch (Exception e) {
-            log.warn("admin candidates: cannot read {}: {}", dir, e.getMessage());
-            return List.of();
+            log.warn("admin candidates: runtime catalog unavailable: {}", e.getMessage());
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "실행 중인 추천 후보를 확인하지 못했습니다. 추천 서버와 카탈로그 동기화 상태를 확인해 주세요.");
         }
     }
 

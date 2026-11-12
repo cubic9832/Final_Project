@@ -70,6 +70,16 @@ class AdminVehicleTests {
         payload.put("monthlyTax",-1);
         mvc.perform(post("/api/v1/admin/vehicles").header("Authorization",admin()).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(payload))).andExpect(status().isBadRequest());
     }
+    @Test void restoringDeletedIdentityRejectsActiveDuplicate() throws Exception {
+        var payload=request();
+        String auth=admin();
+        String created=mvc.perform(post("/api/v1/admin/vehicles").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(payload))).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String id=mapper.readTree(created).path("data").path("id").asText();
+        mvc.perform(patch("/api/v1/admin/vehicles/"+id+"/deletion").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content("{\"version\":1,\"deleted\":true}")).andExpect(status().isOk());
+        mvc.perform(post("/api/v1/admin/vehicles").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(payload))).andExpect(status().isCreated());
+        mvc.perform(patch("/api/v1/admin/vehicles/"+id+"/deletion").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content("{\"version\":2,\"deleted\":false}")).andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("SELECT status FROM managed_vehicles WHERE id=?",String.class,id)).isEqualTo("DELETED");
+    }
     @Test void onlyAdministratorsCanManageVehicles() throws Exception {
         mvc.perform(get("/api/v1/admin/vehicles")).andExpect(status().isUnauthorized());
         member(999998L,"vehicle-api-user-test@example.com","차량 API 일반 회원");

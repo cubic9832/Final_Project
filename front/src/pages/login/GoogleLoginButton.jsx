@@ -65,7 +65,7 @@ export default function GoogleLoginButton({ onCredential }) {
         <button className="login-google-disabled" type="button" disabled>
           <span aria-hidden="true">G</span> Google 로 계속하기
         </button>
-        <p className="login-google-hint">구글 로그인 설정이 필요합니다. (VITE_GOOGLE_CLIENT_ID)</p>
+        <p className="login-google-hint">Google 로그인을 사용할 수 없습니다. 관리자에게 문의해 주세요.</p>
         {WRONG_HOST && <p className="login-google-hint">{HOST_HINT}</p>}
       </div>
     );

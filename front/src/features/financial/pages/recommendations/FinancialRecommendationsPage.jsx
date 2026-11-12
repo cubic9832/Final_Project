@@ -20,8 +20,8 @@ export default function FinancialRecommendationsPage() {
   const initialized = useAuthStore(store => store.initialized);
   const diagnosis = state?.diagnosis;
   const result = state?.result;
-  const { financialComparison, toggleFinancialComparison, storageError } = useVehicle();
-  const comparisonIds = financialComparison?.ids ?? [];
+  const { financialComparison, comparisonMode, toggleFinancialComparison, storageError } = useVehicle();
+  const comparisonIds = comparisonMode === 'recommendation' ? financialComparison?.ids ?? [] : [];
   if (!diagnosis?.values || !isFinancialRecommendationResult(result)) return <Navigate to="/financial" replace />;
   const candidates = result.recommendations.slice(0, 9);
   const views = buildRecommendationView({ ...result, recommendations: candidates });
@@ -36,7 +36,7 @@ export default function FinancialRecommendationsPage() {
   }
 
   return <div className="financial-recommendations-page">
-    {loginRequired && <LoginRequiredModal onClose={() => setLoginRequired(false)} onLogin={() => navigate('/login')} />}
+    {loginRequired && <LoginRequiredModal onClose={() => setLoginRequired(false)} onLogin={() => navigate('/login', { state: { from: '/financial/recommendations', resumeFinancial: state } })} />}
     <header className="recommendations-heading"><div><h1>내 예산에 맞는 추천 차량</h1><p>예산과 취향에 맞는 차량을 비교해 보세요.</p></div></header>
     {storageError && <p role="status">{storageError}</p>}
     <section id="recommended-vehicles" aria-label="추천 차량 목록">

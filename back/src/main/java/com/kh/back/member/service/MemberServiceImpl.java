@@ -147,6 +147,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional(noRollbackFor = ApiException.class)
     public void withdraw(Long userId, String password, String confirmText) {
+        memberMapper.lockRecommendationInputsOwner(userId);
         MemberDto member = findMember(userId);
         // 11-05: 일반 관리자도 직접 탈퇴하지 않는다 — 총관리자가 권한을 빼면(회원 관리) 일반 회원이 되고, 그때 탈퇴한다
         // (직원 계정은 본인이 아니라 운영 쪽이 회수 · 운영 로그의 작업자가 갑자기 "탈퇴한 회원" 으로 바뀌지 않게)
@@ -192,6 +193,7 @@ public class MemberServiceImpl implements MemberService {
         // 개인 데이터는 지우고, 이메일 · 닉네임은 알아볼 수 없는 값으로 → 같은 이메일로 다시 가입하면 새 회원 (예전 기록과 연결 안 됨)
 
         memberMapper.detachInputSnapshots(userId);
+        memberMapper.deleteRecommendationInputs(userId);
         memberMapper.deleteProfile(userId);
         memberMapper.deleteSocialAccounts(userId);
         memberMapper.deleteAgreements(userId);

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { buildRecommendationView } from './buildRecommendationView.js';
 import RecommendationCard from './RecommendationCard.jsx';
+import { COMPARISON_LIMIT } from '../../../vehicle/recommendationComparison.js';
 
 export default function RecommendationGrid({ candidates, preferences, views, comparisonIds = [], onToggleComparison, rankOffset = 0 }) {
   const presented = views ?? buildRecommendationView({ recommendations: candidates });
@@ -26,6 +27,6 @@ export default function RecommendationGrid({ candidates, preferences, views, com
   }, [candidates, preferences]);
 
   return <ol className="financial-recommendations-grid" start={rankOffset + 1} ref={gridRef}>
-    {candidates.map((candidate, index) => <RecommendationCard key={candidate.vehicle.id} candidate={candidate} rank={rankOffset + index + 1} view={presented.find(view => view.id === candidate.vehicle.id)} comparisonSelected={comparisonIds.includes(candidate.vehicle.id)} comparisonFull={comparisonIds.length >= 3} onToggleComparison={onToggleComparison} />)}
+    {candidates.map((candidate, index) => <RecommendationCard key={candidate.vehicle.id} candidate={candidate} rank={rankOffset + index + 1} view={presented.find(view => view.id === candidate.vehicle.id)} comparisonSelected={comparisonIds.includes(candidate.vehicle.id)} comparisonFull={comparisonIds.length >= COMPARISON_LIMIT} onToggleComparison={onToggleComparison} />)}
   </ol>;
 }
