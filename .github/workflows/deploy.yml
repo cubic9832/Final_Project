@@ -1,0 +1,100 @@
+name: Deploy production
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: '실제 운영 배포 (체크 해제: 빌드와 EC2 사전 점검만 실행)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: creditcompass-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.repository == 'cubic9832/final-project' &&
+      ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == 'cubic9832/final-project' &&
+        vars.DEPLOY_ENABLED == 'true'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      GH_TOKEN: ${{ github.token }}
+      AWS_REGION: ap-northeast-2
+      VITE_RECAPTCHA_SITE_KEY: ${{ vars.VITE_RECAPTCHA_SITE_KEY }}
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+      PUBLISH: ${{ github.event_name == 'workflow_run' || inputs.publish }}
+    steps:
+      - name: Checkout tested main commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          persist-credentials: false
+
+      - name: Verify main CI and public build variables
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VITE_RECAPTCHA_SITE_KEY"
+          test -n "$VITE_GOOGLE_CLIENT_ID"
+          python3 deployment/run_deployment.py --commit "$RELEASE_SHA" --verify-ci-only
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: Build frontend
+        working-directory: front
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build backend JAR
+        working-directory: back
+        run: bash gradlew --no-daemon bootJar
+
+      - name: Package Python runtime and model bundle
+        run: python3 deployment/package_release.py .deployment-output "$RELEASE_SHA"
+
+      - name: Authenticate with AWS through OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-session-name: github-deploy-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: '621422876512'
+          mask-aws-account-id: true
+
+      - name: Check EC2 or publish production
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=()
+          if [ "$PUBLISH" = true ]; then options+=(--publish); fi
+          python3 deployment/run_deployment.py --commit "$RELEASE_SHA" "${options[@]}"
