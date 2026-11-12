@@ -50,6 +50,24 @@ public class AdminMemberServiceImpl implements AdminMemberService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<AdminMemberResponse> getMembers(String keyword, String role, int page, int size, String sort, String direction) {
+        if (sort == null || sort.isBlank()) return getMembers(keyword, role, page, size);
+        if (!List.of("number", "member", "joinedAt", "loginMethod", "role", "status").contains(sort))
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_SORT", "정렬 항목을 확인해 주세요.");
+        if (!"status".equals(sort)) return adminMemberMapper.findMembersSorted(blankToNull(keyword), blankToNull(role), (page-1)*size, size, sort, direction).stream()
+            .map(row -> AdminMemberResponse.from(row, loginAttemptLimiter.lockedMinutesLeft(row.getEmail()))).toList();
+        // 로그인 잠금은 서버 메모리 상태이므로 이 정렬만 전체 상태를 평가한 뒤 페이지를 나눈다.
+        java.util.Comparator<AdminMemberResponse> comparator = java.util.Comparator.comparing((AdminMemberResponse m) ->
+            m.suspendedUntil() != null ? m.suspendedUntil().getYear() == 9999 ? "영구 정지" : "기간 정지"
+            : m.lockedMinutes() > 0 ? "로그인 잠금 " + m.lockedMinutes() + "분" : "정상", java.text.Collator.getInstance(java.util.Locale.KOREAN));
+        if ("DESC".equals(direction)) comparator = comparator.reversed();
+        return getMembers(keyword, role, 1, Integer.MAX_VALUE).stream()
+            .sorted(comparator.thenComparing(AdminMemberResponse::id))
+            .skip((long)(page - 1) * size).limit(size).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public int countMembers(String keyword, String role) {
         return adminMemberMapper.countMembers(blankToNull(keyword), blankToNull(role));
     }

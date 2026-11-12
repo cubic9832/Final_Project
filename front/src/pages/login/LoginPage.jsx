@@ -1,3 +1,4 @@
+import { scopeFinancialState } from '../../features/financial/financialSession.js';
 import { useCallback, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { googleLogin, login } from '../../features/auth/authApi';
@@ -76,6 +77,7 @@ export default function LoginPage() {
   const nextPath = useCallback(() => {
     const member = useAuthStore.getState().member;
     if (isAdminRole(member?.role)) return Promise.resolve('/console');
+    if (location.state?.resumeFinancial) return Promise.resolve('/financial/recommendations');
     return afterLoginPath(member?.id, location.state?.from ?? '/');
   }, [location.state]);
 
@@ -90,12 +92,12 @@ export default function LoginPage() {
           navigate('/signup/google', { state: signup });
           return;
         }
-        navigate(await nextPath(), { replace: true });
+        navigate(await nextPath(), { replace: true, state: location.state?.resumeFinancial ? scopeFinancialState(location.state.resumeFinancial) : undefined });
       } catch (error) {
         setLoginError(error.response?.data?.error?.message ?? '구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       }
     },
-    [navigate, nextPath],
+    [navigate, nextPath, location.state],
   );
 
   // 입력할 때마다 값을 저장하고, 그 칸의 오류와 실패 문구는 지운다
@@ -131,7 +133,7 @@ export default function LoginPage() {
       await login({ email, password: form.password, recaptchaToken: captchaToken || undefined });
       writeSavedEmail(rememberEmail ? email : '');
       // 로그인이 필요한 화면에서 넘어왔으면 그 화면으로, 아니면 메인으로 이동한다 (보완 11: 취향 테스트 안 한 회원은 테스트로)
-      navigate(await nextPath(), { replace: true });
+      navigate(await nextPath(), { replace: true, state: location.state?.resumeFinancial ? scopeFinancialState(location.state.resumeFinancial) : undefined });
     } catch (error) {
       // 실패해도 이메일은 그대로 두고 비밀번호만 비운다
       const { code, message } = error.response?.data?.error ?? {};

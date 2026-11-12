@@ -1,7 +1,8 @@
+import { dreamCarStorageKey } from '../../features/dream-car/dreamCarStorage.js';
 // 마이페이지 (/mypage) — 6단계: 요약 + 바로가기. 자세한 내용은 각 기능 화면에서 본다
 // 카드마다 따로 불러오고(불러오는 중 · 실패 · 비어 있음), 한 카드가 실패해도 나머지는 보인다
 // 개인정보 수정 · 비밀번호 · 탈퇴 등 계정 관리는 /mypage/profile (ProfilePage) 로 옮겼다
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getSessions } from '../../features/auth/authApi';
 import Modal from '../../shared/ui/Modal.jsx';
@@ -297,27 +298,30 @@ function DiagnosisCard({ state }) {
 // 계산은 플래너가 내보내는 함수를 그대로 써서 플래너 화면과 같은 숫자가 나온다. 회원별 DB 저장이 생기면 그쪽으로 바꾼다
 function readPlan(catalog) {
   try {
-    const plans = JSON.parse(localStorage.getItem(progressStorageKey) || '[]');
-    const active = Array.isArray(plans) ? plans.filter(isProgressPlan).at(-1) : null;
+    const plans = JSON.parse(localStorage.getItem(dreamCarStorageKey(progressStorageKey)) || '[]');
+    if (!Array.isArray(plans) || !plans.every(isProgressPlan)) throw new Error('Invalid savings records');
+    const active = plans.at(-1);
     if (active) {
       return { kind: 'progress', name: active.name, trim: active.trim, target: active.target,
         ...calculateSavingsProgress(active, currentMonth()) };
     }
-    const saved = JSON.parse(localStorage.getItem(planStorageKey));
+    const saved = JSON.parse(localStorage.getItem(dreamCarStorageKey(planStorageKey)));
     const vehicle = catalog.find((car) => car.id === saved?.vehicleId);
     const result = vehicle && saved?.inputs && calculatePurchasePlan(vehicle.price / 10000, saved.inputs);
     if (result) {
       return { kind: 'plan', name: `${vehicle.brand} ${vehicle.model}`, trim: vehicle.trim, target: result.target,
         monthlySaving: saved.inputs.monthlySaving, targetMonths: saved.inputs.targetMonths };
     }
-  } catch { /* 저장소를 못 쓰거나 형식이 다르면 계획 없음으로 */ }
+    if (saved) throw new Error('Invalid purchase plan');
+  } catch { return { error: '저장된 구매계획을 읽지 못했습니다. 브라우저 저장 공간과 데이터 형식을 확인해 주세요.' }; }
   return null;
 }
 
 function PlanCard() {
   // 구매 계획의 차량 정보는 차량 목록에서 찾는다 (조원 VehicleContext, 읽기만)
   const { planningVehicles = [] } = useVehicle();
-  const plan = useMemo(() => readPlan(planningVehicles), [planningVehicles]);
+  const [planSnapshot, setPlanSnapshot] = useState(null);
+  const plan = planSnapshot?.catalog === planningVehicles ? planSnapshot.plan : readPlan(planningVehicles);
 
   return (
     <section className="my-plan my-card-fill" aria-labelledby="my-plan-title">
@@ -327,13 +331,14 @@ function PlanCard() {
           <p>드림카 플래너에서 이 브라우저에 저장한 계획</p>
         </div>
       </div>
+      {plan?.error && <p role="alert">{plan.error} <button type="button" onClick={() => setPlanSnapshot({ catalog: planningVehicles, plan: readPlan(planningVehicles) })}>다시 확인</button></p>}
       {!plan && (
         <>
           <p className="my-empty">아직 저장한 구매계획이 없어요. 드림카 플래너에서 차량과 저축 계획을 세워 보세요.</p>
           <Link className="my-plan-button my-inline-button my-cta" to="/dream-car">드림카 플래너 가기</Link>
         </>
       )}
-      {plan && (
+      {plan && !plan.error && (
         <>
           {/* 차량 아래 한 줄에 트림 · 목표 달성 월 (줄을 따로 두면 카드 높이가 늘어나서) */}
           <div className="my-plan-car">

@@ -58,6 +58,7 @@ export default function AdminRecommendationsPanel() {
         <div className="admin-search-field form-focus-group"><input type="search" maxLength={100} aria-label="브랜드, 차량명, 연료 또는 확인 상태 검색" placeholder="브랜드·차량명·연료·확인 상태 검색" value={keyword} onChange={event => setKeyword(event.target.value)} /><button type="submit" aria-label="추천 후보 검색"><Search size={theme.iconSize.md} aria-hidden="true" /></button></div>
       </form>
     </AdminListHeader>
+    <p>실행 중인 추천 서버 후보의 통합 목록입니다. 학습 당시 스냅샷과 구분합니다.</p>
     {state.status === 'loading' && <p className="admin-empty" role="status">추천 후보 차량을 불러오는 중…</p>}
     {state.status === 'error' && <p className="admin-empty" role="alert">{state.error} <button type="button" className="admin-text-button" onClick={() => { setState({ status: 'loading', data: [], error: '' }); setReload(value => value + 1); }}>다시 시도</button></p>}
     {state.status === 'done' && <>

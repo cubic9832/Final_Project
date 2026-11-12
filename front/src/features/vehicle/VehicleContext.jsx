@@ -30,7 +30,7 @@ export function VehicleProvider({ children }) {
   const [selection, setSelection] = useState({ presetId: null, conditions: defaultConditions, comparison: [] });
   if (selection.presetId !== presetId || (presetId && catalog.status === 'ready' && !selection.presetResolved)) {
     const preset = findProfilePreset(presetId);
-    setSelection({ ...selection, ...(preset ? { ...applyProfilePreset(preset), comparison: selectPresetVehicles(preset.vehicleIds, vehicles) } : {}), presetId, presetResolved: catalog.status === 'ready' });
+    setSelection({ ...selection, ...(preset ? { ...applyProfilePreset(preset), comparison: selectPresetVehicles(preset.vehicleIds, vehicles), fromPreset: true } : {}), presetId, presetResolved: catalog.status === 'ready' });
   }
   const { conditions } = selection;
   function setConditions(next) {
@@ -61,6 +61,7 @@ export function VehicleProvider({ children }) {
     } catch { setStorageError('브라우저 저장 공간을 사용할 수 없어 이번 방문 중에만 저장됩니다.'); }
   }
   function toggleFinancialComparison(id, result, diagnosis) {
+    if (result) setSelection(current => ({ ...current, fromPreset: false }));
     if (!financialComparison?.ids.includes(id) && !comparison.includes(String(id)) && comparison.length >= 3) return;
     saveFinancialComparison(toggleRecommendationComparison(financialComparison, id, result, diagnosis));
   }
@@ -86,5 +87,5 @@ export function VehicleProvider({ children }) {
       setSelection(current => ({ ...current, comparison: [...comparison, id].filter(item => !recommendedComparisonIds.includes(item) || presetId) }));
     }
   }
-  return <VehicleContext.Provider value={{ vehicles, planningVehicles: catalog.planningVehicles, catalogStatus: catalog.status, catalogError: catalog.error, retryCatalog: () => { setCatalog({ status: 'loading', vehicles: [], planningVehicles: [], error: '' }); setAttempt((value) => value + 1); }, conditions, setConditions, comparison, toggleComparison, financialComparison, toggleFinancialComparison, favoriteComparison, favorites, toggleFavorite, clearFavorites, storageError }}>{children}</VehicleContext.Provider>;
+  return <VehicleContext.Provider value={{ vehicles, planningVehicles: catalog.planningVehicles, catalogStatus: catalog.status, catalogError: catalog.error, retryCatalog: () => { setCatalog({ status: 'loading', vehicles: [], planningVehicles: [], error: '' }); setAttempt((value) => value + 1); }, conditions, setConditions, usingPresetConditions: Boolean(selection.fromPreset), comparison, toggleComparison, financialComparison, toggleFinancialComparison, favoriteComparison, favorites, toggleFavorite, clearFavorites, storageError }}>{children}</VehicleContext.Provider>;
 }

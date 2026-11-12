@@ -14,10 +14,18 @@
         VALUES (#{modelName}, #{versionLabel}, 'ML', '재무 진단 추천 서버 (FastAPI)')
     </insert>
 
+    <select id="lockMember" resultType="long">
+        SELECT id FROM users WHERE id = #{userId} FOR UPDATE
+    </select>
+    <select id="findByRequestId" resultType="long">
+        SELECT a.analysis_id FROM input_snapshots s JOIN analysis_runs a ON a.snapshot_id = s.snapshot_id
+        WHERE s.user_id = #{userId} AND s.diagnosis_request_id = #{requestId}
+    </select>
+
     <!-- 입력 버전: 누가 · 언제 제출했는지 -->
     <insert id="insertSnapshot" useGeneratedKeys="true" keyProperty="snapshotId" keyColumn="snapshot_id">
-        INSERT INTO input_snapshots (user_id, status_code, submitted_at)
-        VALUES (#{userId}, 'SUBMITTED', NOW())
+        INSERT INTO input_snapshots (user_id, status_code, submitted_at, diagnosis_request_id)
+        VALUES (#{userId}, 'SUBMITTED', NOW(), #{requestId})
     </insert>
 
     <!-- 소득 · 지출 · 예금 · 기타 소득(11-04) (나머지 칸은 지금 화면에서 받지 않아 비워 둔다) -->

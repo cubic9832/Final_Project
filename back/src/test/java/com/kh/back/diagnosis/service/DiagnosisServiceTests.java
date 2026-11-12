@@ -43,6 +43,20 @@ class DiagnosisServiceTests {
     }
 
     @Test
+    void 같은_저장_요청을_재시도하면_새_진단을_만들지_않는다() {
+        var input=request();
+        input.setRequestId("3a29df94-8590-4aee-9099-5f629fd75001");
+        var existing=new DiagnosisSummary(); existing.setAnalysisId(51L); existing.setSnapshotId(11L);
+        when(diagnosisMapper.findByRequestId(9L,input.getRequestId())).thenReturn(51L);
+        when(diagnosisMapper.findDetail(9L,51L)).thenReturn(existing);
+        when(diagnosisMapper.findLoans(11L)).thenReturn(List.of());
+        assertThat(diagnosisService.save(9L,input).getAnalysisId()).isEqualTo(51L);
+        verify(diagnosisMapper).lockMember(9L);
+        verify(diagnosisMapper,never()).insertSnapshot(any());
+        verify(diagnosisMapper,never()).insertAnalysisRun(any());
+    }
+
+    @Test
     void 입력_버전_소득_결과_순서로_저장한다() {
         when(diagnosisMapper.findModelVersionId(DiagnosisServiceImpl.MODEL_NAME, "candidate-v2")).thenReturn(4L);
         doAnswer(inv -> { ((DiagnosisRow) inv.getArgument(0)).setAnalysisId(77L); return null; })

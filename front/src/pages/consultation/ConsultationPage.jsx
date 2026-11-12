@@ -111,7 +111,7 @@ export default function ConsultationPage() {
                   : <button type="button" className="consult-outline" onClick={() => setConfirmingClose(true)} disabled={busy}>상담 종료</button>}
               </div>
             </div>
-            <ChatThread
+            <ChatThread hasMore={chat.hasMore} loadingOlder={chat.loadingOlder} onLoadOlder={chat.loadOlder}
               messages={chat.messages}
               viewer="member"
               connected={chat.connected}

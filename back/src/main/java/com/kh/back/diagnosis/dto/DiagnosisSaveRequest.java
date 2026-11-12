@@ -30,6 +30,9 @@ public class DiagnosisSaveRequest {
     @Pattern(regexp = "^[A-Za-z0-9._-]{1,50}$", message = "모델 이름 형식이 올바르지 않습니다.")
     private String modelBundle;
 
+    @Pattern(regexp = "^[0-9a-fA-F-]{36}$", message = "저장 요청 번호가 올바르지 않습니다.")
+    private String requestId;
+
     @NotNull(message = "월 실수령액이 필요합니다.")
     @PositiveOrZero
     private Long monthlyIncome;        // 월 실수령 소득 (기타 정기소득 포함)

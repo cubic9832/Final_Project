@@ -21,13 +21,13 @@ export const submitFeedback = async (feedback) => {
 
 // ── 회원 · 관리자 공통 ──
 // 지난 메시지 (오래된 → 최근). beforeId 를 주면 그보다 오래된 30개
-export const getMessages = async (roomId, beforeId) =>
-  (await client.get(`/chat/rooms/${roomId}/messages`, { params: { beforeId } })).data.data;
+export const getMessages = async (roomId, beforeId, signal) =>
+  (await client.get(`/chat/rooms/${roomId}/messages`, { params: { beforeId }, signal })).data.data;
 
 // ── 관리자 (/api/v1/admin/** — 관리자 · 총관리자만) ──
 // 상담 목록. status: WAITING · ACTIVE · CLOSED (비우면 전체)
-export const getAdminRooms = async (status, signal) =>
-  (await client.get('/admin/chat/rooms', { params: { status: status || undefined }, signal })).data.data;
+export const getAdminRooms = async (status, signal, offset = 0) =>
+  (await client.get('/admin/chat/rooms', { params: { status: status || undefined, offset }, signal })).data.data;
 
 // 넘겨받을 수 있는 관리자 목록 → [{ id, nickName, role }]
 export const getChatAdmins = async () => (await client.get('/admin/chat/admins')).data.data;
@@ -55,16 +55,16 @@ export const warnRoom = async (roomId, reason) => {
 };
 
 // 만족도 · 신고 (총관리자만): 상담원별 평균 → [{ adminId, nickName, count, averageRating, reportCount }]
-export const getFeedbackSummary = async () => (await client.get('/admin/chat/feedback/summary')).data.data;
+export const getFeedbackSummary = async (signal) => (await client.get('/admin/chat/feedback/summary', { signal })).data.data;
 
 // 전체 평가 목록 (FEEDBACK_PAGE_SIZE 개씩, offset 만큼 건너뛰고). sort: low 평점 낮은순 · high 높은순 · latest 최신순, reportedOnly: 신고만
 // adminId: 그 상담원이 받은 평가만 (없으면 전체 — 11-05)
 export const FEEDBACK_PAGE_SIZE = 50; // 서버 ChatFeedbackServiceImpl.PAGE_SIZE 와 같게
-export const getAllFeedback = async (sort, reportedOnly, offset = 0, adminId = null) =>
-  (await client.get('/admin/chat/feedback', { params: { sort, reportedOnly, offset, adminId: adminId ?? undefined } })).data.data;
+export const getAllFeedback = async (sort, reportedOnly, offset = 0, adminId = null, signal) =>
+  (await client.get('/admin/chat/feedback', { params: { sort, reportedOnly, offset, adminId: adminId ?? undefined }, signal })).data.data;
 
 // 이 회원이 남긴 만족도 · 신고 → [{ rating, comment, reported, reportReason, adminNickName, createdAt }]
-export const getRoomFeedback = async (roomId) => (await client.get(`/admin/chat/rooms/${roomId}/feedback`)).data.data;
+export const getRoomFeedback = async (roomId, signal) => (await client.get(`/admin/chat/rooms/${roomId}/feedback`, { signal })).data.data;
 
 // 자주 쓰는 문구 (내 것만) → [{ id, content }]. 등록 · 삭제는 바뀐 목록을 돌려준다
 export const getQuickReplies = async () => (await client.get('/admin/chat/quick-replies')).data.data;
@@ -94,3 +94,5 @@ export const chatErrorMessage = (error, fallback) => error?.response?.data?.erro
 // 전체 대기 건수: 상담 목록의 최대 100건 제한과 별도로 조회한다.
 export const getChatQueueSummary = async signal =>
   (await client.get('/admin/chat/queue-summary', { signal })).data.data;
+
+export const getAdminRoom = async (id, signal) => (await client.get(`/admin/chat/rooms/${id}`, { signal })).data.data;

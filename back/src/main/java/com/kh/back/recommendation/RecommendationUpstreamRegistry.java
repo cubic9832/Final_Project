@@ -125,6 +125,14 @@ public class RecommendationUpstreamRegistry {
         return upstreams().stream().filter(u -> u.up() && modelBundle.equals(u.modelBundle())).findFirst();
     }
 
+    public JsonNode candidates(Upstream upstream) {
+        JsonNode response = probeClient.get().uri(upstream.baseUrl() + "/api/v2/recommendation-candidates").retrieve().body(JsonNode.class);
+        if (response == null || !response.path("success").asBoolean() || !response.path("data").isArray()) {
+            throw new IllegalStateException("Invalid runtime catalog");
+        }
+        return response.path("data");
+    }
+
     private Upstream probe(String baseUrl) {
         try {
             JsonNode body = probeClient.get().uri(baseUrl + "/api/v2/recommendation-options").retrieve().body(JsonNode.class);

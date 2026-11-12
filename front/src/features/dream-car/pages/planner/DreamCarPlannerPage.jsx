@@ -1,3 +1,4 @@
+import { dreamCarStorageKey } from '../../dreamCarStorage.js';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Car, Wallet, ClipboardCheck, SlidersHorizontal } from 'lucide-react';
@@ -21,12 +22,8 @@ const fuels = { GASOLINE: '가솔린', HYBRID: '하이브리드', ELECTRIC: '전
 const storageKey = 'dream-car-plan-v3';
 function readPlan(catalog) {
   try {
-    const current = localStorage.getItem(storageKey);
-    const saved = JSON.parse(current || localStorage.getItem('dream-car-plan-v2'));
-    if (!current && saved?.inputs) {
-      const vehicle = catalog.find(car => car.id === saved.vehicleId);
-      if (vehicle) Object.assign(saved.inputs, getVehicleCostDefaults(vehicle, saved.inputs.annualDistance).inputs);
-    }
+    const current = localStorage.getItem(dreamCarStorageKey(storageKey));
+    const saved = JSON.parse(current || null);
     const savedVehicle = catalog.find(car => car.id === saved?.vehicleId);
     if (savedVehicle && saved.inputs && (!Number.isFinite(saved.inputs.efficiency) || saved.inputs.efficiency <= 0)) saved.inputs.efficiency = getVehicleCostDefaults(savedVehicle).inputs.efficiency;
     if (saved && catalog.some(car => car.id === saved.vehicleId) && Object.keys(defaultPlan).every(key => Number.isFinite(saved.inputs?.[key]) && saved.inputs[key] >= 0)) return saved;
@@ -53,7 +50,7 @@ function DreamCarPlannerPageContent({ catalog }) {
   const { allowLeave } = useUnsavedChanges(JSON.stringify(plan) !== JSON.stringify(savedPlan));
   useEffect(() => {
     function sync(event) {
-      if (!event.key || event.key === storageKey) {
+      if (!event.key || event.key === dreamCarStorageKey(storageKey)) {
         const next = readPlan(catalog);
         setPlan(next); setSavedPlan(next);
       }
@@ -93,7 +90,7 @@ function DreamCarPlannerPageContent({ catalog }) {
   const StepIcon = icons[step];
   const stepValid = step === 0 || (step === 1
     ? ['savings', 'reserveMonths', 'monthlySaving'].every(key => Number.isFinite(inputs[key]) && inputs[key] >= 0 && inputs[key] <= 100000000)
-      && Number.isInteger(inputs.targetMonths) && inputs.targetMonths >= 1 && inputs.targetMonths <= 100000000
+      && Number.isInteger(inputs.targetMonths) && inputs.targetMonths >= 1 && inputs.targetMonths <= 1200
     : valid);
   return <div className="dream-page dream-planner-flow">
     <DreamCarPageHeader title="드림카, 꿈에서 내 차로." description="갖고 싶은 차를 고르면, 준비해야 할 돈과 시간이 보입니다." />

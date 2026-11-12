@@ -1,3 +1,4 @@
+import { useVehicle } from '../../../vehicle/useVehicle.js';
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 import VehicleArtwork from '../../../vehicle/components/VehicleArtwork.jsx';
@@ -5,8 +6,10 @@ import theme from '../../../../styles/theme.js';
 import { candidateImage, candidateMoney } from './candidatePresentation.js';
 
 export default function CandidateComparisonTable({ views, canToggleVehicles }) {
+  const { toggleComparison } = useVehicle();
   const [excludedIds, setExcludedIds] = useState([]);
   function toggleVehicle(id) {
+    toggleComparison(String(id));
     setExcludedIds(ids => ids.includes(id) ? ids.filter(value => value !== id) : [...ids, id]);
   }
   const includedViews = views.filter(view => !excludedIds.includes(view.id));

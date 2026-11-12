@@ -1,7 +1,6 @@
 import VehicleEnergyCostNote from '../../components/VehicleEnergyCostNote.jsx';
 import { groupVehicleModels } from './groupVehicleModels.js';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import VehicleCard from '../../components/VehicleCard';
 import { useVehicle } from '../../useVehicle';
@@ -18,9 +17,14 @@ function vehicleCategory({ type }) {
 
 export function VehicleResultsPage() {
   const { vehicles, conditions } = useVehicle();
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
-  const [keyword, setKeyword] = useState('');
-  const [category, setCategory] = useState('전체');
+  const [params, setParams] = useSearchParams();
+  function filter(key, value) { setParams(current => { const next = new URLSearchParams(current); if (value) next.set(key, value); else next.delete(key); return next; }, { replace: true }); }
+  const onlyFavorites = params.get('favorites') === '1';
+  const keyword = params.get('q') ?? '';
+  const category = params.get('category') ?? '전체';
+  const setOnlyFavorites = value => filter('favorites', value ? '1' : '');
+  const setKeyword = value => filter('q', value);
+  const setCategory = value => filter('category', value === '전체' ? '' : value);
   const { favorites } = useVehicle();
   const search = useVehicleSearch(keyword);
   const categories = ['전체', ...new Set(vehicles.map(vehicleCategory))];

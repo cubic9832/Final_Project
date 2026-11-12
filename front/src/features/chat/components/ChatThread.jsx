@@ -1,3 +1,4 @@
+import useAuthStore from '../../../stores/useAuthStore.js';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import QuickReplyPicker from './QuickReplyPicker';
 import './ChatThread.css';
@@ -30,16 +31,19 @@ export function ConnectionStatus({ connected }) {
   );
 }
 
-export default function ChatThread({ messages, viewer, memberName, connected, error, canSend, disabledText, onSend, quickReplies = false, showConnection = true }) {
+export default function ChatThread({ messages, viewer, memberName, connected, error, canSend, disabledText, onSend, quickReplies = false, showConnection = true, hasMore, loadingOlder, onLoadOlder }) {
   const [text, setText] = useState('');
   const boardRef = useRef(null);
   const inputRef = useRef(null);
+  const viewerId = useAuthStore(state => state.member?.id);
+  const isMine = message => message.senderType === mineType && String(message.senderId) === String(viewerId);
   const mineType = viewer === 'member' ? 'USER' : 'ADMIN';
 
+  const lastMessageId = messages.at(-1)?.id;
   // 새 메시지가 오면 맨 아래로 스크롤
   useEffect(() => {
     boardRef.current?.scrollTo({ top: boardRef.current.scrollHeight });
-  }, [messages]);
+  }, [lastMessageId]);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -47,13 +51,14 @@ export default function ChatThread({ messages, viewer, memberName, connected, er
   }
 
   function senderLabel(message) {
-    if (message.senderType === mineType) return '나';
+    if (isMine(message)) return '나';
     return message.senderType === 'ADMIN' ? '상담원' : memberName;
   }
 
   return (
     <div className="chat-thread">
       {showConnection && <ConnectionStatus connected={connected} />}
+      {(hasMore || error) && onLoadOlder && <button type="button" disabled={loadingOlder} onClick={onLoadOlder}>{loadingOlder ? '불러오는 중…' : '이전 대화 불러오기'}</button>}
       <ul className="chat-board" ref={boardRef} aria-label="상담 대화" aria-live="polite">
         {messages.length === 0 && <li className="chat-empty">아직 대화가 없습니다.</li>}
         {messages.map((m, index) => (
@@ -65,7 +70,7 @@ export default function ChatThread({ messages, viewer, memberName, connected, er
             {m.senderType === 'SYSTEM'
               ? <li className="chat-system">{m.content}</li>
               : (
-                <li className={`chat-bubble${m.senderType === mineType ? ' is-mine' : ''}`}>
+                <li className={`chat-bubble${isMine(m) ? ' is-mine' : ''}`}>
                   <small>{senderLabel(m)} · {timeOf(m.createdAt)}</small>
                   {/* 글자로만 그린다 — 상대가 보낸 <script> 가 실행되지 않게 */}
                   <p>{m.content}</p>

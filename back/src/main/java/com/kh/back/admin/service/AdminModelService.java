@@ -17,6 +17,6 @@ public interface AdminModelService {
     // 학습 결과 폴더 전체 비교 + 추천 서버 상태 · 트래픽 비율 · 실제 사용량
     AdminModelComparison getComparison();
 
-    // 추천 후보 차량 전체 (catalog.json). 폴더를 찾지 못하면 빈 목록
+    // 실행 중인 추천 서버의 공개 후보 통합 목록. 조회 실패는 503
     List<AdminCandidate> getCandidates();
 }

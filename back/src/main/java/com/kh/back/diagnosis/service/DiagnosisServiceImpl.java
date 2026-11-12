@@ -28,7 +28,13 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         if (userId == null) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "AUTH_REQUIRED", "로그인이 필요합니다.");
         }
+        if (request.getRequestId() != null) {
+            diagnosisMapper.lockMember(userId);
+            Long existing = diagnosisMapper.findByRequestId(userId, request.getRequestId());
+            if (existing != null) return getDetail(userId, existing);
+        }
         DiagnosisRow row = new DiagnosisRow();
+        row.setRequestId(request.getRequestId());
         row.setUserId(userId);
         String versionLabel = request.getModelBundle() != null ? request.getModelBundle() : request.getModelVersion();
         row.setModelVersionId(modelVersionId(versionLabel));

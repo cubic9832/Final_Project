@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 // ② 성공하면 부모가 새 데이터(source)를 내려 줄 때까지 잠근다 — 다시 불러오기 전까지 같은 버튼이 다시 눌리지 않게
 //    다시 불러온 데이터는 새 객체라 source 가 바뀌면 effect 없이 자동으로 풀린다
 // 실패하면 잠그지 않고 오류를 그대로 던진다 (호출한 쪽이 사유를 보여 준다)
-export default function useActionLock(source) {
+export default function useActionLock(source, { waitForRefresh = true } = {}) {
   const inFlight = useRef(false);
   const [running, setRunning] = useState(false);
   const [lockedSource, setLockedSource] = useState(null);
@@ -18,7 +18,7 @@ export default function useActionLock(source) {
     setRunning(true);
     try {
       await request();
-      setLockedSource(source);
+      if (waitForRefresh) setLockedSource(source);
       return true;
     } finally {
       inFlight.current = false;

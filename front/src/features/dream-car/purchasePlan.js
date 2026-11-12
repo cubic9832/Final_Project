@@ -2,7 +2,7 @@
 export const defaultPlan = { savings: 1000, monthlySaving: 100, targetMonths: 36, annualDistance: 12000, energyPrice: 1700, efficiency: 12, insurance: 120, annualTax: 50, maintenance: 60, parking: 10, registrationRate: 7, extras: 100, reserveMonths: 6 };
 
 export function calculatePurchasePlan(price, inputs) {
-  if (!Number.isFinite(price) || price <= 0 || Object.values(inputs).some(value => !Number.isFinite(value) || value < 0) || inputs.efficiency <= 0 || inputs.targetMonths <= 0) return null;
+  if (!Number.isFinite(price) || price <= 0 || Object.values(inputs).some(value => !Number.isFinite(value) || value < 0) || inputs.efficiency <= 0 || !Number.isInteger(inputs.targetMonths) || inputs.targetMonths <= 0 || inputs.targetMonths > 1200) return null;
   const energy = inputs.annualDistance / inputs.efficiency * inputs.energyPrice / 10000 / 12;
   const monthlyCosts = { energy, insurance: inputs.insurance / 12, tax: inputs.annualTax / 12, maintenance: inputs.maintenance / 12, parking: inputs.parking };
   const monthlyTotal = Object.values(monthlyCosts).reduce((sum, value) => sum + value, 0);

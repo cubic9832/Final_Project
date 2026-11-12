@@ -60,3 +60,8 @@
   .chat-panel { width: calc(100vw - 32px); height: min(680px, calc(100dvh - 104px)); }
   .chat-header { gap: var(--space-8); }
 }
+
+@media (max-width: 768px) {
+  .chat-widget.is-consultation { position: relative; right: auto; bottom: auto; display: flex; justify-content: flex-end; margin: var(--space-16); }
+  .chat-widget.is-consultation .chat-panel { position: fixed; right: var(--space-16); bottom: 80px; z-index: 111; max-width: calc(100vw - 32px); }
+}

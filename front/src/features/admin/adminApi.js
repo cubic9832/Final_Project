@@ -4,9 +4,9 @@ import client from '../../shared/api/client';
 
 // 회원 목록 한 페이지 (최근 가입 순). role: USER · ADMIN · SUPER_ADMIN · NOT_SUPER_ADMIN (비우면 전체)
 // → { members: [...], meta: { page, size, total, totalPages } }
-export const getAdminMembers = async ({ keyword, role, page, size = 10 }, signal) => {
+export const getAdminMembers = async ({ keyword, role, page, size = 10, sort, direction }, signal) => {
   const res = await client.get('/admin/members', {
-    params: { keyword: keyword || undefined, role: role || undefined, page, size },
+    params: { keyword: keyword || undefined, role: role || undefined, page, size, sort, direction },
     signal,
   });
   return { members: res.data.data, meta: res.data.meta };

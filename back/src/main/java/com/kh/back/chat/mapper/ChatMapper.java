@@ -69,7 +69,7 @@ public interface ChatMapper {
 
     int deleteQuickReply(@Param("id") Long id, @Param("adminId") Long adminId);
 
-    List<ChatRoomDto> findRooms(@Param("status") String status);
+    List<ChatRoomDto> findRooms(@Param("status") String status, @Param("offset") int offset);
 
     void insertMessage(ChatMessageDto message);
 

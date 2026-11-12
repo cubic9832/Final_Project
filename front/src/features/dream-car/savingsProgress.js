@@ -24,7 +24,7 @@ export function shiftMonth(month, offset) {
 export function createProgressPlan(vehicle, inputs, target, start, id) {
   const startMonth = start.slice(0, 7);
   const startDate = start.length === 7 ? `${start}-01` : start;
-  if (!Number.isFinite(target) || target <= 0 || !Number.isFinite(monthIndex(startMonth)) || !Number.isInteger(inputs.targetMonths) || inputs.targetMonths < 1) throw new Error('계획의 목표 금액과 기간을 확인해 주세요.');
+  if (!Number.isFinite(target) || target <= 0 || !Number.isFinite(monthIndex(startMonth)) || !Number.isInteger(inputs.targetMonths) || inputs.targetMonths < 1 || inputs.targetMonths > 1200) throw new Error('계획의 목표 금액과 기간을 확인해 주세요.');
   if (!isSavingDate(startDate)) throw new Error('시작 날짜를 확인해 주세요.');
   return { id, vehicleId: vehicle.id, name: `${vehicle.brand} ${vehicle.model}`, trim: vehicle.trim, target, initialSavings: inputs.savings, monthlySaving: inputs.monthlySaving, targetMonths: inputs.targetMonths, startMonth, startDate, entries: {} };
 }

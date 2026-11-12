@@ -174,16 +174,27 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     // ───────────── 관리자 ─────────────
 
     @Override
-    public List<ChatRoomDto> getRooms(Long viewerId, String status) {
+    public List<ChatRoomDto> getRooms(Long viewerId, String status) { return getRooms(viewerId, status, 0); }
+
+    @Override
+    public List<ChatRoomDto> getRooms(Long viewerId, String status, int offset) {
         if (status != null && !Set.of(ChatRoomDto.WAITING, ChatRoomDto.ACTIVE, ChatRoomDto.CLOSED).contains(status)) {
             status = null; // 모르는 값이면 전체
         }
-        List<ChatRoomDto> rooms = chatMapper.findRooms(status);
+        List<ChatRoomDto> rooms = chatMapper.findRooms(status, Math.max(0, offset));
         // 신고 수는 총관리자만 — 신고당한 상담원이 보지 않게 일반 관리자에게는 0 으로 보낸다
         if (!"SUPER_ADMIN".equals(currentRoleLookup.currentRole(viewerId))) {
             rooms.forEach(room -> room.setReportCount(0));
         }
         return rooms;
+    }
+
+    @Override
+    public ChatRoomDto getRoom(Long viewerId, Long roomId) {
+        if (!canView(viewerId, roomId)) throw new ApiException(HttpStatus.FORBIDDEN, "ACCESS_DENIED", "상담을 조회할 수 없습니다.");
+        ChatRoomDto room = chatMapper.findRoomById(roomId);
+        if (!"SUPER_ADMIN".equals(currentRoleLookup.currentRole(viewerId))) room.setReportCount(0);
+        return room;
     }
 
     @Override

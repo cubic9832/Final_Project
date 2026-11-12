@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import ChatConfirmModal from '../../features/chat/components/ChatConfirmModal';
@@ -6,7 +6,7 @@ import ChatThread, { ConnectionStatus } from '../../features/chat/components/Cha
 import ChoiceWithOther from '../../features/chat/components/ChoiceWithOther';
 import { choiceText, OTHER } from '../../features/chat/choice';
 import {
-  FEEDBACK_PAGE_SIZE, assignRoom, chatErrorMessage, closeRoom, getAdminRooms, getAllFeedback, getChatAdmins, getFeedbackSummary, getRoomFeedback,
+  FEEDBACK_PAGE_SIZE, assignRoom, chatErrorMessage, closeRoom, getAdminRoom, getAdminRooms, getAllFeedback, getChatAdmins, getFeedbackSummary, getRoomFeedback,
   restrictionLabel, restrictRoom, transferRoom, unrestrictRoom, warnRoom,
 } from '../../features/chat/chatApi';
 import { createStompClient } from '../../features/chat/stompClient';
@@ -37,17 +37,26 @@ export default function AdminChatPanel() {
   const [filter, setFilter] = useState('WAITING');
   const [list, setList] = useState({ status: 'loading', rooms: [], error: '' });
   const [selectedId, setSelectedId] = useState(null);
+  const [roomLimit, setRoomLimit] = useState(100);
   const [version, setVersion] = useState(0); // 알림이 오면 +1 → 목록 다시 불러오기
 
   useEffect(() => {
     const controller = new AbortController();
-    getAdminRooms(filter, controller.signal)
+    async function readRooms() {
+      const rooms = [];
+      for (let offset = 0; offset < roomLimit; offset += 100) {
+        const batch = await getAdminRooms(filter, controller.signal, offset);
+        rooms.push(...batch); if (batch.length < 100) break;
+      }
+      return rooms;
+    }
+    readRooms()
       .then((rooms) => setList({ status: 'done', rooms, error: '' }))
       .catch((error) => {
         if (!controller.signal.aborted) setList({ status: 'error', rooms: [], error: chatErrorMessage(error, '상담 목록을 불러오지 못했습니다.') });
       });
     return () => controller.abort();
-  }, [filter, version]);
+  }, [filter, version, roomLimit]);
 
   // 실시간 목록 알림 구독 (관리자만 — 서버 StompAuthInterceptor 가 확인)
   useEffect(() => {
@@ -63,7 +72,10 @@ export default function AdminChatPanel() {
   const [selected, setSelected] = useState(null);
   useEffect(() => {
     if (!selectedId) return;
-    getAdminRooms('').then((rooms) => setSelected(rooms.find((room) => room.id === selectedId) ?? null)).catch(() => {});
+    const controller = new AbortController();
+    setSelected(null);
+    getAdminRoom(selectedId, controller.signal).then(room => { if (!controller.signal.aborted) setSelected(room); }).catch(() => {});
+    return () => controller.abort();
   }, [selectedId, version]);
 
   // 11-05: 내 상담(내가 맡은 진행 중 상담 · 내가 맡았다 끝난 상담)은 맨 위에 모아 둔다 (여러 개 맡으면 찾기 어려워서)
@@ -107,11 +119,11 @@ export default function AdminChatPanel() {
         <div className="admin-chat-filters" role="tablist">
           {FILTERS.map(({ value, label }) => (
             <button key={label} type="button" role="tab" aria-selected={filter === value}
-              className={filter === value ? 'is-active' : undefined} onClick={() => setFilter(value)}>{label}</button>
+              className={filter === value ? 'is-active' : undefined} onClick={() => { setFilter(value); setRoomLimit(100); }}>{label}</button>
           ))}
         </div>
         {list.status === 'loading' && <p className="admin-chat-note">불러오는 중…</p>}
-        {list.status === 'error' && <p className="admin-chat-note is-error">{list.error}</p>}
+        {list.status === 'error' && <p className="admin-chat-note is-error" role="alert">{list.error} <button type="button" onClick={reload}>다시 조회</button></p>}
         {list.status === 'done' && list.rooms.length === 0 && <p className="admin-chat-note">상담이 없습니다.</p>}
         <ul>
           {/* 내 상담이 있을 때만 묶음 이름을 단다 (없으면 예전처럼 목록만) */}
@@ -120,6 +132,7 @@ export default function AdminChatPanel() {
           {mineRooms.length > 0 && otherRooms.length > 0 && <li className="admin-chat-group">다른 상담 {otherRooms.length}</li>}
           {otherRooms.map(renderRoom)}
         </ul>
+        {list.status === 'done' && list.rooms.length >= roomLimit && <button type="button" onClick={() => setRoomLimit(limit => limit + 100)}>이전 상담 더 보기</button>}
       </section>
 
       <section className="admin-card admin-chat-detail" aria-label="상담 대화">
@@ -153,9 +166,10 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
       if (!(await lock.run(action))) return;
       showToast(done);
       onChanged();
+      return true;
     } catch (error) {
       showToast(chatErrorMessage(error, '처리하지 못했습니다. 목록을 새로고침해 주세요.'));
-      onChanged();
+      return false;
     }
   }
 
@@ -221,7 +235,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
 
       {confirm && <ChatConfirmModal {...confirm} onClose={() => setConfirm(null)} />}
 
-      <ChatThread
+      <ChatThread hasMore={chat.hasMore} loadingOlder={chat.loadingOlder} onLoadOlder={chat.loadOlder}
         messages={chat.messages}
         viewer="admin"
         memberName={room.userNickName}
@@ -239,7 +253,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
           room={room}
           busy={busy}
           onCancel={() => setOpenForm('')}
-          onSubmit={(adminId, reason) => run(() => transferRoom(room.id, adminId, reason), '상담을 넘겼습니다.').then(() => setOpenForm(''))}
+          onSubmit={(adminId, reason) => run(() => transferRoom(room.id, adminId, reason), '상담을 넘겼습니다.').then(success => { if (success) setOpenForm(''); })}
         />
       )}
       {openForm === 'warn' && (
@@ -247,7 +261,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
           busy={busy}
           count={room.warningCount}
           onCancel={() => setOpenForm('')}
-          onSubmit={(reason) => run(() => warnRoom(room.id, reason), '경고를 보냈습니다.').then(() => setOpenForm(''))}
+          onSubmit={(reason) => run(() => warnRoom(room.id, reason), '경고를 보냈습니다.').then(success => { if (success) setOpenForm(''); })}
         />
       )}
       {openForm === 'restrict' && (
@@ -260,7 +274,7 @@ function RoomDetail({ room, meId, isSuper, onChanged }) {
             confirmLabel: '제한하기',
             danger: true,
             onConfirm: () => run(() => restrictRoom(room.id, days, reason), days === 0 ? '상담을 영구 제한했습니다.' : `${days}일 동안 상담을 제한했습니다.`)
-              .then(() => setOpenForm('')),
+              .then(success => { if (success) setOpenForm(''); }),
           })}
         />
       )}
@@ -302,28 +316,39 @@ function FeedbackSummary({ version }) {
   const [items, setItems] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [feedbackError, setFeedbackError] = useState('');
+  const [summaryError, setSummaryError] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
+  const requestRef = useRef(null);
 
   useEffect(() => {
-    getFeedbackSummary().then(setRows).catch(() => setRows([]));
-  }, [version]);
+    const controller = new AbortController();
+    getFeedbackSummary(controller.signal).then(data => { if (!controller.signal.aborted) { setRows(data); setSummaryError(''); } }).catch(() => { if (!controller.signal.aborted) setSummaryError('만족도 요약을 불러오지 못했습니다.'); });
+    return () => controller.abort();
+  }, [version, retryKey]);
 
   // 펼쳤을 때만 전체 평가를 읽는다 (정렬 · 신고만 을 바꾸면 처음 50개부터 다시)
   // 받은 개수가 한 번에 읽는 개수와 같으면 뒤에 더 있을 수 있다 → [더 보기]
   useEffect(() => {
     if (!open) return;
-    getAllFeedback(sort, reportedOnly, 0, adminId)
-      .then((list) => { setItems(list); setHasMore(list.length === FEEDBACK_PAGE_SIZE); })
-      .catch(() => { setItems([]); setHasMore(false); });
-  }, [open, sort, reportedOnly, adminId, version]);
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setItems(null); setFeedbackError(''); setLoadingMore(false);
+    getAllFeedback(sort, reportedOnly, 0, adminId, controller.signal)
+      .then(list => { if (!controller.signal.aborted) { setItems(list); setHasMore(list.length === FEEDBACK_PAGE_SIZE); } })
+      .catch(() => { if (!controller.signal.aborted) setFeedbackError('평가 목록을 불러오지 못했습니다.'); });
+    return () => controller.abort();
+  }, [open, sort, reportedOnly, adminId, version, retryKey]);
 
   // 보완 13: [더 보기] — 이미 받은 개수만큼 건너뛰고 다음 50개를 뒤에 붙인다
   // items?.length: React Compiler 가 화면을 그릴 때 이 값을 미리 읽는다 → 아직 안 불러온(null) 때도 오류 없게
   function loadMore() {
     setLoadingMore(true);
-    getAllFeedback(sort, reportedOnly, items?.length ?? 0, adminId)
-      .then((list) => { setItems((prev) => [...prev, ...list]); setHasMore(list.length === FEEDBACK_PAGE_SIZE); })
-      .catch(() => setHasMore(false))
-      .finally(() => setLoadingMore(false));
+    const signal = requestRef.current?.signal;
+    getAllFeedback(sort, reportedOnly, items?.length ?? 0, adminId, signal)
+      .then(list => { if (!signal?.aborted) { setItems(prev => [...prev, ...list]); setHasMore(list.length === FEEDBACK_PAGE_SIZE); } })
+      .catch(() => { if (!signal?.aborted) setFeedbackError('다음 평가를 불러오지 못했습니다. 더 보기를 다시 눌러 주세요.'); })
+      .finally(() => { if (!signal?.aborted) setLoadingMore(false); });
   }
 
   const total = rows?.reduce((sum, row) => sum + row.count, 0) ?? 0;
@@ -334,14 +359,16 @@ function FeedbackSummary({ version }) {
       <button type="button" className="admin-chat-summary-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <span>
           <strong>상담원 만족도 · 신고</strong>
-          <small>평가 {total}건 · 신고 <b className={reports > 0 ? 'is-reported' : undefined}>{reports}건</b> · 총관리자만</small>
+          <small>{summaryError ? '요약 조회 실패' : rows === null ? '요약 조회 중' : <>평가 {total}건 · 신고 <b className={reports > 0 ? 'is-reported' : undefined}>{reports}건</b></>} · 총관리자만</small>
         </span>
         <ChevronDown size={18} aria-hidden="true" className={open ? 'is-open' : undefined} />
       </button>
 
+      {summaryError && <p role="alert">{summaryError} <button type="button" onClick={() => setRetryKey(key => key + 1)}>요약 다시 조회</button></p>}
+      {feedbackError && <p role="alert">{feedbackError} <button type="button" onClick={() => setRetryKey(key => key + 1)}>다시 조회</button></p>}
       {open && (
         <div className="admin-chat-summary-body">
-          {total === 0 ? <p className="admin-chat-note">아직 받은 평가가 없습니다.</p> : (
+          {summaryError ? <p className="admin-chat-note">요약 조회에 실패했습니다. 다시 조회해 주세요.</p> : rows === null ? <p className="admin-chat-note">요약 조회 중…</p> : total === 0 ? <p className="admin-chat-note">아직 받은 평가가 없습니다.</p> : (
             <>
               <table>
                 <thead><tr><th>상담원</th><th>평가 수</th><th>평균 별점</th><th>신고</th></tr></thead>
@@ -402,10 +429,15 @@ function FeedbackSummary({ version }) {
 // 이 회원이 남긴 만족도 · 신고 (총관리자) — 접어 두고 "n건" 만. 신고 수가 바뀌면 다시 읽는다
 function RoomFeedback({ roomId, reportCount }) {
   const [list, setList] = useState([]);
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    getRoomFeedback(roomId).then(setList).catch(() => setList([]));
-  }, [roomId, reportCount]);
+    const controller = new AbortController();
+    getRoomFeedback(roomId, controller.signal).then(rows => { if (!controller.signal.aborted) { setList(rows); setError(false); } }).catch(() => { if (!controller.signal.aborted) setError(true); });
+    return () => controller.abort();
+  }, [roomId, reportCount, retry]);
 
+  if (error) return <p role="alert">회원 평가를 불러오지 못했습니다. <button type="button" onClick={() => setRetry(key => key + 1)}>다시 조회</button></p>;
   if (list.length === 0) return null;
   return (
     <details className="admin-chat-feedback">

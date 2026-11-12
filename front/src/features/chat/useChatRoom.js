@@ -18,6 +18,10 @@ export default function useChatRoom(roomId, onSystem, live = true) {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
   const clientRef = useRef(null);
+  const historyRef = useRef(null);
+  const olderPending = useRef(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const onSystemRef = useRef(onSystem);
   useEffect(() => {
     onSystemRef.current = onSystem; // 최신 함수를 기억 (연결을 다시 맺지 않도록 의존성에서 뺀다)
@@ -26,13 +30,18 @@ export default function useChatRoom(roomId, onSystem, live = true) {
   useEffect(() => {
     if (!roomId) return undefined;
 
+    const controller = new AbortController();
+    historyRef.current = controller;
+    olderPending.current = false;
+    setLoadingOlder(false);
     // 1) 지난 메시지 (REST)
-    getMessages(roomId)
-      .then((list) => setMessages((prev) => mergeMessages(prev, list)))
-      .catch((err) => setError(chatErrorMessage(err, '지난 대화를 불러오지 못했습니다.')));
+    getMessages(roomId, undefined, controller.signal)
+      .then(list => { if (!controller.signal.aborted) { setMessages(prev => mergeMessages(prev, list)); setHasMore(list.length === 30); setError(''); } })
+      .catch(err => { if (!controller.signal.aborted) setError(chatErrorMessage(err, '지난 대화를 불러오지 못했습니다.')); });
 
     if (!live) {
       return () => {
+        controller.abort();
         setMessages([]);
         setError('');
       };
@@ -58,6 +67,7 @@ export default function useChatRoom(roomId, onSystem, live = true) {
 
     // 화면을 떠나거나 방이 바뀌면 연결을 끊고 대화를 비운다 (다음 방의 메시지와 섞이지 않게)
     return () => {
+      controller.abort();
       client.deactivate();
       clientRef.current = null;
       setConnected(false);
@@ -74,5 +84,15 @@ export default function useChatRoom(roomId, onSystem, live = true) {
     return true;
   }, [roomId]);
 
-  return { messages, connected, error, send };
+  async function loadOlder() {
+    if (olderPending.current || !historyRef.current || historyRef.current.signal.aborted) return;
+    const signal = historyRef.current.signal;
+    olderPending.current = true; setLoadingOlder(true);
+    try {
+      const list = await getMessages(roomId, messages[0]?.id, signal);
+      if (!signal.aborted) { setMessages(prev => mergeMessages(prev, list)); setHasMore(list.length === 30); setError(''); }
+    } catch (err) { if (!signal.aborted) setError(chatErrorMessage(err, '이전 대화를 불러오지 못했습니다. 다시 시도해 주세요.')); }
+    finally { if (!signal.aborted) { olderPending.current = false; setLoadingOlder(false); } }
+  }
+  return { messages, connected, error, send, hasMore, loadingOlder, loadOlder };
 }

@@ -66,7 +66,7 @@ public class AdminVehicleService {
         // Imported trims can represent different engines/seating configurations.
         // Editing an existing identity must not reject those preserved variants.
         var current = id == null ? null : repository.find(id);
-        if (current != null && sameIdentity(current.vehicle(),brand,model,year,trim,fuel,drive)) return;
+        if (current != null && !current.status().equals("DELETED") && sameIdentity(current.vehicle(),brand,model,year,trim,fuel,drive)) return;
         boolean duplicate=repository.findAll().stream().anyMatch(row -> !row.id().equals(id) && !row.status().equals("DELETED")
             && sameIdentity(row.vehicle(),brand,model,year,trim,fuel,drive));
         if(duplicate)throw new ResponseStatusException(HttpStatus.CONFLICT,"같은 브랜드·모델·연식·트림·연료·구동 방식의 차량이 이미 있습니다.");

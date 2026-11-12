@@ -6,12 +6,12 @@ import { useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import theme from '../../../styles/theme';
 import Pagination from '../../../components/Pagination.jsx';
-import { getAllAdminMembers } from '../../../features/admin/adminApi';
+import { getAdminMembers } from '../../../features/admin/adminApi';
 import { ROLE_LABELS } from '../../../features/auth/roles';
 import MemberDetail from './MemberDetail.jsx';
 import { memberBoardSearch } from './memberBoardSearch.js';
-import { memberLoginLabels, memberStatusLabel, sortMembers } from './memberBoardData.js';
-import { nextTableSort, paginateTableRows } from '../adminTableData.js';
+import { memberLoginLabels, memberStatusLabel } from './memberBoardData.js';
+import { nextTableSort } from '../adminTableData.js';
 import { formatAdminDate } from '../adminDateFormat.js';
 import './MemberBoard.css';
 
@@ -30,6 +30,7 @@ export default function MemberBoard({ version, onChanged, summaryState, onRetryS
   const [draft, setDraft] = useState(initialKeyword);
   const [query, setQuery] = useState({ keyword: initialKeyword, role: '' });
   const [state, setState] = useState({ status: 'loading', members: [], error: '' });
+  const [meta, setMeta] = useState({ total: 0, totalPages: 0 });
   const [sort, setSort] = useState({ column: '', direction: 'ASC' });
   const [page, setPage] = useState(0);
   const [reload, setReload] = useState(0);
@@ -38,13 +39,13 @@ export default function MemberBoard({ version, onChanged, summaryState, onRetryS
 
   useEffect(() => {
     const controller = new AbortController();
-    getAllAdminMembers(query, controller.signal).then(members => {
-      if (!controller.signal.aborted) setState({ status: 'done', members, error: '' });
+    getAdminMembers({ ...query, page: page + 1, size: 10, sort: sort.column, direction: sort.direction }, controller.signal).then(({ members, meta }) => {
+      if (!controller.signal.aborted) { if (page > 0 && page >= meta.totalPages) { setPage(Math.max(0, meta.totalPages - 1)); return; } setMeta(meta); setState({ status: 'done', members: members.map((member, index) => ({ ...member, listNumber: meta.total - page * 10 - index })), error: '' }); }
     }).catch(error => {
       if (!controller.signal.aborted) setState({ status: 'error', members: [], error: error.response?.data?.error?.message || '회원 목록을 불러오지 못했습니다.' });
     });
     return () => controller.abort();
-  }, [query, reload, version]);
+  }, [query, reload, version, page, sort]);
 
   function changeQuery(next) {
     setSelectedId(null); setSearchError(''); setPage(0);
@@ -62,7 +63,9 @@ export default function MemberBoard({ version, onChanged, summaryState, onRetryS
     setSort(current => nextTableSort(current, column));
     setPage(0); setSelectedId(null);
   }
-  const { rows, page: currentPage, totalPages } = paginateTableRows(sortMembers(state.members, sort), page);
+  const rows = state.members;
+  const currentPage = page;
+  const totalPages = meta.totalPages;
 
   return <section className="admin-card member-board-panel">
     <AdminListHeader className="member-board-heading" title="회원 목록">

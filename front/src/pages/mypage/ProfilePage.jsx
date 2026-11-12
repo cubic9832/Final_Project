@@ -27,6 +27,7 @@ import { deviceName, DRIVING_OPTIONS, formatDateTime, PURCHASE_OPTIONS } from '.
 import './MyPage.css';
 import './ProfilePage.css';
 import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
+import { clearDreamCarStorage } from '../../features/dream-car/dreamCarStorage.js';
 import useUnsavedChanges from '../../shared/navigation/useUnsavedChanges.js';
 
 const NICKNAME_MIN = 2;
@@ -286,6 +287,8 @@ export default function ProfilePage({ inConsole = false }) {
       return;
     }
     setModal(null);
+    try { clearDreamCarStorage(useAuthStore.getState().member?.id); }
+    catch { showToast('브라우저 저장 공간에 접근할 수 없어 구매계획을 지우지 못했습니다. 브라우저 사이트 데이터를 정리해 주세요.'); }
     clearFavorites(); // 이 브라우저에 저장된 관심차량 목록도 지운다 (탈퇴 안내 문구와 맞춤)
     navigate('/'); // 먼저 이동 — 로그인 정보가 지워지면 RequireAuth 가 로그인 화면으로 보내기 때문
     await logout();

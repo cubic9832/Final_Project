@@ -1,3 +1,4 @@
+import { dreamCarStorageKey } from '../dream-car/dreamCarStorage.js';
 import { useEffect } from 'react';
 import useAuthStore from '../../stores/useAuthStore';
 import useNotificationStore from './useNotificationStore';
@@ -27,7 +28,7 @@ export default function useSavingsNotifications(memberId) {
       if (signal.aborted || scanning) return;
       scanning = true;
       try {
-        const raw = localStorage.getItem(progressStorageKey);
+        const raw = localStorage.getItem(dreamCarStorageKey(progressStorageKey, memberId));
         if (!raw) return;
         const plans = JSON.parse(raw);
         if (!Array.isArray(plans)) throw new Error('Invalid savings plans');
@@ -42,7 +43,7 @@ export default function useSavingsNotifications(memberId) {
         const updated = plans.map(plan => applyRecurringSavings(plan, today));
         const { events } = savingsNotificationEvents(updated, cursor, today);
         if (updated.some((plan, index) => plan !== plans[index])) {
-          localStorage.setItem(progressStorageKey, JSON.stringify(updated));
+          localStorage.setItem(dreamCarStorageKey(progressStorageKey, memberId), JSON.stringify(updated));
           window.dispatchEvent(new Event(purchasePlanUpdatedEvent));
         }
         for (const event of events) {

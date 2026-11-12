@@ -50,8 +50,13 @@ public class AdminChatApiController {
     // GET /api/v1/admin/chat/rooms?status=WAITING — 상담 목록 (없으면 전체, 최근 메시지 순)
     // 호출: AdminChatPanel.jsx 화면이 열릴 때 · /topic/admin/chat 알림을 받을 때 → chatApi.getAdminRooms
     @GetMapping("/rooms")
-    public ApiResponse<List<ChatRoomDto>> rooms(@AuthenticationPrincipal Long userId, @RequestParam(required = false) String status) {
-        return ApiResponse.ok(chatRoomService.getRooms(userId, status));
+    public ApiResponse<List<ChatRoomDto>> rooms(@AuthenticationPrincipal Long userId, @RequestParam(required = false) String status, @RequestParam(defaultValue = "0") int offset) {
+        return ApiResponse.ok(chatRoomService.getRooms(userId, status, Math.max(0, offset)));
+    }
+
+    @GetMapping("/rooms/{id}")
+    public ApiResponse<ChatRoomDto> room(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
+        return ApiResponse.ok(chatRoomService.getRoom(userId, id));
     }
 
     // GET /api/v1/admin/chat/feedback/summary — 상담원별 만족도 평균 · 신고 수 (총관리자만)

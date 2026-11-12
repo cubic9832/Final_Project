@@ -1,3 +1,4 @@
+import { dreamCarStorageKey } from './dreamCarStorage.js';
 import { createProgressPlan, isProgressPlan, planStorageKey, progressStorageKey, updateProgressSettings } from './savingsProgress.js';
 
 export const purchasePlanUpdatedEvent = 'dream-car-purchase-plan-updated';
@@ -8,9 +9,9 @@ export function mergeSavingsInputs(plan, patch) {
   return { ...plan, inputs: { ...plan.inputs, ...values } };
 }
 export function syncSavedSavings(patch) {
-  const saved = JSON.parse(localStorage.getItem(planStorageKey));
+  const saved = JSON.parse(localStorage.getItem(dreamCarStorageKey(planStorageKey)));
   const next = mergeSavingsInputs(saved, patch);
-  localStorage.setItem(planStorageKey, JSON.stringify(next));
+  localStorage.setItem(dreamCarStorageKey(planStorageKey), JSON.stringify(next));
   window.dispatchEvent(new Event(purchasePlanUpdatedEvent));
 }
 
@@ -20,8 +21,8 @@ export function mergeExecutionSettings(active, purchase, target, asOfDate) {
 }
 
 export function savePurchasePlanWithProgress(purchase, target, asOfDate, vehicle) {
-  const previousPurchase = localStorage.getItem(planStorageKey);
-  const previousProgress = localStorage.getItem(progressStorageKey);
+  const previousPurchase = localStorage.getItem(dreamCarStorageKey(planStorageKey));
+  const previousProgress = localStorage.getItem(dreamCarStorageKey(progressStorageKey));
   const plans = previousProgress ? JSON.parse(previousProgress) : [];
   if (!Array.isArray(plans) || !plans.every(isProgressPlan)) throw new Error('저장된 실행 기록을 확인해 주세요.');
   if (plans.length) {
@@ -31,10 +32,10 @@ export function savePurchasePlanWithProgress(purchase, target, asOfDate, vehicle
   }
   if (!plans.length) plans.push(createProgressPlan(vehicle, purchase.inputs, target, asOfDate, crypto.randomUUID()));
   try {
-    localStorage.setItem(planStorageKey, JSON.stringify(purchase));
-    localStorage.setItem(progressStorageKey, JSON.stringify(plans));
+    localStorage.setItem(dreamCarStorageKey(planStorageKey), JSON.stringify(purchase));
+    localStorage.setItem(dreamCarStorageKey(progressStorageKey), JSON.stringify(plans));
   } catch (error) {
-    if (previousPurchase === null) localStorage.removeItem(planStorageKey); else localStorage.setItem(planStorageKey, previousPurchase);
+    if (previousPurchase === null) localStorage.removeItem(dreamCarStorageKey(planStorageKey)); else localStorage.setItem(dreamCarStorageKey(planStorageKey), previousPurchase);
     throw error;
   }
   window.dispatchEvent(new Event(purchasePlanUpdatedEvent));

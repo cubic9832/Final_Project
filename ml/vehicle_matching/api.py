@@ -4,7 +4,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
-from dataclasses import replace
+from dataclasses import replace, asdict
 from typing import Literal
 
 from fastapi import FastAPI, Request
@@ -174,6 +174,11 @@ def create_app(service=None):
     async def unexpected_error(request: Request, error):
         logger.exception('Candidate inference failed')
         return problem(request, 500, '추천 처리 실패', '추천을 처리하지 못했습니다.')
+
+    @application.get('/api/v2/recommendation-candidates')
+    def recommendation_candidates(request: Request):
+        current = current_service(request)
+        return {'success': True, 'data': [asdict(vehicle) for vehicle in current.vehicles if vehicle.recommendation_enabled]}
 
     @application.get('/api/v2/recommendation-options')
     def options(request: Request):
