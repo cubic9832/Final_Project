@@ -80,9 +80,11 @@ def validate_runtime(release, manifest):
         'service=load_service(Path(sys.argv[1])); '
         'print("MODEL_LOAD_OK")'
     )
-    environment = dict(os.environ, PYTHONPATH=str(release / 'ml') + ':' + str(release))
-    run('runuser', '-u', 'ec2-user', '--', str(PYTHON), '-B', '-c', code,
-        str(release / 'ml' / manifest['model']), cwd=release, env=environment, timeout=180)
+    python_path = str(release / 'ml') + ':' + str(release)
+    # runuser resets parts of the environment; set the release import path after switching user.
+    run('runuser', '-u', 'ec2-user', '--', '/usr/bin/env', 'PYTHONPATH=' + python_path,
+        str(PYTHON), '-B', '-c', code,
+        str(release / 'ml' / manifest['model']), cwd=release, timeout=180)
 
 
 def database_settings():
@@ -240,6 +242,12 @@ def main():
     if os.geteuid() != 0:
         raise ValueError('Run through SSM as root')
     STATE.mkdir(parents=True, exist_ok=True)
+    # SSM uses umask 077. Root-created parent directories must also be accessible
+    # to the application user, not just the files inside the individual release.
+    for directory in (STATE, STATE / 'releases', STATE / 'backups'):
+        directory.mkdir(exist_ok=True)
+        shutil.chown(directory, 'ec2-user', 'ec2-user')
+        directory.chmod(0o700)
     with (STATE / 'deploy.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         if shutil.disk_usage(STATE).free < 2 * 1024 ** 3:
