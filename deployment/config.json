@@ -1,0 +1,10 @@
+{
+  "region": "ap-northeast-2",
+  "account": "621422876512",
+  "instance": "i-0f5b5ee3350b32b6a",
+  "artifact_bucket": "creditcompass-deploy-621422876512-ap-northeast-2",
+  "frontend_bucket": "creditcompass",
+  "distribution": "E3RYVSVZH7TX7V",
+  "public_host": "d17d1rs6mihtjx.cloudfront.net",
+  "model": "outputs/models/scenario-choices/20261104-specifications-completed"
+}
