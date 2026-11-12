@@ -47,9 +47,6 @@ features/vehicle/
   useVehicle.js
   vehicleApi.js
   vehicleData.js
-features/company/
-  pages/{list,detail}/
-  companyApi.js
 features/auth/
   components/{AuthModal,AuthToast,PasswordInput,LogoutConfirmModal}  여러 화면·헤더가 함께 쓰는 팝업·입력칸
   authApi.js
@@ -63,10 +60,8 @@ pages/
           emailTypo.js,profileRules.js,GoogleSignupPage}
   mypage/{MyPage.jsx,MyPage.css,ProfileEditModal,EmailNotificationModal,PasswordChangeModal,
           AccountManageModal,notificationOptions.js}
-  admin/{AdminPage.jsx,AdminPage.css,ModelMetricChart,adminExampleData.js}
+  admin/{AdminPage.jsx,AdminPage.css,ModelMetricChart}
   not-found/NotFound.jsx
-  predict/PredictPage.jsx
-  search/SearchPage.jsx
 ```
 
 - 특정 화면에서만 사용하는 JSX·CSS·로직은 해당 화면 폴더에 함께 둔다. 차량 우선순위 컴포넌트와 정렬 로직은 재무 차량 입력 화면이 소유한다.

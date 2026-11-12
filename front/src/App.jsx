@@ -7,8 +7,6 @@ import GuestOnly from './components/GuestOnly';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 import RequireAdmin from './components/RequireAdmin';
-import CompanyDetailPage from './features/company/pages/detail/CompanyDetailPage';
-import CompanyListPage from './features/company/pages/list/CompanyListPage';
 import AboutPreviewPage from './pages/about-preview/AboutPreviewPage';
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/login/LoginPage';
@@ -27,7 +25,6 @@ import ConsultationPage from './pages/consultation/ConsultationPage';
 import MyPage from './pages/mypage/MyPage';
 import ProfilePage from './pages/mypage/ProfilePage';
 import NotFound from './pages/not-found/NotFound';
-import PredictPage from './pages/predict/PredictPage';
 import SignupPage from './pages/signup/SignupPage';
 import GoogleSignupPage from './pages/signup/GoogleSignupPage';
 import VehicleCatalogGate from './features/vehicle/components/VehicleCatalogGate';
@@ -93,14 +90,11 @@ function App() {
           <Route path="/financial/recommendations/details" element={<RecommendationDetailsPage />} />
           <Route path="/financial/recommendations" element={<FinancialRecommendationsPage />} />
         </Route>
-        <Route path="/companies" element={<CompanyListPage />} />
-        <Route path="/companies/:code" element={<CompanyDetailPage />} />
         <Route path="/search" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />
         <Route path="/vehicles" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />
         <Route path="/vehicles/compare" element={<VehicleComparePage />} />
         <Route path="/vehicles/:id" element={<VehicleCatalogGate><VehicleDetailPage /></VehicleCatalogGate>} />
         <Route path="/vehicles/:id/simulation" element={<VehicleCatalogGate><VehicleSimulationPage /></VehicleCatalogGate>} />
-        <Route path="/predict" element={<PredictPage />} />
         {/* 보완 11: 없는 주소 — 헤더가 있는 404 화면 (관리자가 아닌 사람이 /console 에 들어와도 똑같이 보인다) */}
         <Route path="*" element={<NotFound />} />
       </Route>
