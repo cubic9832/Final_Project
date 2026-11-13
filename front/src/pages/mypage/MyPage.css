@@ -563,20 +563,123 @@
   border-color: #12335b;
 }
 
-/* 남색 구매계획 카드 안의 버튼: 카드와 같은 색이라 안 보여서 흰 버튼으로 */
-.my-plan .my-plan-button {
-  border-color: #fff;
+/* 11-04: 로그인 · 회원가입과 색 통일 — 카드는 모두 흰색, 버튼은 모두 남색(로그인 버튼과 같은 색)
+   .my-page 안에서만: 개인정보 · 계정 관리(ProfilePage)도 이 파일을 쓰지만 그 화면 버튼은 그대로 */
+.my-page .my-outline-button,
+.my-page .my-plan-button {
+  border: 0;
+  background: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.my-page .my-outline-button:hover,
+.my-page .my-plan-button:hover {
+  background: var(--color-primary-hover);
+}
+
+/* 11-05: 흐름 끝 버튼 = 형철님 CTA 규칙(아이스 블루 배경 · 남색 글자 · 실선 테두리, 테마 토큰 --color-cta)
+   마이페이지에서 다른 기능의 흐름으로 들어가는 버튼: 재무 진단 · 차량 찾기 · 드림카 플래너 · 취향 테스트 */
+.my-page .my-cta {
+  border: 1px solid var(--color-border-input);
+  background: var(--color-cta);
+  color: var(--color-cta-text);
+}
+
+.my-page .my-cta:hover {
+  background: var(--color-cta-hover);
+}
+
+/* 보조 버튼: 카드마다 주 버튼(남색)은 하나, 나머지는 연한 파랑 — 위 "운전 1~3년" 배지와 같은 색 */
+.my-page .my-soft-button {
+  background: var(--color-blue-tint);
+  color: var(--color-primary);
+}
+
+.my-page .my-soft-button:hover {
+  background: #dde9f7;
+}
+
+/* 구매계획 카드도 다른 카드처럼 흰 바탕 */
+.my-plan {
+  border: 1px solid #dce3ec;
   background: #fff;
+  color: #152238;
+}
+
+.my-plan-heading span {
+  color: #0c766d;
+}
+
+/* 11-04: 구매계획 카드 내용 (흰 카드용 색 — 예전 남색 카드의 흰 글자 색을 덮어쓴다) */
+.my-plan-car {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.my-plan-car strong {
+  color: #12335b;
+  font-size: 17px;
+}
+
+.my-plan-car span {
+  color: #6d7988;
+  font-size: 12px;
+}
+
+.my-plan .my-plan-progress-labels span {
+  color: #44556b;
+}
+
+.my-plan .my-plan-progress-labels strong {
+  color: #0c766d;
+}
+
+.my-plan .my-plan-track {
+  background: #edf1f6;
+}
+
+.my-plan .my-plan-track span {
+  background: #0c766d;
+}
+
+.my-plan .my-plan-summary div {
+  border: 1px solid #dce3ec;
+  background: #f6f8fb;
+}
+
+.my-plan .my-plan-summary span {
+  color: #6d7988;
+}
+
+.my-plan .my-plan-summary strong {
   color: #12335b;
 }
 
-.my-plan .my-plan-button:hover {
-  background: #e6eef7;
+.my-plan-heading h2 {
+  color: #12335b;
+}
+
+/* 11-04: 카드 간격 정돈 — 위 줄도 아래 3칸과 같은 칸 나누기(내 정보 = 1칸, 재무 진단 = 2칸)라 세로 선이 맞는다 */
+.my-row-top > .my-insight-card {
+  grid-column: span 2;
+}
+
+/* 내 정보 카드도 다른 카드와 같은 안쪽 여백 · 간격 */
+.my-profile {
+  gap: 14px;
+  padding: 22px;
+}
+
+@media (max-width: 1024px) {
+  .my-row-top > .my-insight-card {
+    grid-column: auto;
+  }
 }
 
 .my-row-top {
   display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 11-04: 아래 3칸과 세로 선 맞춤 (재무 진단 = 2칸) */
   gap: 24px;
   align-items: stretch;
 }
@@ -657,13 +760,109 @@
   border-top: 1px solid #dce3ec;
 }
 
-.my-mini-history li {
+/* 11-04: 기록이 2줄을 넘으면 목록 안에서 스크롤 (한 줄 약 41px) — 카드 높이는 예전(2줄)과 같게 */
+.my-mini-history {
+  max-height: 83px;
+  overflow-y: auto;
+}
+
+/* 재무 진단 자세히 (팝업) */
+.my-detail-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-size: 14px;
+}
+
+.my-detail-list div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
+  padding: 9px 0;
   border-bottom: 1px solid #edf1f6;
+}
+
+.my-detail-list dt {
+  color: #6d7988;
+}
+
+.my-detail-list dd {
+  margin: 0;
+  color: #152238;
+  font-weight: 700;
+}
+
+/* "그중 기타 소득" 처럼 위 항목에 포함된 값은 들여 쓰고 작게 */
+.my-detail-list .is-sub {
+  padding-left: 12px;
   font-size: 13px;
+}
+
+.my-detail-list .is-sub dd {
+  font-weight: 400;
+}
+
+/* 소득 - 지출 - 상환 = 여유금 */
+.my-detail-list .is-total dd {
+  color: #0c766d;
+}
+
+.my-detail-title {
+  margin-top: 4px;
+  color: #12335b;
+  font-size: 15px;
+}
+
+.my-detail-loans {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-detail-loans li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f6f8fb;
+  font-size: 13px;
+}
+
+.my-detail-loans span {
+  color: #6d7988;
+}
+
+.my-mini-history li {
+  border-bottom: 1px solid #edf1f6;
+}
+
+/* 기록 한 줄 = 누르면 위 4칸이 그 진단으로 바뀌는 버튼 */
+.my-mini-history button {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 8px;
+  border: 0;
+  background: transparent;
+  color: #152238;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.my-mini-history button:hover {
+  background: #f6f8fb;
+}
+
+/* 지금 위 4칸에 보이는 진단 */
+.my-mini-history button.is-selected {
+  background: var(--color-blue-tint);
+  color: var(--color-primary);
 }
 
 .my-mini-history span {
@@ -772,21 +971,29 @@
 
 .my-plan-note {
   margin-top: auto;
-  color: #bfd0e1;
 }
 
+/* 11-04: 남색은 카드의 주 버튼 하나만 — 결과 상자는 눌리는 버튼처럼 보이지 않게 연한 회색 바탕 + 테두리
+   (재무 진단 숫자 칸 .my-finance-grid div 와 같은 모양) */
 .my-taste-type {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 18px;
+  border: 1px solid #dce3ec;
   border-radius: 12px;
-  background: #12335b;
-  color: #fff;
+  background: #f6f8fb;
+  color: var(--color-primary);
+}
+
+/* 누르면 자세한 결과로 — 관심차량 줄(.my-fav-line)처럼 올리면 살짝 파랗게 */
+.my-taste-type:hover {
+  border-color: #b8c7d9;
+  background: #edf3fa;
 }
 
 .my-taste-type span {
-  color: #bfd0e1;
+  color: #6d7988;
   font-size: 12px;
 }
 
@@ -795,7 +1002,7 @@
 }
 
 .my-taste-type p {
-  color: #dce3ec;
+  color: #44556b;
   font-size: 13px;
 }
 
@@ -853,4 +1060,18 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* 관심차량 카드: [차량 찾기] [비교하기] 한 줄, 다른 카드 버튼처럼 카드 맨 아래로 */
+.my-fav-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* 관심차량이 3대를 넘으면 목록 안에서 스크롤 (한 줄 약 40px × 3 + 간격) */
+.my-card-fill .my-fav-list {
+  max-height: 136px;
+  overflow-y: auto;
+  padding-right: 4px;
 }

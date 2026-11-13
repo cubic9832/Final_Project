@@ -1,12 +1,15 @@
 package com.kh.back.member.mapper;
 
 import com.kh.back.member.dto.MemberDto;
+import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface MemberMapper {
+    void deleteRecommendationInputs(Long userId);
+    Long lockRecommendationInputsOwner(Long userId);
 
     MemberDto findById(Long id);
 
@@ -29,6 +32,9 @@ public interface MemberMapper {
 
 
     int detachInputSnapshots(Long userId);     // 분석 입력 기록은 남기고 회원 연결만 끊음 (user_id = NULL)
+
+    // 마지막 총관리자 보호: 탈퇴 트랜잭션이 끝날 때까지 총관리자 행을 잠근다.
+    List<Long> lockSuperAdminIds();
 
     // 보완 15: 회원 줄은 남기고 "탈퇴 회원" 으로 바꾼다 (role = WITHDRAWN, 이메일 · 닉네임 · 비밀번호를 알아볼 수 없는 값으로)
     int anonymize(@Param("id") Long id, @Param("email") String email, @Param("nickName") String nickName);

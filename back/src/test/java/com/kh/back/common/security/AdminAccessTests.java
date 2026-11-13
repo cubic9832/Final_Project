@@ -33,9 +33,12 @@ class AdminAccessTests {
     @Autowired MockMvc mvc;
     @Autowired JwtProvider jwtProvider;
     @MockitoBean CurrentRoleLookup currentRoleLookup;
+    @MockitoBean com.kh.back.recommendation.RecommendationUpstreamRegistry runtimeCatalog;
+    @MockitoBean com.kh.back.admin.repository.AdminPermissionRepository permissions;
 
     @BeforeEach
     void setUp() {
+        when(permissions.allowedScreens(1L)).thenReturn(java.util.List.of("OVERVIEW","VEHICLES","RECOMMENDATIONS","MODELS","MEMBERS","CHAT","CHATBOT","LOGS"));
         when(currentRoleLookup.currentRole(1L)).thenReturn("ADMIN");
         when(currentRoleLookup.currentRole(2L)).thenReturn("USER");
         when(currentRoleLookup.currentRole(3L)).thenReturn("SUPER_ADMIN");
@@ -43,10 +46,10 @@ class AdminAccessTests {
     }
 
     @Test
-    void 관리자는_보안_검사를_통과한다() throws Exception {
+    void 화면_권한이_정의되지_않은_관리자_주소는_거부한다() throws Exception {
         String token = jwtProvider.createAccessToken(1L, "ADMIN");
         mvc.perform(get(ADMIN_URL).header("Authorization", "Bearer " + token))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -96,7 +99,7 @@ class AdminAccessTests {
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.available").value(true))
-                .andExpect(jsonPath("$.data.runName").value("20261103-unified-managed-3m"))
+                .andExpect(jsonPath("$.data.runName").value("20261104-specifications-completed"))
                 .andExpect(jsonPath("$.data.history.length()").value(30))
                 .andExpect(jsonPath("$.data.testPairAccuracy").isNumber());
         mvc.perform(get("/api/v1/admin/model-report")
@@ -107,6 +110,9 @@ class AdminAccessTests {
     // 추천 관리: 추천 서버가 쓰는 후보 차량 목록(catalog.json), 일반 회원 404
     @Test
     void 관리자는_추천_후보_차량을_볼_수_있다() throws Exception {
+        var upstream = new com.kh.back.recommendation.RecommendationUpstreamRegistry.Upstream("http://runtime.test", true, "test", "test", true, 1, 1);
+        when(runtimeCatalog.upstreams()).thenReturn(java.util.List.of(upstream));
+        when(runtimeCatalog.candidates(upstream)).thenReturn(tools.jackson.databind.json.JsonMapper.builder().build().readTree("[{\"id\":\"runtime-car\",\"brand\":\"실행 후보\",\"price\":23980000}]"));
         mvc.perform(get("/api/v1/admin/recommendation-candidates")
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
                 .andExpect(status().isOk())

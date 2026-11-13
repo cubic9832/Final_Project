@@ -1,0 +1,47 @@
+.vehicle-favorites-panel { display: flex; flex-direction: column; gap: var(--space-12); min-width: 0; }
+.vehicle-favorites-panel.panel { margin-block: var(--space-16); padding: var(--space-24); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.vehicle-favorites-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-8); }
+.vehicle-favorites-panel h2 { margin: 0; color: var(--color-primary); font-size: var(--font-card-title, 20px); font-weight: 700; }
+.vehicle-favorites-panel p { margin: 0; font-size: var(--font-body); }
+.vehicle-favorites-note { color: var(--color-text-sub); font-size: var(--font-caption) !important; }
+.vehicle-favorites-empty { padding: var(--space-16); border-radius: var(--radius-md); background: var(--color-background); color: var(--color-text-sub); }
+
+.vehicle-count-chips { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.vehicle-count-chip { padding: var(--space-4) var(--space-8); border-radius: var(--radius-pill); background: var(--color-blue-tint); color: var(--color-primary); font-size: var(--font-caption); font-weight: 700; white-space: nowrap; }
+
+/* 클릭 카드 목록: summary는 세로로 쌓고, selector는 가로 한 줄로 둔다. */
+.vehicle-select-list { display: grid; gap: var(--space-8); margin: 0; padding: 0; list-style: none; }
+.vehicle-favorites-summary .vehicle-select-list { max-height: 272px; overflow-y: auto; padding-right: var(--space-4); }
+/* 비교 화면은 최대 10대를 한 줄에 두고, 넘치면 가로로 스크롤한다. */
+.vehicle-favorites-selector .vehicle-select-list { display: flex; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: var(--space-8); scroll-snap-type: x proximity; scrollbar-width: thin; }
+.vehicle-favorites-selector .vehicle-select-list > li { flex: 0 0 232px; scroll-snap-align: start; }
+.vehicle-favorites-selector .vehicle-select-item { padding-right: 0; }
+.vehicle-favorites-selector .vehicle-select-card { gap: var(--space-8); min-height: 40px; padding: 0 var(--space-8); }
+.vehicle-favorites-selector .vehicle-select-icon { width: 20px; height: 20px; }
+.vehicle-favorites-selector .vehicle-select-text { display: flex; align-items: baseline; gap: var(--space-4); }
+.vehicle-favorites-selector .vehicle-select-text strong { flex: 0 1 auto; }
+.vehicle-favorites-selector .vehicle-select-text small { flex: 1 1 0; min-width: 0; }
+.vehicle-favorites-selector .vehicle-icon-button { width: 32px; height: 40px; }
+
+.vehicle-select-item { display: flex; align-items: center; gap: var(--space-4); padding-right: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); transition: border-color .15s, background-color .15s; }
+.vehicle-select-item:has(.vehicle-select-card:hover:not(:disabled)) { border-color: var(--color-blue); }
+.vehicle-select-item:has(.vehicle-select-card[aria-pressed="true"]) { border-color: var(--color-primary); background: var(--color-blue-tint); }
+.vehicle-select-card { display: flex; flex: 1; align-items: center; gap: var(--space-12); min-width: 0; min-height: 56px; padding: var(--space-8) var(--space-12); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--color-text); font: inherit; text-align: left; cursor: pointer; }
+.vehicle-select-card:disabled { cursor: not-allowed; opacity: .45; }
+.vehicle-select-icon { display: grid; flex: none; place-items: center; width: 28px; height: 28px; border: 1.5px solid var(--color-border-input, var(--color-border)); border-radius: var(--radius-sm); color: var(--color-text-sub); background: var(--color-surface); }
+.vehicle-select-card[aria-pressed="true"] .vehicle-select-icon { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-text-on-primary, #fff); }
+.vehicle-select-text { min-width: 0; }
+.vehicle-select-text strong, .vehicle-select-text small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vehicle-select-text strong { color: var(--color-primary); font-size: var(--font-body); font-weight: 700; }
+.vehicle-select-text small { color: var(--color-text-sub); font-size: var(--font-caption); }
+
+.vehicle-icon-button { display: grid; flex: none; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-text-sub); cursor: pointer; }
+.vehicle-icon-button:hover { background: var(--color-background); color: var(--color-primary); }
+.vehicle-icon-button.danger:hover { color: var(--color-danger); }
+.vehicle-select-card:focus-visible, .vehicle-icon-button:focus-visible, .vehicle-favorites-panel :focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+
+.vehicle-favorites-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.vehicle-favorites-panel.my-card-fill .vehicle-favorites-actions { margin-top: auto; }
+
+@media (max-width: 768px) { .vehicle-favorites-panel.panel { padding: var(--space-16); } }
+@media (max-width: 480px) { .vehicle-favorites-selector .vehicle-select-list > li { flex-basis: 208px; } }

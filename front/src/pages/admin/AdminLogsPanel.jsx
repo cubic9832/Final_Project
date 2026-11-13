@@ -1,13 +1,28 @@
 // 7단계: 운영 로그 탭 (실제 데이터, V13 admin_audit_logs)
 // 관리자 작업(권한 · 잠금 해제 · 상담 경고 · 제한 등) + 보완 13 메일 발송 기록(서버 자동). 이름은 지금 회원 정보에서 읽고, 탈퇴했으면 "탈퇴한 회원"
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
 import theme from '../../styles/theme';
 import { getAuditLogs } from '../../features/admin/adminApi';
 import { ACTION_LABELS, describeLog, formatLogTime, logActor, logTarget } from './adminLogFormat';
-import './AdminMembersPanel.css';
+import Pagination from '../../components/Pagination.jsx';
+import AdminListHeader from './components/AdminListHeader.jsx';
+import AdminDataTable from './components/AdminDataTable.jsx';
+import AdminDetailRow from './components/AdminDetailRow.jsx';
+import { ADMIN_PAGE_SIZE, nextTableSort } from './adminTableData.js';
+import { formatAdminDate, formatAdminDateTime } from './adminDateFormat.js';
+import './components/AdminListSummary.css';
+import './AdminLogsPanel.css';
 
-const PAGE_SIZE = 20;
+const columns = [
+  { key: 'number', label: '번호', width: 7 },
+  { key: 'action', label: '작업', width: 15 },
+  { key: 'detail', label: '내용', width: 25, align: 'left' },
+  { key: 'target', label: '대상', width: 14 },
+  { key: 'actor', label: '작업자', width: 13 },
+  { key: 'createdAt', label: '등록일', width: 18 },
+  { key: 'expand', label: '상세', width: 8, sortable: false },
+];
 // 엑셀이 수식으로 읽는 글자(= + - @, 탭 · 줄바꿈)로 시작하면 앞에 ' 를 붙여 글자로만 보이게 한다
 // (예: 닉네임 "=1+1" 이 엑셀에서 계산되거나, 악의적인 수식이 실행되지 않게 — CSV 수식 주입 방지)
 const safeCell = (value) => {
@@ -32,14 +47,15 @@ function downloadCsv(logs) {
 }
 
 export default function AdminLogsPanel() {
-  const [query, setQuery] = useState({ action: '', page: 1 });
+  const [query, setQuery] = useState({ page: 1, sort: '', direction: 'ASC' });
   const [state, setState] = useState({ status: 'loading', logs: [], meta: null, error: '' });
   const [reloadKey, setReloadKey] = useState(0);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    getAuditLogs({ ...query, size: PAGE_SIZE }, controller.signal)
-      .then(({ logs, meta }) => setState({ status: 'done', logs, meta, error: '' }))
+    getAuditLogs({ ...query, size: ADMIN_PAGE_SIZE }, controller.signal)
+      .then(({ logs, meta }) => { if (!controller.signal.aborted) setState({ status: 'done', logs, meta, error: '' }); })
       .catch((error) => {
         if (!controller.signal.aborted) {
           setState({ status: 'error', logs: [], meta: null, error: error.response?.data?.error?.message ?? '운영 로그를 불러오지 못했습니다.' });
@@ -49,44 +65,27 @@ export default function AdminLogsPanel() {
   }, [query, reloadKey]);
 
   function changeQuery(next) {
+    setExpandedId(null);
     setState((prev) => ({ ...prev, status: 'loading' }));
     setQuery((prev) => ({ ...prev, ...next }));
+  }
+
+  function sortBy(column) {
+    const next = nextTableSort({ column: query.sort, direction: query.direction }, column);
+    changeQuery({ page: 1, sort: next.column, direction: next.direction });
   }
 
   const { logs, meta } = state;
   const totalPages = meta?.totalPages ?? 1;
 
   return (
-    <section className="admin-card">
-      <div className="admin-card-heading">
-        <div><h3>운영 이력</h3><p>관리자 작업 기록 (최근 순). 권한 주기 · 빼기, 잠금 해제, 상담 경고 · 제한 등이 기록됩니다. 인증 메일 발송 기록은 [작업] 에서 골라 봅니다.</p></div>
-        <button type="button" className="admin-outline-button" disabled={!logs.length} onClick={() => downloadCsv(logs)}>
+    <section className="admin-card admin-log-panel">
+      <AdminListHeader title="운영 이력">
+        <button type="button" className="admin-outline-button" disabled={state.status !== 'done' || !logs.length} onClick={() => downloadCsv(logs)}>
           <Download size={theme.iconSize.sm} aria-hidden="true" />CSV 내보내기
         </button>
-      </div>
-
-      <div className="admin-filters">
-        <label className="admin-filter-field">
-          작업
-          <select value={query.action} onChange={(event) => changeQuery({ action: event.target.value, page: 1 })}>
-            <option value="">전체</option>
-            <option value="ROLE_CHANGE">권한 변경</option>
-            <option value="LOGIN_UNLOCK">잠금 해제</option>
-            <option value="CHAT_WARN">상담 경고</option>
-            <option value="CHAT_RESTRICT">상담 제한</option>
-            <option value="CHAT_UNRESTRICT">상담 제한 풀기</option>
-            <option value="CHAT_TRANSFER">상담 넘기기</option>
-            <option value="MEMBER_SUSPEND">계정 정지</option>
-            <option value="MEMBER_UNSUSPEND">계정 정지 풀기</option>
-            <option value="MODEL_TRAFFIC_CHANGE">모델 비율 변경</option>
-            <option value="MODEL_SERVER_START">모델 켜기</option>
-            <option value="MODEL_SERVER_STOP">모델 끄기</option>
-            {/* 보완 13: 메일 발송 기록은 "전체" 에 섞지 않고 여기서 골라 본다 */}
-            <option value="MAIL_FAILED">메일 발송 실패</option>
-            <option value="MAIL_SENT">메일 발송</option>
-          </select>
-        </label>
-      </div>
+      </AdminListHeader>
+      <p className="admin-log-help">권한 변경, 계정 관리, 상담 처리 및 추천 모델 관리 기록을 확인합니다.</p>
 
       {state.status === 'loading' && <p className="admin-empty" role="status">운영 로그를 불러오는 중…</p>}
       {state.status === 'error' && (
@@ -97,38 +96,31 @@ export default function AdminLogsPanel() {
           </button>
         </p>
       )}
-      {state.status === 'done' && logs.length === 0 && (
-        <p className="admin-empty" role="status">아직 기록된 관리자 작업이 없습니다.</p>
-      )}
-      {state.status === 'done' && logs.length > 0 && (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <caption className="admin-sr-only">관리자 작업 기록</caption>
-            <thead>
-              <tr><th scope="col">시각</th><th scope="col">작업</th><th scope="col">대상 · 내용</th><th scope="col">관리자</th></tr>
-            </thead>
-            <tbody>
-              {logs.map((log) => (
-                <tr key={log.id}>
-                  <td>{formatLogTime(log.createdAt)}</td>
-                  <td>{ACTION_LABELS[log.action] ?? log.action}</td>
-                  <td><strong>{logTarget(log)}</strong><small>{describeLog(log)}</small></td>
-                  <td>{logActor(log)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {meta && <p className="admin-result-count" aria-live="polite">전체 {meta.total}건</p>}
+      {state.status === 'done' && <>
+        <AdminDataTable className="admin-log-table" caption="관리자 작업 기록" columns={columns} minWidth="1040px" sort={{ column: query.sort, direction: query.direction }} onSort={sortBy}>
+          {logs.length === 0 ? <tr><td colSpan={columns.length} className="admin-log-empty">조건에 맞는 운영 기록이 없습니다.</td></tr> : logs.map(log => {
+            const open = expandedId === log.id;
+            const detailId = `admin-log-detail-${log.id}`;
+            const toggle = () => setExpandedId(open ? null : log.id);
+            return <Fragment key={log.id}>
+              <tr className={open ? 'admin-log-selected' : ''}>
+                <td>{log.listNumber ?? '—'}</td>
+                <td>{ACTION_LABELS[log.action] ?? log.action}</td>
+                <td className="admin-table-text"><button type="button" className="admin-log-subject" aria-expanded={open} aria-controls={detailId} onClick={toggle}><span className="admin-list-summary">{describeLog(log)}</span></button></td>
+                <td>{logTarget(log)}</td><td>{logActor(log)}</td>
+                <td><time dateTime={log.createdAt}>{formatAdminDate(log.createdAt)}</time></td>
+                <td><button className="admin-text-button" type="button" aria-expanded={open} aria-controls={detailId} aria-label={`${ACTION_LABELS[log.action] ?? log.action} 상세 ${open ? '접기' : '보기'}`} onClick={toggle}>{open ? '접기' : '보기'}</button></td>
+              </tr>
+              <AdminDetailRow open={open} colSpan={columns.length}><section id={detailId} className="admin-log-detail" aria-label="운영 기록 상세">
+                <h4>작업 내용</h4><p>{describeLog(log)}</p>
+                <dl><div><dt>시각</dt><dd>{formatAdminDateTime(log.createdAt)}</dd></div><div><dt>작업자</dt><dd>{logActor(log)}</dd></div><div><dt>작업</dt><dd>{ACTION_LABELS[log.action] ?? log.action}</dd></div><div><dt>대상</dt><dd>{logTarget(log)}</dd></div></dl>
+              </section></AdminDetailRow>
+            </Fragment>;
+          })}
+        </AdminDataTable>
+      </>}
 
-      {totalPages > 1 && (
-        <nav className="admin-member-pagination" aria-label="운영 로그 페이지">
-          <button type="button" disabled={query.page <= 1} onClick={() => changeQuery({ page: query.page - 1 })}>이전</button>
-          <span>{query.page} / {totalPages}</span>
-          <button type="button" disabled={query.page >= totalPages} onClick={() => changeQuery({ page: query.page + 1 })}>다음</button>
-        </nav>
-      )}
+      {state.status === 'done' && totalPages > 1 && <Pagination ariaLabel="운영 로그 페이지" page={query.page - 1} totalPages={totalPages} onChange={page => changeQuery({ page: page + 1 })} />}
     </section>
   );
 }

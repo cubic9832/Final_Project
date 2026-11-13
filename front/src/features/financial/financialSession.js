@@ -4,6 +4,7 @@ const sessionKey = 'financial-recommendation-draft';
 const scopeKey = 'financial-recommendation-scope';
 export const comparisonKey = 'financial-vehicle-comparison';
 let fallbackScope = crypto.randomUUID();
+let fallbackDraft = null;
 
 function getScope() {
   try {
@@ -26,6 +27,7 @@ export function readScopedFinancialState(state, memberId = useAuthStore.getState
 }
 
 function clearFinancialSession() {
+  fallbackDraft = null;
   fallbackScope = crypto.randomUUID();
   try {
     sessionStorage.removeItem(sessionKey);
@@ -43,16 +45,22 @@ useAuthStore.subscribe((state, previous) => {
 
 export function readFinancialSession() {
   try {
-    return readScopedFinancialState(JSON.parse(sessionStorage.getItem(sessionKey))) ?? {};
+    return readScopedFinancialState(JSON.parse(sessionStorage.getItem(sessionKey)) ?? fallbackDraft) ?? {};
   } catch {
-    return {};
+    return readScopedFinancialState(fallbackDraft) ?? {};
   }
 }
 
 export function saveFinancialSession(changes) {
+  fallbackDraft = scopeFinancialState({ ...readFinancialSession(), ...changes });
   try {
-    sessionStorage.setItem(sessionKey, JSON.stringify(scopeFinancialState({ ...readFinancialSession(), ...changes })));
+    sessionStorage.setItem(sessionKey, JSON.stringify(fallbackDraft));
   } catch {
     // 저장소를 사용할 수 없어도 현재 화면에서 입력은 계속할 수 있다.
   }
+}
+
+export function clearFinancialDraft() {
+  fallbackDraft = null;
+  try { sessionStorage.removeItem(sessionKey); } catch { /* Current form remains usable. */ }
 }

@@ -19,12 +19,6 @@
 }
 
 /* 보완 5 추가: 개인정보 수집 항목 표 */
-.terms-example {
-  margin-bottom: var(--space-8);
-  color: #8b6100;
-  font-weight: 700;
-}
-
 .terms-table {
   width: 100%;
   margin: var(--space-8) 0;
@@ -43,4 +37,19 @@
   background: var(--color-surface);
   color: var(--color-text);
   white-space: nowrap;
+}
+
+/* 11-05: 서비스 이용약관 조항 (제목 + 문단) */
+.terms-article {
+  margin-top: var(--space-12);
+}
+
+.terms-article h3 {
+  margin-bottom: var(--space-4);
+  color: var(--color-text);
+  font-size: var(--font-body);
+}
+
+.terms-article p + p {
+  margin-top: var(--space-4);
 }

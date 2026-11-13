@@ -14,10 +14,12 @@ public class DiagnosisRow {
     private Long snapshotId;
     private Long analysisId;
     private Long userId;
+    private String requestId;
     private Long modelVersionId;
     private Long monthlyIncome;
     private Long monthlyExpense;
     private Long monthlyAvailable;
     private Long purchaseFunds;
     private Long priceUpper;
+    private Long otherIncome;       // 기타 월 정기소득 (11-04, 없으면 null)
 }

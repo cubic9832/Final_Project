@@ -4,6 +4,8 @@ import { BellOff, EllipsisVertical, Trash2 } from 'lucide-react';
 import theme from '../../../styles/theme';
 import { deleteNotification, setNotificationPreference } from '../notificationApi';
 
+// 11-05: 상담 알림(CHAT_*) 이름 추가
+
 export default function NotificationItem({ item, onRead, onRefresh, onError }) {
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);

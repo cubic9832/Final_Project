@@ -15,6 +15,8 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface ChatMapper {
+    // 목록의 100건 제한과 별개로 전체 대기 상담 수를 조회한다.
+    long countWaitingRooms();
 
     ChatRoomDto findRoomById(@Param("roomId") Long roomId);
 
@@ -23,7 +25,11 @@ public interface ChatMapper {
     void insertRoom(ChatRoomDto room);
 
     // 상태 바꾸기는 "지금 상태" 를 조건으로 건다 → 두 관리자가 동시에 눌러도 한 명만 성공 (바뀐 줄 수로 판단)
-    int reopen(@Param("roomId") Long roomId);
+    // 11-05: 종료 뒤 cooldownMinutes 분이 지나야 다시 열린다
+    int reopen(@Param("roomId") Long roomId, @Param("cooldownMinutes") int cooldownMinutes);
+
+    // 11-05: 무응답 상담 (마지막 메시지가 senderType · content 이고 minutes 분 지난 진행 중 상담)
+    List<Long> findIdleRoomIds(@Param("senderType") String senderType, @Param("content") String content, @Param("minutes") int minutes);
 
     int assign(@Param("roomId") Long roomId, @Param("adminId") Long adminId);
 
@@ -51,7 +57,7 @@ public interface ChatMapper {
 
     List<ChatFeedbackSummary> findFeedbackSummary();
 
-    List<ChatFeedbackDto> findFeedback(@Param("sort") String sort, @Param("reportedOnly") boolean reportedOnly,
+    List<ChatFeedbackDto> findFeedback(@Param("sort") String sort, @Param("reportedOnly") boolean reportedOnly, @Param("adminId") Long adminId,
                                        @Param("offset") int offset, @Param("size") int size);
 
     // 자주 쓰는 문구 (상담원마다)
@@ -63,11 +69,14 @@ public interface ChatMapper {
 
     int deleteQuickReply(@Param("id") Long id, @Param("adminId") Long adminId);
 
-    List<ChatRoomDto> findRooms(@Param("status") String status);
+    List<ChatRoomDto> findRooms(@Param("status") String status, @Param("offset") int offset);
 
     void insertMessage(ChatMessageDto message);
 
     void touchLastMessage(@Param("roomId") Long roomId);
+
+    // 11-05: 이 방에서 senderType 이 보낸 마지막 메시지 번호 (없으면 null) — 상담원 답장 알림을 회원 질문 하나에 한 번만
+    Long findLastMessageId(@Param("roomId") Long roomId, @Param("senderType") String senderType);
 
     ChatMessageDto findMessageById(@Param("messageId") Long messageId);
 

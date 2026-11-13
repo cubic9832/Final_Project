@@ -1,3 +1,4 @@
+import { scopeFinancialState } from '../../features/financial/financialSession.js';
 import { useCallback, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { googleLogin, login } from '../../features/auth/authApi';
@@ -9,6 +10,7 @@ import PasswordResetModal from './PasswordResetModal';
 import RecaptchaBox from './RecaptchaBox';
 import GoogleLoginButton from './GoogleLoginButton';
 import './LoginPage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // "이메일 저장"을 체크하고 로그인하면 이메일만 브라우저에 저장한다 (비밀번호 · 토큰은 저장하지 않는다)
@@ -75,6 +77,7 @@ export default function LoginPage() {
   const nextPath = useCallback(() => {
     const member = useAuthStore.getState().member;
     if (isAdminRole(member?.role)) return Promise.resolve('/console');
+    if (location.state?.resumeFinancial) return Promise.resolve('/financial/recommendations');
     return afterLoginPath(member?.id, location.state?.from ?? '/');
   }, [location.state]);
 
@@ -89,12 +92,12 @@ export default function LoginPage() {
           navigate('/signup/google', { state: signup });
           return;
         }
-        navigate(await nextPath(), { replace: true });
+        navigate(await nextPath(), { replace: true, state: location.state?.resumeFinancial ? scopeFinancialState(location.state.resumeFinancial) : undefined });
       } catch (error) {
         setLoginError(error.response?.data?.error?.message ?? '구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
       }
     },
-    [navigate, nextPath],
+    [navigate, nextPath, location.state],
   );
 
   // 입력할 때마다 값을 저장하고, 그 칸의 오류와 실패 문구는 지운다
@@ -130,7 +133,7 @@ export default function LoginPage() {
       await login({ email, password: form.password, recaptchaToken: captchaToken || undefined });
       writeSavedEmail(rememberEmail ? email : '');
       // 로그인이 필요한 화면에서 넘어왔으면 그 화면으로, 아니면 메인으로 이동한다 (보완 11: 취향 테스트 안 한 회원은 테스트로)
-      navigate(await nextPath(), { replace: true });
+      navigate(await nextPath(), { replace: true, state: location.state?.resumeFinancial ? scopeFinancialState(location.state.resumeFinancial) : undefined });
     } catch (error) {
       // 실패해도 이메일은 그대로 두고 비밀번호만 비운다
       const { code, message } = error.response?.data?.error ?? {};
@@ -165,7 +168,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page">
+    <div className="login-page page-fade-in">
       <div className="login-heading">
         <h1>로그인</h1>
         {/* 11-03 회의: 비회원 간편 체험 삭제 — "계정이 필요한 이유" 박스 대신 제목 아래 한 줄로 */}
@@ -227,14 +230,17 @@ export default function LoginPage() {
               </>
             )}
 
-            {loginError && (
-              <p className="login-error login-failed" role="alert">
-                {loginError}
-              </p>
-            )}
-            <button className="login-submit" type="submit" disabled={submitting}>
-              {submitting ? '로그인 중…' : '로그인'}
-            </button>
+            {/* 11-03: 로그인 실패 문구는 버튼 오른쪽 같은 줄 — 버튼 위에 끼면 버튼이 아래로 밀렸다 */}
+            <div className="login-submit-row">
+              <button className="login-submit" type="submit" disabled={submitting}>
+                {submitting ? '로그인 중…' : '로그인'}
+              </button>
+              {loginError && (
+                <p className="login-error login-failed" role="alert">
+                  {loginError}
+                </p>
+              )}
+            </div>
           </form>
 
           {/* 보완 8: 구글 로그인 */}
@@ -251,12 +257,6 @@ export default function LoginPage() {
           </p>
         </section>
       </div>
-
-      <footer className="login-footer">
-        <strong>CreditCompass</strong>
-        <p>첫차 구매 전, 감당 가능한 비용부터 확인하세요.</p>
-        <small>본 서비스는 교육·시연용이며 실제 NICE·KCB 신용점수나 금융기관 심사 결과를 의미하지 않습니다.</small>
-      </footer>
 
       {/* 비밀번호 찾기 팝업. 로그인 칸에 적은 이메일을 미리 채워 준다 */}
       {isResetOpen && (

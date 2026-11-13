@@ -53,6 +53,20 @@ class AdminModelServiceTests {
         return dir;
     }
 
+    @Test
+    void 후보는_학습_파일이_아닌_실행_서버에서_조회한다() throws Exception {
+        var upstream=new Upstream("http://runtime.test",true,"model-a","test",true,1,1);
+        when(registry.upstreams()).thenReturn(List.of(upstream));
+        when(registry.candidates(upstream)).thenReturn(JsonMapper.builder().build().readTree("[{\"id\":\"runtime\",\"brand\":\"runtime brand\",\"price\":23980000}]"));
+        assertThat(service().getCandidates()).extracting(com.kh.back.admin.dto.AdminCandidate::id).containsExactly("runtime");
+    }
+
+    @Test
+    void 실행_후보_조회_실패를_빈_목록으로_숨기지_않는다() {
+        when(registry.upstreams()).thenReturn(List.of());
+        assertThatThrownBy(() -> service().getCandidates()).isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+    }
+
     // 비교 표: 계열마다 다른 파일 모양을 같은 열로 맞추고, 추천 서버 · 비율 · 사용량 · 진단 수를 모델 이름으로 이어 붙인다
     @Test
     void 비교_표는_모든_학습_결과_폴더와_서빙_비율_사용량을_합친다() throws Exception {

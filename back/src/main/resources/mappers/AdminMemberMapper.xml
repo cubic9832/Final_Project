@@ -21,6 +21,10 @@
             <if test="role == 'USER'">
                 AND a.role IS NULL
             </if>
+            <!-- 권한 부여 대상 조회: 일반 회원과 관리자만 포함한다. 목록과 개수에 함께 적용한다. -->
+            <if test="role == 'NOT_SUPER_ADMIN'">
+                AND (a.role IS NULL OR a.role &lt;&gt; 'SUPER_ADMIN')
+            </if>
         </where>
     </sql>
 
@@ -37,6 +41,30 @@
         LEFT JOIN user_profiles p ON p.user_id = u.id
         <include refid="memberFilter"/>
         ORDER BY u.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="findMembersSorted" resultType="com.kh.back.admin.dto.AdminMemberRow">
+        SELECT u.id, u.email, u.nick_name, COALESCE(a.role, 'USER') AS role, u.created_at,
+               u.password_hash &lt;&gt; 'SOCIAL_ONLY' AS has_password,
+               EXISTS (SELECT 1 FROM social_accounts s WHERE s.user_id = u.id) AS has_google,
+               p.birth_date, p.gender,
+               (SELECT COUNT(*) FROM refresh_token r WHERE r.user_id = u.id AND r.expires_at &gt; NOW()) AS active_sessions,
+               (SELECT MAX(r.created_at) FROM refresh_token r WHERE r.user_id = u.id AND r.expires_at &gt; NOW()) AS last_used_at,
+               u.suspended_until, (u.suspended_until IS NOT NULL AND u.suspended_until &gt; NOW()) AS suspended
+        FROM users u
+        LEFT JOIN admin_accounts a ON a.user_id = u.id
+        LEFT JOIN user_profiles p ON p.user_id = u.id
+        <include refid="memberFilter"/>
+        ORDER BY
+        <choose>
+            <when test="sort == 'member'">u.nick_name</when>
+            <when test="sort == 'joinedAt'">u.created_at</when>
+            <when test="sort == 'loginMethod'">CASE WHEN u.password_hash &lt;&gt; 'SOCIAL_ONLY' AND EXISTS (SELECT 1 FROM social_accounts s WHERE s.user_id=u.id) THEN '이메일 · 구글' WHEN EXISTS (SELECT 1 FROM social_accounts s WHERE s.user_id=u.id) THEN '구글' ELSE '이메일' END</when>
+            <when test="sort == 'role'">CASE WHEN a.role='SUPER_ADMIN' THEN '총관리자' WHEN a.role='ADMIN' THEN '관리자' ELSE '일반 회원' END</when>
+            <otherwise>u.id</otherwise>
+        </choose>
+        <choose><when test="direction == 'DESC'">DESC</when><otherwise>ASC</otherwise></choose>, u.id DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
 

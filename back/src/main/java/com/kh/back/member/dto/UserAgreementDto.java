@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 보완 9: user_agreements 1행 (가입 동의 시각 · 이메일 알림 설정).
- * 화면 응답으로도 그대로 쓴다 (회원 번호 말고는 민감한 값이 없다).
+ * 보완 9: user_agreements 1행 (가입 동의 시각).
+ * 11-05: [선택] 차량 추천 업데이트 수신 · 이메일 알림 설정은 없앴다 — 칸(email_notification · updates_agreed_at)은 V14 그대로 두고 기본값만 넣는다
  */
 @Getter
 @Setter
@@ -17,25 +17,17 @@ public class UserAgreementDto {
     private Long userId;
     private LocalDateTime termsAgreedAt;
     private LocalDateTime privacyAgreedAt;
-    private String emailNotification;   // ALL · IMPORTANT · NONE
-    private LocalDateTime updatesAgreedAt;
+    private String emailNotification;   // 11-05 부터 쓰지 않음 (늘 IMPORTANT)
+    private LocalDateTime updatesAgreedAt; // 11-05 부터 쓰지 않음 (늘 null)
 
-    // 가입할 때: 필수 동의 2개는 지금 시각, [선택] 추천 업데이트에 동의했으면 알림 ALL + 동의 시각
-    public static UserAgreementDto atSignup(Long userId, boolean updatesAgreed, LocalDateTime now) {
+    // 가입할 때: 필수 동의 2개(서비스 이용약관 · 개인정보 수집 · 이용)는 지금 시각
+    public static UserAgreementDto atSignup(Long userId, LocalDateTime now) {
         UserAgreementDto agreement = new UserAgreementDto();
         agreement.setUserId(userId);
         agreement.setTermsAgreedAt(now);
         agreement.setPrivacyAgreedAt(now);
-        agreement.setEmailNotification(updatesAgreed ? "ALL" : DEFAULT_NOTIFICATION);
-        agreement.setUpdatesAgreedAt(updatesAgreed ? now : null);
-        return agreement;
-    }
-
-    // 표가 생기기 전에 가입한 회원 (행 없음) → 동의 기록 없음 · 알림 기본값
-    public static UserAgreementDto empty(Long userId) {
-        UserAgreementDto agreement = new UserAgreementDto();
-        agreement.setUserId(userId);
         agreement.setEmailNotification(DEFAULT_NOTIFICATION);
         return agreement;
     }
+
 }

@@ -9,6 +9,7 @@ public interface AdminMemberService {
 
     // 회원 목록 한 페이지 (page 는 1부터). keyword · role 은 비어 있으면 전체
     List<AdminMemberResponse> getMembers(String keyword, String role, int page, int size);
+    List<AdminMemberResponse> getMembers(String keyword, String role, int page, int size, String sort, String direction);
 
     int countMembers(String keyword, String role);
 

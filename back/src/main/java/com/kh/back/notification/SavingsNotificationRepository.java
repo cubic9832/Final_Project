@@ -11,21 +11,21 @@ public class SavingsNotificationRepository {
     private final JdbcTemplate jdbc;
 
     public boolean insert(long userId, SavingsNotificationRequest request, String title, String message) {
-        return insert(userId, request.eventKey(), request.type().name(), title, message);
+        return insert(userId, request.eventKey(), request.type(), title, message);
     }
 
-    boolean insert(long userId, String eventKey, String type, String title, String message) {
+    // 11-05: 상담 알림도 같은 표에 (eventKey · 종류를 직접 받는다)
+    public boolean insert(long userId, String eventKey, SavingsNotificationRequest.Type type, String title, String message) {
         // 재연결·여러 탭의 동일 이벤트 재전송은 고유 키로 멱등 처리한다.
         return jdbc.update("INSERT IGNORE INTO savings_notifications(user_id,event_key,title,message,notification_type) SELECT ?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM savings_notification_preferences WHERE user_id=? AND notification_type=? AND enabled=FALSE)",
-                userId, eventKey, title, message, type, userId, type) == 1;
+                userId, eventKey, title, message, type.name(), userId, type.name()) == 1;
     }
 
     public List<SavingsNotificationResponse> list(long userId) {
         return jdbc.query("SELECT * FROM savings_notifications WHERE user_id=? AND is_deleted=FALSE ORDER BY id DESC",
                 (rs, n) -> new SavingsNotificationResponse(rs.getLong("id"), userId, rs.getString("title"),
                         rs.getString("message"), rs.getBoolean("is_read"), rs.getTimestamp("created_at").toLocalDateTime(),
-                        NotificationType.CONSULTATION_REPLY.name().equals(rs.getString("notification_type"))
-                                ? "/mypage/consultation" : "/dream-car/progress",
+                        rs.getString("notification_type").startsWith("CHAT_") ? "/mypage/consultation" : "/dream-car/progress", // 11-05: 상담 알림은 상담 화면으로
                         rs.getString("notification_type")), userId);
     }
 
@@ -37,12 +37,12 @@ public class SavingsNotificationRepository {
     }
     public java.util.Map<String,Boolean> preferences(long userId) {
         var result = new java.util.HashMap<String,Boolean>();
-        for (var type : NotificationType.values()) result.put(type.name(),true);
+        for (var type : SavingsNotificationRequest.Type.values()) result.put(type.name(),true);
         jdbc.query("SELECT notification_type,enabled FROM savings_notification_preferences WHERE user_id=?",
                 (org.springframework.jdbc.core.RowCallbackHandler) rs -> result.put(rs.getString(1),rs.getBoolean(2)),userId);
         return result;
     }
-    public void preference(long userId, NotificationType type, boolean enabled) {
+    public void preference(long userId, SavingsNotificationRequest.Type type, boolean enabled) {
         jdbc.update("INSERT INTO savings_notification_preferences(user_id,notification_type,enabled) VALUES(?,?,?) ON DUPLICATE KEY UPDATE enabled=VALUES(enabled)",userId,type.name(),enabled);
     }
 }

@@ -6,15 +6,21 @@
   gap: var(--space-8);
 }
 
-.chat-thread .chat-connection {
+/* 수신 상태(ConnectionStatus) — 회원 상담 화면은 [상담 종료] 옆이라 .chat-thread 밖에서도 쓴다.
+   콤파와 겹치지 않게 이름은 chat-live 하나만 */
+.chat-live {
   margin: 0;
-  align-self: flex-end; /* 대화창 오른쪽 위 */
   font-size: var(--font-caption);
   color: var(--color-muted); /* 끊겼을 때: 다시 연결될 때까지 회색 */
+  white-space: nowrap;
 }
 
-.chat-thread .chat-connection.is-on {
+.chat-live.is-on {
   color: var(--color-mint-strong);
+}
+
+.chat-thread .chat-live {
+  align-self: flex-end; /* 관리자 상담 탭: 대화창 오른쪽 위 */
 }
 
 .chat-thread .chat-board {

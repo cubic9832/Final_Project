@@ -7,7 +7,7 @@ import java.util.List;
 public interface AdminAuditLogService {
 
     // 최근 순 한 페이지 (page 는 1부터). action 이 비어 있으면 전체
-    List<AdminAuditLogResponse> getLogs(String action, int page, int size);
+    List<AdminAuditLogResponse> getLogs(String action, int page, int size, String sort, String direction);
 
     int countLogs(String action);
 }

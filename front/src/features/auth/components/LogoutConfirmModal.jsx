@@ -1,7 +1,7 @@
 // 로그아웃 확인 팝업 (보완 1 · 회의 결정 "공용 모달")
-// 새 팝업 틀을 만들지 않고, 다른 팝업 7개가 함께 쓰는 공용 틀 AuthModal 에 내용만 넣는다.
+// 새 팝업 틀을 만들지 않고, 다른 팝업 7개가 함께 쓰는 공용 틀 Modal 에 내용만 넣는다.
 import { useState } from 'react';
-import AuthModal from './AuthModal';
+import Modal from '../../../shared/ui/Modal.jsx';
 
 export default function LogoutConfirmModal({ onConfirm, onClose }) {
   const [loggingOut, setLoggingOut] = useState(false); // 서버 로그아웃 요청 중 (버튼 비활성, 팝업 닫기 막기)
@@ -12,7 +12,7 @@ export default function LogoutConfirmModal({ onConfirm, onClose }) {
   }
 
   return (
-    <AuthModal title="로그아웃" onClose={onClose} busy={loggingOut} size="sm">
+    <Modal title="로그아웃" onClose={onClose} busy={loggingOut} size="sm">
       {(requestClose) => (
         <>
           <p>로그아웃하시겠습니까?</p>
@@ -32,6 +32,6 @@ export default function LogoutConfirmModal({ onConfirm, onClose }) {
           </div>
         </>
       )}
-    </AuthModal>
+    </Modal>
   );
 }

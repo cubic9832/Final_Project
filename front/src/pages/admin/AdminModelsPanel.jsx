@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { createModelPoller } from '../../features/admin/modelPolling.js';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Database } from 'lucide-react';
 import theme from '../../styles/theme';
 import ModelComparisonTable from './ModelComparisonTable';
@@ -15,28 +16,21 @@ const STARTING_POLL_MS = 3000; // 켜는 중인 모델이 있으면 이 간격�
 
 export default function AdminModelsPanel() {
   const [comparison, setComparison] = useState(); // undefined 불러오는 중 · null 실패
-  const [reloadKey, setReloadKey] = useState(0);
+  const pollerRef = useRef(null);
+  const [refreshError, setRefreshError] = useState(false);
   const [selectedRunId, setSelectedRunId] = useState(null); // 처음에는 아무 상세도 펼치지 않는다 (회원 관리와 같음)
 
-  // 다시 불러올 때는 지금 화면을 유지한 채 새 값으로 바꾼다 (입력 중인 비율 · 펼친 상세 유지)
   useEffect(() => {
-    const controller = new AbortController();
-    getModels(controller.signal)
-      .then(setComparison)
-      .catch(() => !controller.signal.aborted && setComparison((current) => (current === undefined ? null : current)));
-    return () => controller.abort();
-  }, [reloadKey]);
-
-  const reload = useCallback(() => setReloadKey((key) => key + 1), []);
-  const starting = comparison?.models.some((row) => row.serverState === 'STARTING');
-
-  useEffect(() => {
-    if (!starting) return undefined;
-    const timer = setTimeout(reload, STARTING_POLL_MS);
-    return () => clearTimeout(timer);
-  }, [starting, comparison, reload]);
-
-  const retry = () => { setComparison(undefined); reload(); };
+    const poller = createModelPoller({ load: getModels, delay: STARTING_POLL_MS,
+      onData: data => { setComparison(data); setRefreshError(false); },
+      onError: () => { setRefreshError(true); setComparison(current => current === undefined ? null : current); },
+    });
+    pollerRef.current = poller;
+    void poller.refresh();
+    return () => { poller.stop(); pollerRef.current = null; };
+  }, []);
+  const reload = useCallback(() => { void pollerRef.current?.refresh(); }, []);
+  const retry = reload;
 
   if (comparison === undefined) return <p className="admin-empty" role="status">모델 정보를 불러오는 중…</p>;
   if (comparison === null) {
@@ -45,6 +39,7 @@ export default function AdminModelsPanel() {
   }
 
   return <div className="admin-panel-stack">
+    {refreshError && <p role="alert">최신 모델 상태를 불러오지 못했습니다. <button type="button" onClick={reload}>다시 불러오기</button></p>}
     <ModelTrafficCard models={comparison.models} upstreams={comparison.upstreams} trafficConfigured={comparison.trafficConfigured}
       launcherEnabled={comparison.launcherEnabled} onChanged={reload} />
     <ModelComparisonTable models={comparison.models} upstreams={comparison.upstreams}

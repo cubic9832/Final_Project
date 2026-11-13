@@ -1,3 +1,5 @@
+import { sortTableRows } from '../adminTableData.js';
+
 export const fuelLabels = { GASOLINE: '가솔린', HYBRID: '하이브리드', DIESEL: '디젤', LPG: 'LPG', ELECTRIC: '전기' };
 export const seatStatusLabels = {
   'user-provided': '제조사 확인 전 (제공 목록 기준)',
@@ -14,7 +16,6 @@ export const qualityLabels = {
 export const needsSeatCheck = car => !car.seatsStatus?.startsWith('official-') || car.seatsStatus === 'official-reference-conflict';
 export const seatCheckLabel = car => needsSeatCheck(car) ? '정원 확인 필요' : '정원 확인 완료';
 const normalize = value => String(value ?? '').toLocaleLowerCase('ko-KR').replace(/\s+/g, '');
-const collator = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
 
 export function filterCandidates(candidates, keyword) {
   const terms = keyword.trim().split(/\s+/).filter(Boolean).map(normalize);
@@ -47,14 +48,5 @@ const sortValues = {
 };
 
 export function sortCandidates(candidates, sort) {
-  const valueOf = sortValues[sort.column];
-  if (!valueOf) return candidates;
-  return [...candidates].sort((left, right) => {
-    const a = valueOf(left), b = valueOf(right);
-    if (a == null && b == null) return right.listNumber - left.listNumber;
-    if (a == null) return 1;
-    if (b == null) return -1;
-    const compared = typeof a === 'number' ? a - b : collator.compare(a, b);
-    return (sort.direction === 'ASC' ? compared : -compared) || right.listNumber - left.listNumber;
-  });
+  return sortTableRows(candidates, sort, sortValues);
 }

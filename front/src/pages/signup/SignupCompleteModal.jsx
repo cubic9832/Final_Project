@@ -3,14 +3,14 @@
 import { CircleCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import theme from '../../styles/theme';
-import AuthModal from '../../features/auth/components/AuthModal';
+import Modal from '../../shared/ui/Modal.jsx';
 import './SignupCompleteModal.css';
 
 export default function SignupCompleteModal({ email, onClose }) {
   const navigate = useNavigate();
 
   return (
-    <AuthModal title="회원가입이 완료됐어요" onClose={() => { onClose(); navigate('/'); }} size="sm">
+    <Modal title="회원가입이 완료됐어요" onClose={() => { onClose(); navigate('/'); }} size="sm">
       {/* 보완 11: 체크 아이콘이 한 줄을 통째로 차지하지 않게 안내 문구 왼쪽에 나란히 둔다 */}
       <div className="signup-complete-head">
         <span className="signup-complete-icon" aria-hidden="true">
@@ -37,6 +37,6 @@ export default function SignupCompleteModal({ email, onClose }) {
           로그인하고 취향 테스트
         </button>
       </div>
-    </AuthModal>
+    </Modal>
   );
 }

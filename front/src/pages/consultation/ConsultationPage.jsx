@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import ChatThread from '../../features/chat/components/ChatThread';
+import ChatThread, { ConnectionStatus } from '../../features/chat/components/ChatThread';
 import ChatConfirmModal from '../../features/chat/components/ChatConfirmModal';
 import ChoiceWithOther from '../../features/chat/components/ChoiceWithOther';
 import { choiceText, OTHER } from '../../features/chat/choice';
@@ -11,6 +11,7 @@ import useChatRoom from '../../features/chat/useChatRoom';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
 import './ConsultationPage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
 
 const STATUS_LABELS = { WAITING: '상담원 연결 대기', ACTIVE: '상담 중', CLOSED: '상담 종료' };
 
@@ -35,7 +36,8 @@ export default function ConsultationPage() {
   }, [loadRoom]);
 
   const { room } = state;
-  const chat = useChatRoom(room?.id, loadRoom);
+  // 11-05: 종료된 상담은 WebSocket 을 닫는다 (수신 중 표시도 숨김)
+  const chat = useChatRoom(room?.id, loadRoom, room?.status !== 'CLOSED');
 
   // [상담 시작] · [새로 상담하기] → 대기
   async function handleStart() {
@@ -66,7 +68,7 @@ export default function ConsultationPage() {
   }
 
   return (
-    <div className="consult-page">
+    <div className="consult-page page-fade-in">
       {/* 지금 위치 — 개인정보 · 계정 관리(ProfilePage)와 같은 모양: 마이페이지 아래 화면 */}
       <nav className="consult-breadcrumb" aria-label="현재 위치">
         <Link to="/mypage">마이페이지</Link>
@@ -93,7 +95,7 @@ export default function ConsultationPage() {
         {state.status === 'done' && !room && (
           <div className="consult-start">
             <p><strong>{member?.nickName}님</strong>, 궁금한 점을 상담원에게 남겨 주세요.</p>
-            <button type="button" className="consult-button" onClick={handleStart} disabled={busy}>상담 시작</button>
+            <button type="button" className="consult-button consult-cta" onClick={handleStart} disabled={busy}>상담 시작</button>
           </div>
         )}
 
@@ -101,13 +103,15 @@ export default function ConsultationPage() {
           <>
             <div className="consult-status">
               <span className={`consult-badge is-${room.status.toLowerCase()}`}>{STATUS_LABELS[room.status]}</span>
-              {room.status === 'CLOSED'
-                ? <button type="button" className="consult-button" onClick={handleStart} disabled={busy || room.restricted}>새로 상담하기</button>
-                : <button type="button" className="consult-outline" onClick={() => setConfirmingClose(true)} disabled={busy}>상담 종료</button>}
+              {/* 오른쪽: 수신 상태 + 버튼 한 줄 (대화창 위에 따로 두면 빈 줄이 생긴다) */}
+              <div className="consult-status-actions">
+                {room.status !== 'CLOSED' && <ConnectionStatus connected={chat.connected} />}
+                {room.status === 'CLOSED'
+                  ? <button type="button" className="consult-button consult-cta" onClick={handleStart} disabled={busy || room.restricted}>새로 상담하기</button>
+                  : <button type="button" className="consult-outline" onClick={() => setConfirmingClose(true)} disabled={busy}>상담 종료</button>}
+              </div>
             </div>
-            {/* 상담원이 맡았던 상담이 끝나면 한 번 — 남기면 서버가 닫고(feedbackOpen=false) 다시 읽는다 */}
-            {room.status === 'CLOSED' && room.feedbackOpen && <FeedbackForm onDone={loadRoom} />}
-            <ChatThread
+            <ChatThread hasMore={chat.hasMore} loadingOlder={chat.loadingOlder} onLoadOlder={chat.loadOlder}
               messages={chat.messages}
               viewer="member"
               connected={chat.connected}
@@ -117,7 +121,11 @@ export default function ConsultationPage() {
                 ? `운영 정책 위반으로 ${restrictionLabel(room.restrictedUntil)} 중입니다. 새 상담을 시작할 수 없습니다.`
                 : '종료된 상담입니다. 더 궁금한 점이 있으면 [새로 상담하기]를 눌러 주세요.'}
               onSend={chat.send}
+              showConnection={false}
             />
+            {/* 상담원이 맡았던 상담이 끝나면 한 번 — 남기면 서버가 닫고(feedbackOpen=false) 다시 읽는다
+                11-04: 대화를 다 읽은 다음 평가하도록 대화창 아래에 둔다 */}
+            {room.status === 'CLOSED' && room.feedbackOpen && <FeedbackForm onDone={loadRoom} />}
           </>
         )}
         {actionError && <p className="consult-error" role="alert">{actionError}</p>}
@@ -181,14 +189,17 @@ function FeedbackForm({ onDone }) {
         onChoice={(choice) => setComment((prev) => ({ ...prev, choice }))} onOther={(other) => setComment((prev) => ({ ...prev, other }))} />
       <label className="consult-report-check">
         <input type="checkbox" checked={reported} onChange={(event) => setReported(event.target.checked)} />
-        상담원의 응대를 신고합니다 (운영 관리자만 확인해요)
+        상담원의 응대를 신고합니다
       </label>
       {reported && (
         <ChoiceWithOther label="신고 사유" options={REPORT_REASONS} choice={reason.choice} other={reason.other}
           onChoice={(choice) => setReason((prev) => ({ ...prev, choice }))} onOther={(other) => setReason((prev) => ({ ...prev, other }))} />
       )}
-      {error && <p className="consult-error" role="alert">{error}</p>}
-      <button type="submit" className="consult-button" disabled={saving || !ready}>{reported ? '평가 · 신고 보내기' : '평가 보내기'}</button>
+      {/* 11-03: 저장 실패 문구는 버튼 오른쪽 — 버튼 위에 끼면 버튼이 밀렸다 */}
+      <div className="consult-submit-row">
+        <button type="submit" className="consult-button" disabled={saving || !ready}>{reported ? '평가 · 신고 보내기' : '평가 보내기'}</button>
+        {error && <p className="consult-error" role="alert">{error}</p>}
+      </div>
     </form>
   );
 }

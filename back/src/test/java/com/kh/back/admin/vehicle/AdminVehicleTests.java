@@ -38,6 +38,7 @@ class AdminVehicleTests {
     private String admin(){
         member(999999L,"vehicle-api-test@example.com","차량 API 테스트");
         jdbc.update("INSERT INTO admin_accounts(user_id,role) VALUES(999999,'ADMIN') ON DUPLICATE KEY UPDATE role=VALUES(role)");
+        jdbc.update("INSERT IGNORE INTO admin_account_roles(user_id,role_id) SELECT 999999,id FROM admin_roles WHERE code='VEHICLE_MANAGER'");
         return "Bearer "+jwt.createAccessToken(999999L,"ADMIN");
     }
     private Map<String,Object> request(){
@@ -68,6 +69,16 @@ class AdminVehicleTests {
         mvc.perform(patch("/api/v1/admin/vehicles/"+id+"/deletion").header("Authorization",admin()).contentType(MediaType.APPLICATION_JSON).content("{\"version\":2,\"deleted\":false}")).andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("DRAFT"));
         payload.put("monthlyTax",-1);
         mvc.perform(post("/api/v1/admin/vehicles").header("Authorization",admin()).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(payload))).andExpect(status().isBadRequest());
+    }
+    @Test void restoringDeletedIdentityRejectsActiveDuplicate() throws Exception {
+        var payload=request();
+        String auth=admin();
+        String created=mvc.perform(post("/api/v1/admin/vehicles").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(payload))).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String id=mapper.readTree(created).path("data").path("id").asText();
+        mvc.perform(patch("/api/v1/admin/vehicles/"+id+"/deletion").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content("{\"version\":1,\"deleted\":true}")).andExpect(status().isOk());
+        mvc.perform(post("/api/v1/admin/vehicles").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(payload))).andExpect(status().isCreated());
+        mvc.perform(patch("/api/v1/admin/vehicles/"+id+"/deletion").header("Authorization",auth).contentType(MediaType.APPLICATION_JSON).content("{\"version\":2,\"deleted\":false}")).andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("SELECT status FROM managed_vehicles WHERE id=?",String.class,id)).isEqualTo("DELETED");
     }
     @Test void onlyAdministratorsCanManageVehicles() throws Exception {
         mvc.perform(get("/api/v1/admin/vehicles")).andExpect(status().isUnauthorized());

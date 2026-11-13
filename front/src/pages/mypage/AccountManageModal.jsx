@@ -2,7 +2,7 @@
 // 회원 탈퇴는 되돌릴 수 없는 위험한 작업이라 바깥 클릭·Esc로 닫히지 않고(dismissible=false),
 // 안내 확인 체크 + 비밀번호 확인을 해야 탈퇴 버튼이 켜진다. (보완 4: 탈퇴 API 연결)
 import { useState } from 'react';
-import AuthModal from '../../features/auth/components/AuthModal';
+import Modal from '../../shared/ui/Modal.jsx';
 import PasswordInput from '../../features/auth/components/PasswordInput';
 import './AccountManageModal.css';
 
@@ -28,7 +28,7 @@ export default function AccountManageModal({ socialOnly = false, onWithdraw, onC
   }
 
   return (
-    <AuthModal
+    <Modal
       title="회원 탈퇴"
       subtitle="계정을 삭제합니다."
       onClose={onClose}
@@ -89,11 +89,10 @@ export default function AccountManageModal({ socialOnly = false, onWithdraw, onC
           disabled={withdrawing}
         />
         )}
-        {error && (
-          <p className="account-manage-error" role="alert">
-            {error}
-          </p>
-        )}
+        {/* 11-03: 경고 자리를 늘 비워 둔다(내용만 바뀜) → 경고가 떠도 팝업 크기 · 입력칸이 움직이지 않음 */}
+        <p className="account-manage-error" role="alert">
+          {error}
+        </p>
       </section>
 
       <div className="auth-modal-actions">
@@ -109,6 +108,6 @@ export default function AccountManageModal({ socialOnly = false, onWithdraw, onC
           {withdrawing ? '처리 중…' : '회원 탈퇴'}
         </button>
       </div>
-    </AuthModal>
+    </Modal>
   );
 }

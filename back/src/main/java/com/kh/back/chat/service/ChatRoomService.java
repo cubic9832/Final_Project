@@ -27,6 +27,8 @@ public interface ChatRoomService {
 
     // ── 관리자 (관리자 · 총관리자) ──
     List<ChatRoomDto> getRooms(Long viewerId, String status);
+    List<ChatRoomDto> getRooms(Long viewerId, String status, int offset);
+    ChatRoomDto getRoom(Long viewerId, Long roomId);
 
     List<ChatAdminOption> getAdmins();
 
@@ -42,10 +44,16 @@ public interface ChatRoomService {
 
     void warn(Long actorId, Long roomId, String reason);
 
+    // 권한 변경 전에 진행 중인 담당 상담을 확인한다. 호출자는 권한 변경 잠금을 먼저 얻는다.
+    void requireNoActiveRoomsOf(List<Long> adminIds);
+
     void releaseRoomsOf(Long adminId);
 
     void closeForSuspension(Long userId);
 
     // 보완 15: 회원이 탈퇴하면 대기 · 진행 중 상담을 종료한다 (상담 기록은 남는다)
     void closeForWithdrawal(Long userId);
+
+    // 11-05 (멘토링): 무응답 상담 — 상담원 답 뒤 10분 조용하면 경고, 경고 뒤 5분 더 조용하면 자동 종료 (ChatIdleScheduler 가 1분마다)
+    void handleIdleRooms();
 }

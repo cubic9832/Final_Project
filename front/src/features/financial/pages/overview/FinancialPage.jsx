@@ -83,16 +83,20 @@ export default function FinancialPage() {
     { id: 'finance-review', category: '내 예산 확인', title: '입력한 금액이 맞나요?', description: '이 금액으로 차량 구매와 매달 유지비를 감당할 수 있는지 살펴볼게요.' },
   ];
   const question = questions[step];
-  const diagnosis = { values, assets: { deposit }, loans, detailedLoans, detailed, vehicle: readFinancialSession().vehicle ?? state?.vehicle, expenseBreakdown: breakdown };
-  function next() {
+  const diagnosis = { values, assets: { deposit }, loans, loanPayment, loanDetails, detailedLoans, detailed, vehicle: readFinancialSession().vehicle ?? state?.vehicle, expenseBreakdown: breakdown };
+  function beforeNext() {
     if (step === 2 && detailedLoans && loanDetails.some(loan => loan.payment === '')) {
       setErrors(previous => ({ ...previous, loanPayment: '등록한 대출의 월 상환액을 계산하거나 직접 입력해 주세요.' }));
-      return;
+      return false;
     }
-    if (step < questions.length - 1) { setStep(step + 1); return; }
+    if (step < questions.length - 1) return true;
     const fields = [[values.income, 0], [values.monthlyExpenses, 1], [deposit, 3]];
     const invalid = fields.find(([value]) => value === '' || !Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > 9999999999.99);
-    if (invalid) { setStep(invalid[1]); return; }
+    if (invalid) { setStep(invalid[1]); return false; }
+    return true;
+  }
+  function next() {
+    if (step < questions.length - 1) { setStep(step + 1); return; }
     navigate('/financial/environment', { state: diagnosis });
   }
   const reviewRows = [
@@ -102,7 +106,7 @@ export default function FinancialPage() {
   return <RecommendationSurvey phase="재무 정보" index={step} total={questions.length} question={question} diagnosis={diagnosis} onBudgetChange={changes => {
     if (changes.assets) setDeposit(changes.assets.deposit);
     if (changes.values) { setValues(changes.values); if ('detailed' in changes) { setBreakdown(changes.expenseBreakdown); setDetailed(changes.detailed); } if ('loanPayment' in changes) { setLoanPayment(changes.loanPayment); setLoanDetails(changes.loanDetails); setDetailedLoans(changes.detailedLoans); } }
-  }} formRef={formRef} canGoBack={step > 0} onEditSummary={id => { if (id in financialSummarySteps) setStep(financialSummarySteps[id]); }}
+  }} formRef={formRef} beforeNext={beforeNext} canGoBack={step > 0} onEditSummary={id => { if (id in financialSummarySteps) setStep(financialSummarySteps[id]); }}
     onBack={() => step ? setStep(step - 1) : navigate('/')} onNext={next}
     nextLabel={step === questions.length - 1 ? '이제 이용 조건 고르기' : '다음'}>
     <div className="financial-survey-input">

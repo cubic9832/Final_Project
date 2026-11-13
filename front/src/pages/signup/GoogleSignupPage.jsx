@@ -17,6 +17,7 @@ import {
 import BirthDateInput from './BirthDateInput';
 import TermsModal from './TermsModal';
 import './SignupPage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
 
 // [보기] 로 여는 약관 — 회원가입 화면과 같은 내용
 const TERMS = {
@@ -29,7 +30,6 @@ export default function GoogleSignupPage() {
   const pending = useLocation().state; // { signupToken, email, name } — 주소로 바로 들어오면 없다
   const [form, setForm] = useState({ phone: '', birthDate: '', gender: '' });
   const [agreed, setAgreed] = useState(false); // 필수 동의 (만 18세 이상 · 이용약관 · 개인정보 수집·이용)
-  const [updatesAgreed, setUpdatesAgreed] = useState(false); // 보완 9: [선택] 차량 추천 업데이트 수신
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -37,7 +37,7 @@ export default function GoogleSignupPage() {
 
   if (!pending?.signupToken) {
     return (
-      <div className="signup-page">
+      <div className="signup-page is-narrow page-fade-in">
         <section className="signup-form-card">
           <h2>구글로 가입하기</h2>
           <p className="signup-subtitle">로그인 화면에서 [Google 계정으로 계속하기]를 먼저 눌러 주세요.</p>
@@ -86,7 +86,6 @@ export default function GoogleSignupPage() {
         birthDate: form.birthDate,
         gender: form.gender,
         consent: agreed,
-        updatesAgreed,
       });
       // 새로 가입했으면 첫 차 취향 테스트로 (조원 취향 테스트 흐름), 자동으로 정한 닉네임은 토스트로 알린다
       navigate('/taste-test', { replace: true });
@@ -112,7 +111,7 @@ export default function GoogleSignupPage() {
   }
 
   return (
-    <div className="signup-page">
+    <div className="signup-page is-narrow page-fade-in">
       <header className="signup-heading">
         <h1>구글로 가입하기</h1>
         <p>처음 오셨네요. 가입을 마치려면 아래 정보를 입력해 주세요.</p>
@@ -121,7 +120,7 @@ export default function GoogleSignupPage() {
       <section className="signup-form-card" aria-labelledby="google-signup-title">
         <h2 id="google-signup-title">추가 정보</h2>
         <p className="signup-subtitle">
-          구글 계정 {pending.email} 으로 가입합니다. 비밀번호는 만들지 않고, 닉네임은 구글 이름으로 정해집니다.
+          구글 계정 {pending.email} 으로 가입합니다. 비밀번호는 만들지 않고, 닉네임은 구글 이름으로 정해집니다. <span className="form-required" aria-hidden="true">*</span> 표시는 필수 항목입니다.
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -217,29 +216,19 @@ export default function GoogleSignupPage() {
                 </button>
               </span>
             </div>
-            {/* 보완 9: [선택] 회원가입 화면과 같은 항목. 체크하면 이메일 알림 "모든 알림", 안 하면 "중요 계획 알림만" */}
-            <div className="signup-term">
-              <label htmlFor="google-updates">
-                <input
-                  id="google-updates"
-                  type="checkbox"
-                  checked={updatesAgreed}
-                  onChange={(event) => setUpdatesAgreed(event.target.checked)}
-                />
-                <span>[선택] 차량 추천 업데이트 소식을 받습니다.</span>
-              </label>
-            </div>
           </fieldset>
-          {renderError('terms')}
-
-          {serverError && (
-            <p className="signup-error" role="alert">
-              {serverError} <Link to="/login">로그인 화면으로</Link>
-            </p>
-          )}
-          <button className="signup-submit" type="submit" disabled={submitting}>
-            {submitting ? '가입 중…' : '가입 완료'}
-          </button>
+          {/* 11-03: 약관 · 가입 실패 문구는 버튼 오른쪽 같은 줄 (회원가입 화면과 같게) */}
+          <div className="signup-submit-row">
+            <button className="signup-submit" type="submit" disabled={submitting}>
+              {submitting ? '가입 중…' : '가입 완료'}
+            </button>
+            {renderError('terms')}
+            {serverError && (
+              <p className="signup-error" role="alert">
+                {serverError} <Link to="/login">로그인 화면으로</Link>
+              </p>
+            )}
+          </div>
         </form>
       </section>
 

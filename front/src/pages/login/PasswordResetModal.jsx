@@ -4,7 +4,7 @@
 // 이전에는 이메일 형식만 보고 "요청 완료" 화면만 보여 줬다 (실제 메일 · 변경 없음)
 // 보완 10: mode="setup" 이면 구글 전용 회원의 "비밀번호 만들기" (로그인 상태, 이메일 고정 → 끝나면 onDone 으로 알림)
 import { useEffect, useState } from 'react';
-import AuthModal from '../../features/auth/components/AuthModal';
+import Modal from '../../shared/ui/Modal.jsx';
 import PasswordInput from '../../features/auth/components/PasswordInput';
 import {
   confirmPasswordResetCode, confirmPasswordSetupCode, resetPassword, sendPasswordResetCode, sendPasswordSetupCode, setupPassword,
@@ -146,7 +146,7 @@ export default function PasswordResetModal({ initialEmail = '', mode = 'reset', 
 
   if (step === 'done') {
     return (
-      <AuthModal title="비밀번호를 바꿨어요" onClose={onClose} size="sm">
+      <Modal title="비밀번호를 바꿨어요" onClose={onClose} size="sm">
         <p className="password-reset-done">
           <strong>{email.trim()}</strong> 계정의 비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.
         </p>
@@ -156,18 +156,19 @@ export default function PasswordResetModal({ initialEmail = '', mode = 'reset', 
             확인
           </button>
         </div>
-      </AuthModal>
+      </Modal>
     );
   }
 
-  const errorText = error && (
+  // 11-03: 경고 자리를 늘 비워 둔다(내용만 바뀜) → 경고가 떠도 팝업 크기 · 입력칸이 움직이지 않음
+  const errorText = (
     <p className="auth-modal-error" role="alert">
       {error}
     </p>
   );
 
   return (
-    <AuthModal
+    <Modal
       title={texts.title}
       subtitle={step === 'password' ? '이메일 인증이 끝났어요. 새 비밀번호를 입력해 주세요.' : texts.intro}
       onClose={onClose}
@@ -304,6 +305,6 @@ export default function PasswordResetModal({ initialEmail = '', mode = 'reset', 
           </div>
         </form>
       )}
-    </AuthModal>
+    </Modal>
   );
 }

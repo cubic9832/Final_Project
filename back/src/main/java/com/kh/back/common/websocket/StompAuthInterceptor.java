@@ -4,9 +4,7 @@ import com.kh.back.chat.dto.ChatRoomDto;
 import com.kh.back.chat.mapper.ChatMapper;
 import com.kh.back.common.exception.ApiException;
 import com.kh.back.common.jwt.JwtProvider;
-import com.kh.back.common.security.CurrentRoleLookup;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -36,12 +34,11 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     private static final Pattern ROOM_APP = Pattern.compile("^/app/chat/rooms/(\\d+)$");     // SEND
     private static final String ADMIN_TOPIC = "/topic/admin/chat";
     private static final String MY_ERRORS = "/user/queue/errors";
-    private static final Set<String> ADMIN_ROLES = Set.of("ADMIN", "SUPER_ADMIN");
 
     private final JwtProvider jwtProvider;
     // ChatRoomService 가 아니라 Mapper 를 쓴다 (샘플과 같음) — ChatRoomService → 메시지 보내는 도구 → WebSocket 설정 → 이 인터셉터로 서로 물려 서버가 시작하지 못한다
     private final ChatMapper chatMapper;
-    private final CurrentRoleLookup currentRoleLookup;
+    private final com.kh.back.common.security.AdminScreenAccess adminScreenAccess;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -72,7 +69,7 @@ public class StompAuthInterceptor implements ChannelInterceptor {
                 }
                 if (ADMIN_TOPIC.equals(destination)) {
                     // 상담 목록 알림은 관리자 · 총관리자만 (지금 DB 의 권한)
-                    if (!ADMIN_ROLES.contains(currentRoleLookup.currentRole(userId))) {
+                    if (!adminScreenAccess.canUse(userId,"CHAT")) {
                         throw forbidden("허용되지 않은 주소입니다.");
                     }
                     return message;
@@ -95,7 +92,7 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     // 볼 수 있는 상담방: 방 주인(회원) 또는 관리자 · 총관리자 (ChatRoomServiceImpl.canView 와 같은 규칙)
     private boolean canView(Long userId, Long roomId) {
         ChatRoomDto room = chatMapper.findRoomById(roomId);
-        return room != null && (room.getUserId().equals(userId) || ADMIN_ROLES.contains(currentRoleLookup.currentRole(userId)));
+        return room != null && (room.getUserId().equals(userId) || adminScreenAccess.canUse(userId,"CHAT"));
     }
 
     private static ApiException forbidden(String message) {

@@ -25,6 +25,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
     private final CurrentRoleLookup currentRoleLookup; // 7단계: 관리자 API 는 DB 의 지금 권한으로
+    private final AdminScreenAccess adminScreenAccess;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -55,7 +56,6 @@ public class SecurityConfig {
                         //        토큰 검사는 연결 직후 STOMP CONNECT 에서 StompAuthInterceptor 가 한다 (강의 샘플 step4 와 같음)
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/vehicles/**").permitAll() // 차량 조회는 누구나 (비회원 차량 찾기)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll() // 종목 조회 예제
                         // 모델 관리: 추천 요청은 누구나 (비회원 재무 진단도 추천을 받는다). 비율대로 여러 추천 서버 중 하나로 넘긴다
                         .requestMatchers("/api/v1/recommendation/**").permitAll()
                         // 모델 관리: 모델별 트래픽 비율 바꾸기는 모든 사용자에게 영향 → 총관리자만 (아래 관리자 규칙보다 먼저)
@@ -66,7 +66,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/members/*/role").hasRole("SUPER_ADMIN")
                         // 7단계: 관리자 API 는 관리자(ADMIN) · 총관리자(SUPER_ADMIN)만 (토큰의 role → ROLE_…). 일반 회원 404(보완 11, 숨김), 비회원 401
                         // 조원이 /api/v1/admin/ 아래에 관리 API 를 만들면 이 규칙이 자동으로 걸린다
-                        .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/api/v1/admin/**").access((authentication, context) ->
+                            new org.springframework.security.authorization.AuthorizationDecision(adminScreenAccess.allowed(authentication.get(),context.getRequest())))
                         .anyRequest().authenticated())                                     // 나머지는 로그인 필요
 
                 // ④ 인증이 필요한데 없을 때의 응답 → 401 실패 봉투

@@ -1,0 +1,91 @@
+name: Deployment preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deployment-preflight
+  cancel-in-progress: false
+
+jobs:
+  verify-connection:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ap-northeast-2
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      AWS_ACCOUNT_ID: '621422876512'
+      INSTANCE_ID: i-0f5b5ee3350b32b6a
+      ARTIFACT_BUCKET: creditcompass-deploy-621422876512-ap-northeast-2
+      FRONTEND_BUCKET: creditcompass
+    steps:
+      - name: Validate role configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="arn:aws:iam::$AWS_ACCOUNT_ID:role/creditcompass-github-deploy-role"
+          test "$AWS_ROLE_ARN" = "$expected" || {
+            echo "::error::Set repository variable AWS_ROLE_ARN to the prepared GitHub deployment role."
+            exit 1
+          }
+
+      - name: Authenticate with AWS through OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: github-preflight-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: '621422876512'
+          mask-aws-account-id: true
+
+      - name: Verify account and managed instance
+        shell: bash
+        run: |
+          set -euo pipefail
+          account=$(aws sts get-caller-identity --query Account --output text)
+          test "$account" = "$AWS_ACCOUNT_ID"
+          status=$(aws ssm describe-instance-information \
+            --filters "Key=InstanceIds,Values=$INSTANCE_ID" \
+            --query 'InstanceInformationList[0].PingStatus' --output text)
+          test "$status" = Online || {
+            echo "::error::The deployment instance is not Online in Systems Manager."
+            exit 1
+          }
+          aws s3api head-bucket --bucket "$FRONTEND_BUCKET"
+
+      - name: Verify private artifact upload and download
+        shell: bash
+        run: |
+          set -euo pipefail
+          key="releases/preflight/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.txt"
+          printf '%s\n' "Deployment preflight $GITHUB_RUN_ID" > "$RUNNER_TEMP/preflight-upload.txt"
+          aws s3api put-object --bucket "$ARTIFACT_BUCKET" --key "$key" \
+            --body "$RUNNER_TEMP/preflight-upload.txt" --server-side-encryption AES256 >/dev/null
+          aws s3api get-object --bucket "$ARTIFACT_BUCKET" --key "$key" \
+            "$RUNNER_TEMP/preflight-download.txt" >/dev/null
+          cmp "$RUNNER_TEMP/preflight-upload.txt" "$RUNNER_TEMP/preflight-download.txt"
+
+      - name: Verify harmless EC2 command delivery
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' '{"commands":["printf DEPLOY_PREFLIGHT_OK"]}' > "$RUNNER_TEMP/ssm-preflight.json"
+          command_id=$(aws ssm send-command \
+            --document-name AWS-RunShellScript \
+            --instance-ids "$INSTANCE_ID" \
+            --parameters "file://$RUNNER_TEMP/ssm-preflight.json" \
+            --timeout-seconds 60 \
+            --query 'Command.CommandId' --output text)
+          aws ssm wait command-executed --command-id "$command_id" --instance-id "$INSTANCE_ID"
+          output=$(aws ssm get-command-invocation \
+            --command-id "$command_id" --instance-id "$INSTANCE_ID" \
+            --query StandardOutputContent --output text)
+          test "$output" = DEPLOY_PREFLIGHT_OK
+          printf 'GitHub OIDC, artifact storage and EC2 command delivery verified.\n'

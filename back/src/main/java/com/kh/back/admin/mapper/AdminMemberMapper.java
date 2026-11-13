@@ -15,6 +15,9 @@ public interface AdminMemberMapper {
     List<AdminMemberRow> findMembers(@Param("keyword") String keyword, @Param("role") String role,
                                      @Param("offset") int offset, @Param("size") int size);
 
+    List<AdminMemberRow> findMembersSorted(@Param("keyword") String keyword, @Param("role") String role,
+        @Param("offset") int offset, @Param("size") int size, @Param("sort") String sort, @Param("direction") String direction);
+
     int countMembers(@Param("keyword") String keyword, @Param("role") String role);
 
     int countAdmins(); // 관리자 + 총관리자

@@ -53,6 +53,16 @@
         UPDATE input_snapshots SET user_id = NULL WHERE user_id = #{userId}
     </update>
 
+    <!-- 현재 읽기 + 행 잠금으로 동시에 탈퇴해도 마지막 총관리자 한 명은 남긴다. -->
+    <select id="lockSuperAdminIds" resultType="long">
+        SELECT a.user_id
+        FROM admin_accounts a
+        JOIN users u ON u.id = a.user_id
+        WHERE a.role = 'SUPER_ADMIN' AND u.role &lt;&gt; 'WITHDRAWN'
+        ORDER BY a.user_id
+        FOR UPDATE
+    </select>
+
     <!-- 보완 15 (11-03 회의): 회원 줄은 지우지 않고 "탈퇴 회원" 으로 남긴다 — 상담 기록 · 신고 · 콤파 대화의 근거를 남기기 위해.
          개인정보는 알아볼 수 없는 값으로 바꾼다: 이메일이 바뀌므로 같은 이메일로 다시 가입하면 새 회원이 된다 (예전 기록과 연결 안 됨) -->
     <update id="anonymize">
@@ -87,4 +97,6 @@
         DELETE FROM chat_quick_reply WHERE admin_id = #{userId}
     </delete>
 
+    <delete id="deleteRecommendationInputs">DELETE FROM user_recommendation_inputs WHERE user_id = #{userId}</delete>
+    <select id="lockRecommendationInputsOwner" resultType="java.lang.Long">SELECT id FROM users WHERE id = #{userId} FOR UPDATE</select>
 </mapper>

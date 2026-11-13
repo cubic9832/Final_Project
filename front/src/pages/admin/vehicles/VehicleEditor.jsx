@@ -1,8 +1,9 @@
 import { vehicleInputAttributes, vehicleInputError, validateVehicleDraft } from './vehicleEditorValidation.js';
 import { formatVehiclePrice } from '../formatVehiclePrice.js';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Car, ImagePlus, Save, X } from 'lucide-react';
+import { Car, ImagePlus } from 'lucide-react';
 import theme from '../../../styles/theme';
+import AdminEditorFrame from '../components/AdminEditorFrame.jsx';
 import { emptyVehicle, vehicleFuels, vehicleStatuses } from './vehicleManagementExamples.js';
 
 function VehicleField({ name, label, value, onChange, options, suffix, required, error, ...props }) {
@@ -13,29 +14,25 @@ function VehicleField({ name, label, value, onChange, options, suffix, required,
   </div>{error && <p id={`${id}-error`} className="vehicle-editor-error">{error}</p>}</div>;
 }
 
-export default function VehicleEditor({ vehicle, onCancel, onSave, saving = false, saveError = '', fieldErrors = {} }) {
+export default function VehicleEditor({ vehicle, onCancel, onSave, saving = false, saveError = '', fieldErrors = {}, onDelete, onClone }) {
   const initial = { ...emptyVehicle, ...vehicle };
   const [draft, setDraft] = useState(initial);
-  const [discard, setDiscard] = useState(false);
   const [imageError, setImageError] = useState('');
   const [readingImage, setReadingImage] = useState(false);
   const [errors, setErrors] = useState({});
-  const heading = useRef(null);
   const picker = useRef(null);
   const reader = useRef(null);
   const editing = Boolean(vehicle?.id);
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
   useEffect(() => {
-    heading.current?.focus();
     return () => reader.current?.abort();
   }, []);
   const change = (name, value) => {
     const error = vehicleInputError(name, value);
     if (error) return false;
-    setDraft(current => ({ ...current, [name]: value })); setErrors(current => ({ ...current, [name]: '' })); setDiscard(false);
+    setDraft(current => ({ ...current, [name]: value })); setErrors(current => ({ ...current, [name]: '' }));
     return true;
   };
-  const close = () => { if (saving) return; if (dirty) setDiscard(true); else onCancel(); };
   const field = (name, label, props = {}) => <VehicleField name={name} label={label} value={draft[name]} onChange={change} error={errors[name] || fieldErrors[name]} disabled={saving} {...props} {...vehicleInputAttributes(name)} />;
   function upload(event) {
     const file = event.target.files?.[0];
@@ -62,9 +59,9 @@ export default function VehicleEditor({ vehicle, onCancel, onSave, saving = fals
     onSave(draft);
   }
   return <form className="vehicle-management vehicle-editor" aria-label={editing ? '차량 정보 수정' : '새 차량 등록'} onSubmit={save} noValidate>
-    <button type="button" className="admin-text-button vehicle-editor-back" disabled={saving} onClick={close}><ArrowLeft size={theme.iconSize.sm} aria-hidden="true" />차량 목록</button>
+    <AdminEditorFrame title={editing ? '차량 수정' : '차량 등록'} onCancel={onCancel} isDirty={dirty} busy={saving} saveDisabled={readingImage} onDelete={onDelete} deleteError={saveError} deleteMessage="차량을 삭제할까요? 삭제된 차량은 추천에서 제외되며 나중에 복구할 수 있습니다." secondaryActions={editing && onClone && <button type="button" className="admin-outline-button" disabled={saving || readingImage} onClick={() => onClone(draft)}>복제해서 등록</button>}>
     <div className="vehicle-editor-layout"><div className="admin-panel-stack">
-      <section className="admin-card"><div className="admin-card-heading"><div><h3 ref={heading} tabIndex={-1}>기본 정보</h3><p><span className="vehicle-editor-required">*</span> 표시는 필수 입력사항입니다.</p></div></div><div className="vehicle-editor-fields">
+      <section className="admin-card"><div className="admin-card-heading"><div><h3>기본 정보</h3><p><span className="vehicle-editor-required">*</span> 표시는 필수 입력사항입니다.</p></div></div><div className="vehicle-editor-fields">
         {field('brand', '브랜드', { required: true, placeholder: '예: 현대, 기아, BMW' })}
         {field('model', '모델명', { required: true, placeholder: '예: 쏘나타, 스포티지' })}
         {field('year', '연식', { placeholder: '예: 2026', suffix: '년형' })}
@@ -97,11 +94,9 @@ export default function VehicleEditor({ vehicle, onCancel, onSave, saving = fals
         <button type="button" className="admin-outline-button" disabled={readingImage || saving} onClick={() => picker.current?.click()}><ImagePlus size={theme.iconSize.sm} aria-hidden="true" />{readingImage ? '이미지 읽는 중' : draft.image ? '이미지 변경' : '이미지 선택'}</button>{draft.image && <button type="button" className="admin-outline-button" disabled={readingImage || saving} onClick={() => { change('image', ''); change('imageFile', null); if (picker.current) picker.current.value = ''; }}>이미지 제거</button>}<p className="vehicle-editor-hint">WebP, PNG, JPG · 최대 5MB<br />배경 없는 전면 사선 이미지를 권장해요.</p>{imageError && <p className="vehicle-editor-error" role="alert">{imageError}</p>}
         <div className="vehicle-editor-preview-info"><small>{draft.brand || '브랜드'} · {draft.fuel}</small><h4>{draft.model || '모델명'}</h4><p>{draft.trim || '트림명'}</p><strong>{draft.price ? formatVehiclePrice(draft.price) : '가격 미입력'}</strong></div>
       </section>
-      <section className="admin-card"><div className="admin-card-heading"><div><h3>관리 상태</h3><p>목록에 표시할 상태를 선택하세요.</p></div></div>{field('status', '상태', { options: vehicleStatuses })}<p className="vehicle-editor-hint">공개한 차량만 다음 추천 요청부터 반영됩니다. 판매 종료로 변경하면 추천에서 제외됩니다.</p></section>
+      <section className="admin-card"><div className="admin-card-heading"><div><h3>관리 상태</h3><p>목록에 표시할 상태를 선택하세요.</p></div></div>{field('status', '상태', { options: vehicleStatuses })}<p className="vehicle-editor-hint">공개 차량의 가격·제원·상태를 변경하면 학습 데이터와의 불일치로 추천이 일시 중단될 수 있습니다. 관리자 문서의 카탈로그 동기화·재학습 절차를 완료한 뒤 추천을 확인해 주세요.</p></section>
     </aside></div>
-    <footer className="vehicle-editor-footer">{discard ? <div className="vehicle-editor-discard" role="alert"><div><strong>작성한 내용을 저장하지 않고 닫을까요?</strong><p>편집 중인 내용은 사라집니다.</p></div><button type="button" className="admin-outline-button" onClick={() => setDiscard(false)}>계속 작성</button><button type="button" className="admin-primary-button" onClick={onCancel}>저장하지 않고 닫기</button></div>
-      : <><div><button type="button" className="admin-outline-button" disabled={saving} onClick={close}><X size={theme.iconSize.sm} aria-hidden="true" />취소</button><button type="submit" className="admin-primary-button" disabled={readingImage || saving} aria-busy={saving}><Save size={theme.iconSize.sm} aria-hidden="true" />{saving ? '저장 중…' : '저장'}</button></div></>}
-    </footer>
     {saveError && <p className="vehicle-editor-error" role="alert">{saveError}</p>}
+    </AdminEditorFrame>
   </form>;
 }

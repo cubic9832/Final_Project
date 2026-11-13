@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Cpu, Database, Lock, Mail, Server, UserRoundPen } from 'lucide-react';
+import { ArrowRight, ScrollText, Cpu, Database, Mail, Server, UserRoundPen, Car, MessagesSquare } from 'lucide-react';
 import theme from '../../styles/theme';
-import { describeLog, formatLogTime, personName } from './adminLogFormat';
+import { describeLog, formatLogTime, logActor, logTarget } from './adminLogFormat';
 import { getAdminOverview, getAuditLogs, getMailStatus, getMemberSummary, getModelServerInfo, getSystemStatus } from '../../features/admin/adminApi';
+import { getChatQueueSummary } from '../../features/chat/chatApi.js';
 import { listAdminVehicles } from './vehicles/adminVehicleApi';
+import './AdminOverviewPanel.css';
 import './AdminMembersPanel.css'; // 7일 막대(admin-member-trend) 같이 씀
 
 // 7단계 운영 현황 — 화면의 모든 값은 실제 데이터 (10-27: 남아 있던 고정 값도 모두 바꿈)
@@ -29,6 +31,7 @@ function useLoads(loaders) {
 // 컴포넌트 밖에 두어 매번 새로 만들어지지 않게 (useEffect 가 한 번만 돈다)
 const LOADERS = {
   members: getMemberSummary,
+  waitingChats: getChatQueueSummary,
   vehicles: (signal) => listAdminVehicles(signal).then((list) => list.filter((vehicle) => vehicle.status !== '삭제됨')),
   overview: getAdminOverview,
   system: getSystemStatus,
@@ -80,9 +83,14 @@ function serviceRows({ system, model, mail }) {
   ];
 }
 
-export default function AdminOverviewPanel() {
-  const data = useLoads(LOADERS);
-  const { members, vehicles, overview, model, mail, logs } = data;
+const SCREEN_BY_TAB = { overview: 'OVERVIEW', vehicles: 'VEHICLES', recommendations: 'RECOMMENDATIONS', members: 'MEMBERS', models: 'MODELS', logs: 'LOGS', chat: 'CHAT' };
+const ALL_SCREENS = Object.values(SCREEN_BY_TAB);
+const LOADER_SCREENS = { members: 'MEMBERS', vehicles: 'VEHICLES', logs: 'LOGS', waitingChats: 'CHAT' };
+export default function AdminOverviewPanel({ allowedScreens = ALL_SCREENS }) {
+  const can = code => allowedScreens.includes(code);
+  const loaders = useMemo(() => Object.fromEntries(Object.entries(LOADERS).filter(([key]) => !LOADER_SCREENS[key] || allowedScreens.includes(LOADER_SCREENS[key]))), [allowedScreens]);
+  const data = useLoads(loaders);
+  const { members, vehicles, overview, model, mail, logs, waitingChats } = data;
 
   const cards = [
     { label: '차량 데이터', value: show(vehicles, (list) => `${list.length}건`), note: '차량·트림 정보 관리', tab: 'vehicles' },
@@ -91,15 +99,18 @@ export default function AdminOverviewPanel() {
     { label: '적용 모델', value: show(model, (m) => m.info.modelBundle ?? m.info.modelVersion), note: model ? `학습 구조 ${model.info.rankerSchema}` : '차량 추천 모델', tab: 'models' },
   ];
 
-  // 먼저 확인할 작업: 실제 개수. 0 이면 "없음" 으로 흐리게
+  const visibleCards = cards.filter(card => can(SCREEN_BY_TAB[card.tab]));
+
+  // 점검 항목은 직접 처리 가능한 조치와 외부 확인이 필요한 상태를 구분한다.
   const tasks = [
-    { title: '생년월일 · 성별 미입력 회원', count: overview?.profileMissing, note: '연령대 통계와 추천에 쓰이는 정보 — 구글 가입 직후 등', tab: 'members', icon: UserRoundPen },
-    { title: '로그인이 잠긴 회원', count: overview?.lockedMembers, note: '비밀번호 5번 실패로 10분 잠금 — 회원 상세에서 잠금 해제', tab: 'members', icon: Lock },
-    { title: '추천 서버 연결', count: model === null ? 1 : model ? 0 : undefined, note: model === null ? '추천 서버가 응답하지 않습니다 (ml/serve-candidates.ps1 · .sh)' : '추천 서버가 정상 응답합니다', tab: 'models', icon: Cpu },
-    // 보완 13: 인증 메일 실패 — 메일 계정 · 앱 비밀번호 · 하루 발송 한도를 확인 (사유는 서비스 연결 상태의 "메일 발송" 줄)
-    { title: '인증 메일 발송 실패 (24시간)', count: mail?.failed, unit: '건', note: '메일 계정 · 앱 비밀번호 · 하루 발송 한도 확인 — 사유는 서비스 연결 상태에', tab: 'overview', icon: Mail },
+    { title: '검수 대기 차량', count: vehicles?.filter(vehicle => vehicle.status === '검수 대기').length, unit: '건', action: '차량 정보 검수 필요', note: '차량 제원과 가격을 확인하고 검수를 마친 차량만 공개해 주세요.', tab: 'vehicles', to: '/console?tab=vehicles&status=REVIEW', icon: Car },
+    { title: '미처리 상담', count: waitingChats?.waiting, unit: '건', action: '대기 상담 배정 필요', note: '상담원이 아직 맡지 않은 대기 상담입니다. 1:1 상담에서 맡기를 선택해 주세요.', tab: 'chat', icon: MessagesSquare },
+    { title: '생년월일 · 성별 미입력 회원', count: overview?.profileMissing, action: '회원 입력 필요', note: '미입력 정보는 회원이 내 계정에서 직접 입력할 수 있습니다.', tab: 'members', icon: UserRoundPen },
+    { title: '추천 서버 연결', count: model === null ? 1 : 0, unit: '', action: '서버 점검 필요', note: '연결 실패나 응답 지연일 수 있습니다. 모델 관리에서 상태를 확인하세요.', tab: 'models', icon: Cpu },
+    { title: '인증 메일 발송 실패 (24시간)', count: mail?.failed, unit: '건', action: '발송 설정 점검 필요', note: '서비스 상태에서 실패 사유를 확인하세요. 해결 후에도 최근 24시간 실패 기록은 집계됩니다.', tab: 'overview', icon: Mail },
   ];
-  const todo = tasks.filter((task) => task.count > 0).length;
+  const visibleTasks = tasks.filter(task => can(SCREEN_BY_TAB[task.tab]) && task.count > 0);
+  const todo = visibleTasks.length;
 
   const stats = overview?.diagnoses;
   const maxDaily = Math.max(1, ...(stats?.daily ?? []).map((day) => day.count));
@@ -107,16 +118,21 @@ export default function AdminOverviewPanel() {
   const maxDailyJoins = Math.max(1, ...(members?.daily ?? []).map(day => day.count));
 
   return <div className="admin-panel-stack">
-    <section className="admin-summary" aria-label="운영 요약">{cards.map(card => <Link className="admin-stat" to={`/console?tab=${card.tab}`} key={card.label}><span>{card.label}</span><strong>{card.value}</strong><small>{card.note}</small></Link>)}</section>
-    <div className="admin-grid-2">
-      <section className="admin-card"><div className="admin-card-heading"><div><h3>먼저 확인할 작업</h3><p>지금 처리가 필요한 항목입니다.</p></div><span className="admin-count-badge">{overview === undefined ? '확인 중' : `할 일 ${todo}개`}</span></div>
-        <div className="admin-task-list">{tasks.map(({ title, count, unit = '명', note, tab, icon: Icon }) => <Link key={title} to={`/console?tab=${tab}`} className="admin-task"><span className="admin-icon-box"><Icon size={theme.iconSize.md} aria-hidden="true" /></span><div><strong>{title} · {count === undefined ? '…' : title === '추천 서버 연결' ? (count ? '확인 필요' : '정상') : count ? `${count}${unit}` : '없음'}</strong><p>{note}</p></div><ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link>)}</div>
-      </section>
+    {visibleCards.length > 0 && <section className="admin-summary admin-overview-summary" aria-label="운영 요약">{visibleCards.map(card => <Link className="admin-stat" to={`/console?tab=${card.tab}`} key={card.label}><span>{card.label}</span><strong>{card.value}</strong><small>{card.note}</small></Link>)}</section>}
+    {can('CHAT') && waitingChats === null && <p className="admin-empty" role="alert">대기 상담 현황을 조회하지 못했습니다. <Link className="admin-text-button" to="/console?tab=chat">1:1 상담에서 확인</Link></p>}
+    <div className="admin-grid-2 admin-overview-services">
+      {todo > 0 && <section className="admin-card"><div className="admin-card-heading"><div><h3>운영 점검 사항</h3><p>확인이 필요한 상태와 항목별 조치를 안내합니다.</p></div><span className="admin-count-badge">{`확인 필요 ${todo}개`}</span></div>
+        <div className="admin-task-list">{visibleTasks.map(({ title, count, unit = '명', action, note, tab, to, icon: Icon }) => {
+          const TaskLink = tab === 'overview' ? 'a' : Link;
+          const destination = tab === 'overview' ? { href: '#admin-mail-status' } : { to: to || `/console?tab=${tab}` };
+          return <TaskLink key={title} {...destination} className="admin-task"><span className="admin-icon-box"><Icon size={theme.iconSize.md} aria-hidden="true" /></span><div><strong>{title}{unit && ` · ${count}${unit}`}</strong><span className="admin-overview-task-action">{action}</span><p>{note}</p></div><ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></TaskLink>;
+        })}</div>
+      </section>}
       <section className="admin-card"><div className="admin-card-heading"><div><h3>서비스 연결 상태</h3><p>화면을 열 때 서버 · DB · 추천 서버가 응답하는지, 인증 메일이 나가는지 확인합니다.</p></div></div>
-        <div className="admin-service-list" aria-live="polite">{services.map(service => { const Icon = serviceIcons[service.id]; const view = STATUS_VIEW[service.status]; return <div className="admin-service-row" key={service.id}><Icon size={theme.iconSize.md} aria-hidden="true" /><div><strong>{service.name}</strong><p>{service.detail}</p></div><span className={`admin-status ${view.className}`}>{view.label}</span></div>; })}</div>
+        <div className="admin-service-list" aria-live="polite">{services.map(service => { const Icon = serviceIcons[service.id]; const view = STATUS_VIEW[service.status]; return <div className="admin-service-row" key={service.id} id={service.id === 'mail' ? 'admin-mail-status' : undefined} tabIndex={service.id === 'mail' ? -1 : undefined}><Icon size={theme.iconSize.md} aria-hidden="true" /><div><strong>{service.name}</strong><p>{service.detail}</p></div><span className={`admin-status ${view.className}`}>{view.label}</span></div>; })}</div>
       </section>
     </div>
-    <section className="admin-card" aria-label="최근 7일 회원 가입 추이">
+    {can('MEMBERS') && <section className="admin-card" aria-label="최근 7일 회원 가입 추이">
       <div className="admin-card-heading"><div><h3>가입 추이</h3><p>최근 7일 날짜별 가입 수</p></div>{members && <span className="admin-count-badge">최근 7일 {members.newLast7Days.toLocaleString()}명</span>}</div>
       {members === undefined && <p className="admin-empty" role="status">가입 추이를 불러오는 중…</p>}
       {members === null && <p className="admin-empty" role="alert">가입 추이를 불러오지 못했습니다.</p>}
@@ -125,7 +141,7 @@ export default function AdminOverviewPanel() {
         <span className="admin-member-trend-bar" style={{ height: `${(day.count / maxDailyJoins) * 100}%` }} />
         <span className="admin-member-trend-date">{day.date.slice(5).replace('-', '.')}</span>
       </li>)}</ol>}
-    </section>
+    </section>}
     {/* 재무 진단 이용 현황 — 회원이 재무 진단 결과 화면에서 저장한 기록 (탈퇴 회원 제외) */}
     <section className="admin-card"><div className="admin-card-heading"><div><h3>재무 진단 이용 현황</h3><p>회원이 재무 진단을 마칠 때 저장되는 기록입니다.</p></div></div>
       {overview === null && <p className="admin-empty" role="alert">재무 진단 현황을 불러오지 못했습니다.</p>}
@@ -139,6 +155,6 @@ export default function AdminOverviewPanel() {
         <ol className="admin-member-trend" aria-label="최근 7일 날짜별 진단 수">{stats.daily.map(day => <li key={day.date}><span className="admin-member-trend-count">{day.count}</span><span className="admin-member-trend-bar" style={{ height: `${(day.count / maxDaily) * 100}%` }} /><span className="admin-member-trend-date">{day.date.slice(5).replace('-', '.')}</span></li>)}</ol>
       </div>}
     </section>
-    <section className="admin-card"><div className="admin-card-heading"><div><h3>최근 운영 이력</h3><p>관리자 작업과 서비스 변경 기록</p></div><Link className="admin-text-button" to="/console?tab=logs">전체 이력 보기<ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></div><div className="admin-activity-list">{logs === undefined && <p className="admin-empty" role="status">불러오는 중…</p>}{(logs === null || logs?.length === 0) && <p className="admin-empty">아직 기록된 관리자 작업이 없습니다.</p>}{logs?.map(log => <div className="admin-activity" key={log.id}><CheckCircle2 size={theme.iconSize.sm} aria-hidden="true" /><div><strong>{personName(log.targetNickName, log.targetId)} · {describeLog(log)}</strong><span>{personName(log.actorNickName, log.actorId)}</span></div><time>{formatLogTime(log.createdAt)}</time></div>)}</div></section>
+    {can('LOGS') && <section className="admin-card"><div className="admin-card-heading"><div><h3>최근 운영 이력</h3><p>최근 관리자 작업 내역을 확인합니다.</p></div><Link className="admin-text-button" to="/console?tab=logs">전체 이력 보기<ArrowRight size={theme.iconSize.sm} aria-hidden="true" /></Link></div><div className="admin-activity-list">{logs === undefined && <p className="admin-empty" role="status">불러오는 중…</p>}{logs === null && <p className="admin-empty" role="alert">운영 이력을 불러오지 못했습니다. <Link to="/console?tab=logs">이력 화면에서 다시 조회</Link></p>}{logs?.length === 0 && <p className="admin-empty">아직 기록된 관리자 작업이 없습니다.</p>}{logs?.map(log => <div className="admin-activity" key={log.id}><ScrollText size={theme.iconSize.sm} aria-hidden="true" /><div><strong>{logTarget(log)} · {describeLog(log)}</strong><span>{logActor(log)}</span></div><time>{formatLogTime(log.createdAt)}</time></div>)}</div></section>}
   </div>;
 }

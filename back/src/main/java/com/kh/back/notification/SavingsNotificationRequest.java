@@ -8,5 +8,6 @@ public record SavingsNotificationRequest(
         @NotBlank @Size(max=255) String eventKey,
         @NotNull Type type,
         @NotNull @DecimalMin("0.00") @DecimalMax("100000000000.00") BigDecimal amount) {
-    public enum Type { GOAL_REACHED, RECURRING_RECORDED }
+    // 11-05: CHAT_* 는 1:1 상담 알림 (서버의 ChatRoomServiceImpl 만 만든다 — 이 요청으로는 받지 않음)
+    public enum Type { GOAL_REACHED, RECURRING_RECORDED, CHAT_REPLY, CHAT_IDLE_WARNING }
 }

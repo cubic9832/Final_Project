@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Compass, Car, ClipboardList, BookOpen, ChevronRight, Info, X, Send, RotateCcw } from 'lucide-react';
 import theme from '../../styles/theme';
 import { sendChatMessage, sendChatGuide, getChatHistory, clearChatHistory } from './chatApi';
@@ -26,6 +27,7 @@ const categories = [
 ];
 
 export default function ChatWidget() {
+  const consultation = useLocation().pathname === '/mypage/consultation';
   const open = useChatStore((state) => state.open);
   const setOpen = useChatStore((state) => state.setOpen);
   const questionRequest = useChatStore((state) => state.questionRequest);
@@ -174,7 +176,7 @@ export default function ChatWidget() {
       if (!mounted.current) return;
       setRemaining(result.remaining);
       setMessages((current) => [...current, { id: result.questionId, role: 'user', text: result.question },
-        { id: result.answerId, role: 'model', text: result.answer, rating: null }]);
+        { id: result.answerId, role: 'model', text: result.answer, rating: null, consultSuggested: result.consultSuggested }]);
     } catch (failure) {
       if (mounted.current) {
         if (!guideId) setDraft(question);
@@ -210,7 +212,7 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="chat-widget">
+    <div className={`chat-widget${consultation ? ' is-consultation' : ''}`}>
       {open && (
         <section className="chat-panel" id="chat-panel" ref={panel} role="region" aria-labelledby="chat-title">
           <header className="chat-header">
@@ -244,8 +246,6 @@ export default function ChatWidget() {
           </header>
           <div className="chat-messages" ref={messageArea} role="log" aria-label="콤파와의 대화" aria-live="polite" aria-relevant="additions text">
             <p className="chat-conversation-note">AI가 안내한 내용은 참고하시고,<br />중요한 정보는 한 번 더 확인해 주세요.</p>
-            {/* 8단계(류상민): 상담원 1:1 상담으로 이동하는 버튼만 추가 — 콤파 기능은 그대로 */}
-            <ConsultationLink onNavigate={close} />
             {messages.length === 0 && !pending ? (
               <div className="chat-welcome">
                 <span className="chat-welcome-label">서비스 이용부터 자동차 용어까지</span>
@@ -277,6 +277,8 @@ export default function ChatWidget() {
                 <p>{message.text}</p>
                 {message.role === 'model' && <ChatFeedback message={message} onRated={(id, rating) =>
                   setMessages((current) => current.map((item) => item.id === id ? { ...item, rating } : item))} />}
+                {/* 11-05: 원하는 답을 못 얻었을 때(서버 판단 또는 [싫어요]) 1:1 상담으로 — 누르면 콤파를 닫고 상담 화면 */}
+                {message.role === 'model' && (message.consultSuggested || message.rating === 'DISLIKE') && <ConsultationLink onNavigate={close} />}
               </div>
             ))}
             {pending && <div className="chat-progress" role="status">

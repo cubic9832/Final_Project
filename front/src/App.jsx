@@ -1,3 +1,4 @@
+import RecommendationInputsProvider from './features/financial/RecommendationInputsProvider.jsx';
 import { useEffect } from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 
@@ -7,8 +8,6 @@ import GuestOnly from './components/GuestOnly';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 import RequireAdmin from './components/RequireAdmin';
-import CompanyDetailPage from './features/company/pages/detail/CompanyDetailPage';
-import CompanyListPage from './features/company/pages/list/CompanyListPage';
 import AboutPreviewPage from './pages/about-preview/AboutPreviewPage';
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/login/LoginPage';
@@ -22,11 +21,11 @@ import FinancialResultPage from './features/financial/pages/result/FinancialResu
 import RecommendationDetailsPage from './features/financial/pages/recommendations/RecommendationDetailsPage';
 import FinancialRecommendationsPage from './features/financial/pages/recommendations/FinancialRecommendationsPage';
 import AdminPage from './pages/admin/AdminPage';
+import AdminAccountPage from './pages/admin/AdminAccountPage';
 import ConsultationPage from './pages/consultation/ConsultationPage';
 import MyPage from './pages/mypage/MyPage';
 import ProfilePage from './pages/mypage/ProfilePage';
 import NotFound from './pages/not-found/NotFound';
-import PredictPage from './pages/predict/PredictPage';
 import SignupPage from './pages/signup/SignupPage';
 import GoogleSignupPage from './pages/signup/GoogleSignupPage';
 import VehicleCatalogGate from './features/vehicle/components/VehicleCatalogGate';
@@ -44,7 +43,7 @@ import SavingsProgressPage from './features/dream-car/pages/progress/SavingsProg
 function FinancialSessionRoutes() {
   const initialized = useAuthStore(state => state.initialized);
   const memberId = useAuthStore(state => state.member?.id);
-  return initialized ? <Outlet key={memberId ?? 'guest'} /> : <AuthPending />;
+  return initialized ? <RecommendationInputsProvider key={memberId ?? 'guest'}><Outlet /></RecommendationInputsProvider> : <AuthPending />;
 }
 
 function App() {
@@ -55,6 +54,7 @@ function App() {
       .finally(() => useAuthStore.getState().setInitialized());
   }, []);
 
+  const memberId = useAuthStore(state => state.member?.id ?? 'guest');
   return (
     <VehicleProvider>
     <Routes>
@@ -62,9 +62,9 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPreviewPage />} />
         <Route path="/about-preview" element={<Navigate to="/about" replace />} />
-        <Route path="/dream-car" element={<DreamCarPlannerPage />} />
+        <Route path="/dream-car" element={<DreamCarPlannerPage key={memberId} />} />
         <Route path="/dream-car/calculation-guide" element={<DreamCarCalculationGuidePage />} />
-        <Route path="/dream-car/progress" element={<SavingsProgressPage />} />
+        <Route path="/dream-car/progress" element={<SavingsProgressPage key={memberId} />} />
         {/* 보완 1 추가: 로그인 · 회원가입은 로그인 전에만 — 이미 로그인했으면 GuestOnly 가 메인으로 보낸다 */}
         <Route element={<GuestOnly />}>
           <Route path="/login" element={<LoginPage />} />
@@ -75,7 +75,7 @@ function App() {
         {/* 로그인이 필요한 화면 — 로그인 전이면 RequireAuth 가 /login 으로 보낸다 */}
         <Route element={<RequireAuth />}>
           <Route path="/taste-test" element={<TasteTestPage />} />
-          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/mypage" element={<MyPage key={memberId} />} />
           {/* 6단계: 개인정보 · 계정 관리 */}
           <Route path="/mypage/profile" element={<ProfilePage />} />
           {/* 8단계: 1:1 상담 (마이페이지 · 콤파의 [1:1 상담] 버튼) — 마이페이지 아래 화면이라 /mypage/... */}
@@ -92,14 +92,11 @@ function App() {
           <Route path="/financial/recommendations/details" element={<RecommendationDetailsPage />} />
           <Route path="/financial/recommendations" element={<FinancialRecommendationsPage />} />
         </Route>
-        <Route path="/companies" element={<CompanyListPage />} />
-        <Route path="/companies/:code" element={<CompanyDetailPage />} />
         <Route path="/search" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />
         <Route path="/vehicles" element={<VehicleCatalogGate><VehicleResultsPage /></VehicleCatalogGate>} />
         <Route path="/vehicles/compare" element={<VehicleComparePage />} />
         <Route path="/vehicles/:id" element={<VehicleCatalogGate><VehicleDetailPage /></VehicleCatalogGate>} />
         <Route path="/vehicles/:id/simulation" element={<VehicleCatalogGate><VehicleSimulationPage /></VehicleCatalogGate>} />
-        <Route path="/predict" element={<PredictPage />} />
         {/* 보완 11: 없는 주소 — 헤더가 있는 404 화면 (관리자가 아닌 사람이 /console 에 들어와도 똑같이 보인다) */}
         <Route path="*" element={<NotFound />} />
       </Route>
@@ -107,6 +104,7 @@ function App() {
       {/* 관리자 로그인 화면은 없앴다: 관리자도 일반 로그인(/login) 후 헤더 · 마이페이지의 "관리자 대시보드" 로 들어온다 */}
       <Route path="/console" element={<RequireAdmin />}>
         <Route index element={<AdminPage />} />
+        <Route path="account" element={<AdminAccountPage />} />
       </Route>
     </Routes>
     </VehicleProvider>

@@ -1,10 +1,10 @@
 // 알려진 대표 모델은 로컬 사진을 우선해 외부 서버 장애와 DB의 NULL 주소에 영향받지 않는다.
 const modelImages = [
-  ['모닝', '/images/recommendations/cutouts/morning.png'],
-  ['레이', '/images/recommendations/cutouts/ray.png'],
-  ['아반떼', '/images/recommendations/cutouts/avante.png'],
-  ['K5', '/images/recommendations/cutouts/k5.png'],
-  ['스포티지', '/images/recommendations/cutouts/sportage.png'],
+  ['모닝', '/images/recommendations/cutouts/morning.webp'],
+  ['레이', '/images/recommendations/cutouts/ray.webp'],
+  ['아반떼', '/images/recommendations/cutouts/avante.webp'],
+  ['K5', '/images/recommendations/cutouts/k5.webp'],
+  ['스포티지', '/images/recommendations/cutouts/sportage.webp'],
   ['쏘렌토', '/images/taste-test/sorento.png'],
   ['카니발', '/images/taste-test/carnival.png'],
   ['EV3', '/images/taste-test/ev3.png'],

@@ -10,7 +10,6 @@ import com.kh.back.admin.mapper.AdminMemberMapper;
 import com.kh.back.auth.mapper.RefreshTokenMapper;
 import com.kh.back.auth.service.LoginAttemptLimiter;
 import com.kh.back.chat.service.ChatRoomService;
-import com.kh.back.common.security.CurrentRoleLookup;
 import com.kh.back.member.service.AccountSuspension;
 import com.kh.back.common.exception.ApiException;
 import java.time.LocalDate;
@@ -37,8 +36,8 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     private final LoginAttemptLimiter loginAttemptLimiter; // 보완 6: 로그인 5번 실패 잠금 (서버 메모리)
     private final RefreshTokenMapper refreshTokenMapper;
     private final AdminAuditLogMapper adminAuditLogMapper; // V13: 운영 로그
-    private final ChatRoomService chatRoomService; // 8단계: 관리자에서 해제되면 맡던 상담을 대기로
-    private final CurrentRoleLookup currentRoleLookup; // 9단계: 계정 정지는 총관리자만 (DB 의 지금 권한)
+    private final com.kh.back.admin.repository.AdminPermissionRepository adminPermissions;
+    private final ChatRoomService chatRoomService; // 진행 중인 상담이 있으면 관리자 권한 회수를 차단한다.
 
     @Override
     @Transactional(readOnly = true)
@@ -47,6 +46,24 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         return adminMemberMapper.findMembers(blankToNull(keyword), blankToNull(role), offset, size).stream()
                 .map(row -> AdminMemberResponse.from(row, loginAttemptLimiter.lockedMinutesLeft(row.getEmail())))
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdminMemberResponse> getMembers(String keyword, String role, int page, int size, String sort, String direction) {
+        if (sort == null || sort.isBlank()) return getMembers(keyword, role, page, size);
+        if (!List.of("number", "member", "joinedAt", "loginMethod", "role", "status").contains(sort))
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_SORT", "정렬 항목을 확인해 주세요.");
+        if (!"status".equals(sort)) return adminMemberMapper.findMembersSorted(blankToNull(keyword), blankToNull(role), (page-1)*size, size, sort, direction).stream()
+            .map(row -> AdminMemberResponse.from(row, loginAttemptLimiter.lockedMinutesLeft(row.getEmail()))).toList();
+        // 로그인 잠금은 서버 메모리 상태이므로 이 정렬만 전체 상태를 평가한 뒤 페이지를 나눈다.
+        java.util.Comparator<AdminMemberResponse> comparator = java.util.Comparator.comparing((AdminMemberResponse m) ->
+            m.suspendedUntil() != null ? m.suspendedUntil().getYear() == 9999 ? "영구 정지" : "기간 정지"
+            : m.lockedMinutes() > 0 ? "로그인 잠금 " + m.lockedMinutes() + "분" : "정상", java.text.Collator.getInstance(java.util.Locale.KOREAN));
+        if ("DESC".equals(direction)) comparator = comparator.reversed();
+        return getMembers(keyword, role, 1, Integer.MAX_VALUE).stream()
+            .sorted(comparator.thenComparing(AdminMemberResponse::id))
+            .skip((long)(page - 1) * size).limit(size).toList();
     }
 
     @Override
@@ -87,6 +104,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     @Override
     @Transactional
     public void changeRole(Long actorId, Long targetId, String role) {
+        adminPermissions.lock();
         if (actorId.equals(targetId)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "SELF_ROLE_CHANGE", "자기 자신의 권한은 바꿀 수 없습니다.");
         }
@@ -102,10 +120,11 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         }
         // 보완 11: 권한은 admin_accounts 표 — 일반 회원으로 되돌리면 표에서 지우고, 관리자로 지정하면 넣는다 (누가 지정했는지는 운영 로그에 남는다)
         if ("USER".equals(role)) {
+            chatRoomService.requireNoActiveRoomsOf(List.of(targetId));
             adminMemberMapper.revokeAdmin(targetId);
-            chatRoomService.releaseRoomsOf(targetId); // 8단계: 맡던 진행 중 상담 → 대기 (다른 관리자가 다시 맡는다)
         } else {
             adminMemberMapper.grantAdmin(targetId, role); // 누가 지정했는지는 아래 운영 로그(ROLE_CHANGE)에 남는다
+            if ("ADMIN".equals(role) && !"ADMIN".equals(current)) adminPermissions.assignLegacyRole(targetId);
         }
         // 운영 로그: 누가 누구를 무엇으로 바꿨는지 (같은 트랜잭션 → 기록이 실패하면 권한 변경도 취소)
         adminAuditLogMapper.insert(actorId, "ROLE_CHANGE", "MEMBER", targetId, current + " → " + role);
@@ -125,13 +144,12 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         adminAuditLogMapper.insert(actorId, "LOGIN_UNLOCK", "MEMBER", targetId, "로그인 잠금 해제");
     }
 
-    // 9단계: 계정 정지 — 총관리자만, 일반 회원만 (관리자는 먼저 권한을 뺀다), 자기 자신은 안 됨
+    // 9단계: 계정 정지 — 관리자 · 총관리자 누구나(11-03, 주소가 /admin/** 라 관리자만 들어온다), 일반 회원만 (관리자는 먼저 권한을 뺀다), 자기 자신은 안 됨
     // 정지 = 정지가 끝나는 시각 저장 + 로그인된 기기 모두 로그아웃 → 로그인 · 로그인 유지 · 탈퇴가 막힌다 (AccountSuspension)
     //   이미 받은 access token 은 최대 30분 남는다 (5단계와 같은 한계)
     @Override
     @Transactional
     public void suspend(Long actorId, Long targetId, int days, String reason) {
-        requireSuperAdmin(actorId);
         String role = targetRole(actorId, targetId);
         if (!"USER".equals(role)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "ADMIN_SUSPEND", "관리자는 정지할 수 없습니다. 먼저 관리자 권한을 빼 주세요.");
@@ -146,17 +164,9 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     @Override
     @Transactional
     public void unsuspend(Long actorId, Long targetId) {
-        requireSuperAdmin(actorId);
         targetRole(actorId, targetId);
         adminMemberMapper.unsuspend(targetId);
         adminAuditLogMapper.insert(actorId, "MEMBER_UNSUSPEND", "MEMBER", targetId, "계정 정지 풀기");
-    }
-
-    // 계정 정지 · 풀기는 총관리자만 (DB 의 지금 권한으로 확인)
-    private void requireSuperAdmin(Long actorId) {
-        if (!"SUPER_ADMIN".equals(currentRoleLookup.currentRole(actorId))) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "SUPER_ADMIN_ONLY", "계정 정지는 총관리자만 할 수 있습니다.");
-        }
     }
 
     // 대상 회원의 권한 (자기 자신이면 거절, 없으면 404)

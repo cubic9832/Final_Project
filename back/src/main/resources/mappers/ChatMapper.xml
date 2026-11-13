@@ -35,12 +35,29 @@
         INSERT INTO chat_room (user_id, status) VALUES (#{userId}, 'WAITING')
     </insert>
 
-    <!-- 종료된 상담을 다시: 대기로, 담당자는 비운다. 상담 제한 중이면 0줄 -->
+    <!-- 종료된 상담을 다시: 대기로, 담당자는 비운다. 상담 제한 중이면 0줄
+         11-05: 종료 직후 cooldownMinutes 분 동안도 0줄 (열었다 닫았다 반복 막기 — 멘토링).
+                종료 안내(SYSTEM)를 남길 때 last_message_at 이 바뀌므로 그 시각을 종료 시각으로 본다 -->
     <update id="reopen">
         UPDATE chat_room SET status = 'WAITING', assigned_admin_id = NULL, feedback_open = FALSE
         WHERE id = #{roomId} AND status = 'CLOSED'
           AND (restricted_until IS NULL OR restricted_until &lt;= NOW())
+          AND (last_message_at IS NULL OR last_message_at &lt;= NOW() - INTERVAL #{cooldownMinutes} MINUTE)
     </update>
+
+    <!-- 11-05 (멘토링): 무응답 상담 찾기 — 진행 중이고, 마지막 메시지가 senderType(+ content) 이고, minutes 분 넘게 지난 방
+         · 상담원 답(ADMIN) 뒤로 회원이 조용함 → 경고 대상
+         · 무응답 경고(SYSTEM) 뒤로도 조용함 → 자동 종료 대상
+         회원이 한 마디라도 하면 마지막 메시지가 USER 가 되어 둘 다 빠진다 -->
+    <select id="findIdleRoomIds" resultType="long">
+        SELECT r.id
+        FROM chat_room r
+        JOIN chat_message m ON m.id = (SELECT MAX(x.id) FROM chat_message x WHERE x.room_id = r.id)
+        WHERE r.status = 'ACTIVE'
+          AND m.sender_type = #{senderType}
+          <if test="content != null">AND m.content = #{content}</if>
+          AND m.created_at &lt;= NOW() - INTERVAL #{minutes} MINUTE
+    </select>
 
     <!-- 상담 제한: 지금부터 days 일 뒤까지 새 상담 불가. days = 0 이면 영구 (끝나지 않는 날짜로) -->
     <update id="restrict">
@@ -100,7 +117,7 @@
         ORDER BY f.id DESC
     </select>
 
-    <!-- 전체 평가 목록 — 총관리자 (정렬: low 평점 낮은순 · high 높은순 · 그 밖은 최신순, reportedOnly 면 신고만)
+    <!-- 전체 평가 목록 — 총관리자 (정렬: low 평점 낮은순 · high 높은순 · 그 밖은 최신순, reportedOnly 면 신고만, adminId 면 그 상담원만)
          보완 13: 한 번에 size 개씩, offset 만큼 건너뛰고 ([더 보기]) -->
 
     <select id="findFeedback" resultType="com.kh.back.chat.dto.ChatFeedbackDto">
@@ -112,6 +129,8 @@
         LEFT JOIN users a ON a.id = f.admin_id
         <where>
             <if test="reportedOnly">f.reported</if>
+            <!-- 11-05: 상담원 한 명만 -->
+            <if test="adminId != null">AND f.admin_id = #{adminId}</if>
         </where>
         <choose>
             <when test="sort == 'low'">ORDER BY f.rating, f.id DESC</when>
@@ -142,13 +161,17 @@
     </update>
 
     <!-- 관리자 목록: 상태별(없으면 전체), 최근 메시지 순 -->
+    <select id="countWaitingRooms" resultType="long">
+        SELECT COUNT(*) FROM chat_room WHERE status = 'WAITING'
+    </select>
+
     <select id="findRooms" resultType="com.kh.back.chat.dto.ChatRoomDto">
         SELECT <include refid="roomColumns"/> <include refid="roomFrom"/>
         <where>
             <if test="status != null">r.status = #{status}</if>
         </where>
-        ORDER BY COALESCE(r.last_message_at, r.created_at) DESC
-        LIMIT 100
+        ORDER BY COALESCE(r.last_message_at, r.created_at) DESC, r.id DESC
+        LIMIT 100 OFFSET #{offset}
     </select>
 
     <insert id="insertMessage" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
@@ -159,6 +182,10 @@
     <update id="touchLastMessage">
         UPDATE chat_room SET last_message_at = NOW() WHERE id = #{roomId}
     </update>
+
+    <select id="findLastMessageId" resultType="long">
+        SELECT MAX(id) FROM chat_message WHERE room_id = #{roomId} AND sender_type = #{senderType}
+    </select>
 
     <select id="findMessageById" resultType="com.kh.back.chat.dto.ChatMessageDto">
         SELECT id, room_id, sender_type, sender_id, content, created_at

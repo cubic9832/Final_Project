@@ -6,7 +6,7 @@ export function createVehiclePreferences(saved = {}) {
     preferredSize: 'any', preferredHeight: 'any', minimumSeats: '0', chargingAvailable: false,
     costImportance: '3', assetRetentionImportance: '3', runningCostImportance: '3', spaceImportance: '3',
     fuelImportance: '3', seatingImportance: '3', purposeImportance: '1', incomeRatio: '0', paymentMonths: '0',
-    ...saved, exteriorSportiness: 'any', preferredBodyType: 'any', bodyImportance: '3',
+    exteriorSportiness: 'any', preferredBodyType: 'any', bodyImportance: '3', ...saved,
   };
   for (const name of ['costImportance', 'assetRetentionImportance', 'runningCostImportance', 'spaceImportance', 'fuelImportance',
     'designImportance', 'performanceImportance', 'lifestylePurposeImportance']) {

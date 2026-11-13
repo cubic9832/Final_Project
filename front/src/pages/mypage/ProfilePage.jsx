@@ -2,7 +2,7 @@
 // 위: 개인정보 수정 — 한 상자 안에 왼쪽 기본 정보 + 차량 구매 정보, 오른쪽 개인 정보. 제목 줄 [저장] 이 바뀐 항목을 한 번에 저장
 // 아래: 계정 관리 (로그인 = 방법 + 로그인된 기기 · 비밀번호 변경 · 이메일 알림 · 회원 탈퇴) — 마이페이지에서 옮겨 옴, 팝업은 그대로
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
   changePassword,
   checkNickName,
@@ -11,8 +11,9 @@ import {
   logoutOtherSessions,
   logoutSession,
 } from '../../features/auth/authApi';
-import { getAgreement, getMe, updateNotification, updateProfile, withdraw } from '../../features/auth/memberApi';
+import { getMe, updateProfile, withdraw } from '../../features/auth/memberApi';
 import { checkNickNameWords } from '../../features/auth/nickNamePolicy';
+import { isAdminRole } from '../../features/auth/roles';
 import { useVehicle } from '../../features/vehicle/useVehicle';
 import useAuthStore from '../../stores/useAuthStore';
 import { showToast } from '../../stores/useToastStore';
@@ -20,13 +21,14 @@ import BirthDateInput from '../signup/BirthDateInput';
 import { formatPhone, GENDER_OPTIONS, getAge, MIN_SIGNUP_AGE, validateBirthDate, validatePhone } from '../signup/profileRules';
 import AccountManageModal from './AccountManageModal';
 import { CardError, CardLoading } from './CardStatus';
-import EmailNotificationModal from './EmailNotificationModal';
-import { NOTIFICATION_OPTIONS } from './notificationOptions';
 import PasswordChangeModal from './PasswordChangeModal';
 import PasswordResetModal from '../login/PasswordResetModal'; // 보완 10: mode="setup" = 비밀번호 만들기
-import { deviceName, DRIVING_OPTIONS, formatDate, formatDateTime, PURCHASE_OPTIONS } from './profileOptions';
+import { deviceName, DRIVING_OPTIONS, formatDateTime, PURCHASE_OPTIONS } from './profileOptions';
 import './MyPage.css';
 import './ProfilePage.css';
+import '../../shared/ui/PageFadeIn.css'; // 11-05: 화면 들어올 때 페이드인
+import { clearDreamCarStorage } from '../../features/dream-car/dreamCarStorage.js';
+import useUnsavedChanges from '../../shared/navigation/useUnsavedChanges.js';
 
 const NICKNAME_MIN = 2;
 const NICKNAME_MAX = 12;
@@ -62,7 +64,8 @@ function changedFields(form, me) {
   });
 }
 
-export default function ProfilePage() {
+// inConsole: 관리자 대시보드 안(/console/account, AdminAccountPage)에서 그릴 때 true — 11-05
+export default function ProfilePage({ inConsole = false }) {
   const navigate = useNavigate();
   const { clearFavorites } = useVehicle();
   const [me, setMe] = useState(null);                   // 서버의 내 정보 (저장하면 새 값으로 바뀜)
@@ -81,10 +84,9 @@ export default function ProfilePage() {
   const [sessionBusy, setSessionBusy] = useState(false);
   const [showAllSessions, setShowAllSessions] = useState(false); // 기기가 많으면 최근 3대만 보이다가 펼침
 
-  // 계정 관리 팝업: 'password' | 'notification' | 'account' | null
+  // 계정 관리 팝업: 'password' | 'password-setup' | 'account' | null (11-05: 이메일 알림 팝업 없앰)
   const [modal, setModal] = useState(null);
-  // 보완 9: 가입 동의 기록 · 이메일 알림 (서버). null = 불러오는 중, false = 불러오지 못함
-  const [agreement, setAgreement] = useState(null);
+  const { requestLeave } = useUnsavedChanges(Boolean(me && form && changedFields(form, me).length), { busy: saving });
 
   // 내 정보 불러오기
   useEffect(() => {
@@ -101,17 +103,6 @@ export default function ProfilePage() {
       ignore = true;
     };
   }, [reloadKey]);
-
-  // 보완 9: 가입 동의 기록 · 이메일 알림 불러오기
-  useEffect(() => {
-    let ignore = false;
-    getAgreement()
-      .then((data) => !ignore && setAgreement(data))
-      .catch(() => !ignore && setAgreement(false));
-    return () => {
-      ignore = true;
-    };
-  }, []);
 
   // 로그인된 기기 불러오기 (기기 로그아웃 뒤에도 다시 부른다)
   const loadSessions = useCallback(() => {
@@ -296,56 +287,46 @@ export default function ProfilePage() {
       return;
     }
     setModal(null);
+    try { clearDreamCarStorage(useAuthStore.getState().member?.id); }
+    catch { showToast('브라우저 저장 공간에 접근할 수 없어 구매계획을 지우지 못했습니다. 브라우저 사이트 데이터를 정리해 주세요.'); }
     clearFavorites(); // 이 브라우저에 저장된 관심차량 목록도 지운다 (탈퇴 안내 문구와 맞춤)
     navigate('/'); // 먼저 이동 — 로그인 정보가 지워지면 RequireAuth 가 로그인 화면으로 보내기 때문
     await logout();
     showToast('회원 탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.');
   }
 
-  // 보완 9: 이메일 알림 저장 (실패하면 팝업이 오류를 보여 준다)
-  async function handleSaveNotification(value) {
-    const saved = await updateNotification(value);
-    setAgreement(saved);
-    setModal(null);
-    showToast(`이메일 알림을 '${NOTIFICATION_OPTIONS.find((option) => option.value === value)?.label}'(으)로 바꿨어요.`);
-  }
-
   if (meStatus === 'loading') {
-    return <div className="profile-page"><CardLoading label="내 정보를 불러오는 중…" /></div>;
+    return <div className="profile-page page-fade-in"><CardLoading label="내 정보를 불러오는 중…" /></div>;
   }
   if (meStatus === 'error') {
     return (
-      <div className="profile-page">
+      <div className="profile-page page-fade-in">
         <CardError message="내 정보를 불러오지 못했습니다." onRetry={() => { setMeStatus('loading'); setReloadKey((key) => key + 1); }} />
       </div>
     );
   }
 
   const changed = changedFields(form, me);
+  // 11-05: 관리자 · 총관리자는 관리자 대시보드 [내 계정] 으로 들어온다 → 회원용 칸(차량 구매 정보 · 이메일 알림)은 숨기고 돌아갈 곳은 대시보드
+  const isAdmin = isAdminRole(me.role);
+  // 11-05: 관리자가 회원 주소(/mypage/profile)로 오면 공통 헤더 없는 관리자 화면으로 옮긴다 (관리자 화면 규칙 — 보완 11 · 12)
+  if (isAdmin && !inConsole) {
+    return <Navigate to="/console/account" replace />;
+  }
   const ageError = errors.birthDate && form.birthDate && getAge(form.birthDate) < MIN_SIGNUP_AGE;
   const otherSessions = sessions.filter((session) => !session.current);
-  const notification = agreement ? agreement.emailNotification : 'IMPORTANT';
-  const notificationLabel = NOTIFICATION_OPTIONS.find((option) => option.value === notification)?.label;
-  // 보완 9: 동의 기록 한 줄 (기록 기능 전에 가입한 회원은 기록 없음)
-  const agreementNote = agreement === null ? '불러오는 중…'
-    : agreement === false ? '알림 설정을 불러오지 못했습니다'
-    : [
-      agreement.termsAgreedAt ? `약관 동의 ${formatDate(agreement.termsAgreedAt.slice(0, 10))}` : '약관 동의 기록 없음 (기록 기능 전 가입)',
-      agreement.updatesAgreedAt && `추천 업데이트 수신 동의 ${formatDate(agreement.updatesAgreedAt.slice(0, 10))}`,
-    ].filter(Boolean).join(' · ');
 
   return (
-    <div className="profile-page">
+    <div className="profile-page page-fade-in">
       {/* 지금 위치 — 취향 테스트 화면(taste-breadcrumb)과 같은 모양 */}
       <nav className="profile-breadcrumb" aria-label="현재 위치">
-        <Link to="/mypage">마이페이지</Link>
+        {/* 11-05: 관리자는 관리자 대시보드 [내 계정] 으로 들어오므로 돌아갈 곳도 대시보드 */}
+        <Link to={isAdmin ? '/console' : '/mypage'}>{isAdmin ? '관리자 대시보드' : '마이페이지'}</Link>
         <span aria-hidden="true">/</span>
         <span aria-current="page">개인정보 · 계정 관리</span>
       </nav>
       <header className="profile-heading">
         <h1>개인정보 · 계정 관리</h1>
-        {/* 마이페이지 제목 아래 설명과 같은 방식: 이 화면에서 할 수 있는 일을 한 줄로 */}
-        <p>닉네임 · 생년월일 같은 개인정보를 고치고, 로그인된 기기와 비밀번호를 관리하세요.</p>
       </header>
 
       {me.socialOnly && (!me.birthDate || !me.gender) && (
@@ -361,14 +342,17 @@ export default function ProfilePage() {
           <div>
             <h2>개인정보 수정</h2>
             <p>
-              {changed.length
-                ? <>바꾼 항목 <strong>{changed.length}개</strong>: {changed.map((key) => FIELD_LABELS[key]).join(' · ')}</>
-                : '바꾼 항목만 저장됩니다. 아래 세 영역을 한 번에 저장합니다.'}
+              {changed.length > 0 && (
+                <>바꾼 항목 <strong>{changed.length}개</strong>: {changed.map((key) => FIELD_LABELS[key]).join(' · ')}{' '}</>
+              )}
+              <span className="form-required" aria-hidden="true">*</span> 표시는 필수 입력사항입니다.
             </p>
-            {saveError && <p className="profile-save-error" role="alert">{saveError}</p>}
           </div>
           <div className="profile-edit-buttons">
-            <Link className="my-outline-button profile-small-button" to="/mypage">취소</Link>
+            {/* 11-03: 저장 실패 문구는 버튼 왼쪽 같은 줄 — 설명 아래에 끼면 아래 입력칸이 모두 밀렸다 */}
+            {saveError && <p className="profile-save-error" role="alert">{saveError}</p>}
+            <button className="my-outline-button profile-small-button" type="button" disabled={saving}
+              onClick={() => requestLeave(() => navigate(isAdmin ? '/console' : '/mypage'))}>취소</button>
             <button className="profile-dark-button" type="submit" disabled={saving || changed.length === 0}>
               {saving ? '저장 중…' : '저장'}
             </button>
@@ -378,7 +362,6 @@ export default function ProfilePage() {
         <div className="profile-grid">
           <div className="profile-column">
             <h3 className="profile-column-title">기본 정보</h3>
-            <p className="profile-card-desc">다른 회원에게 보이는 이름입니다.</p>
 
             <div className="profile-field">
               <label htmlFor="profile-nickname">닉네임<span className="form-required" aria-hidden="true"> *</span></label>
@@ -395,7 +378,11 @@ export default function ProfilePage() {
                   <p className="profile-error" id="profile-nickname-msg">{errors.nickname}</p>
                 ) : checkedNickname && checkedNickname === form.nickname.trim() ? (
                   <p className="profile-ok" id="profile-nickname-msg" role="status">사용할 수 있는 닉네임입니다.</p>
-                ) : null}
+                ) : (
+                  <p className="profile-hint" id="profile-nickname-msg">
+                    {changed.includes('nickname') ? '변경한 닉네임의 중복 확인을 눌러 주세요.' : '\u00a0'}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -407,26 +394,30 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* 차량 구매 정보 (선택) */}
-            <h3 className="profile-column-title profile-subtitle">차량 구매 정보</h3>
-            <p className="profile-card-desc">보험료 · 구매계획 같은 비용 계산에 쓸 수 있는 정보입니다. (선택)</p>
+            {/* 차량 구매 정보 (선택) — 차를 살 회원용이라 관리자에게는 보이지 않는다 (11-05) */}
+            {!isAdmin && (
+              <>
+                <h3 className="profile-column-title profile-subtitle">차량 구매 정보</h3>
+                <p className="profile-card-desc">보험료 · 구매계획 같은 비용 계산에 쓸 수 있는 정보입니다. (선택)</p>
 
-            <div className="profile-field">
-              <span className="profile-label" id="profile-driving-label">운전 경력</span>
-              <ChoiceGroup name="drivingExperience" labelledBy="profile-driving-label" options={DRIVING_OPTIONS}
-                value={form.drivingExperience} onChange={handleChange} />
-            </div>
+                <div className="profile-field">
+                  <span className="profile-label" id="profile-driving-label">운전 경력</span>
+                  <ChoiceGroup name="drivingExperience" labelledBy="profile-driving-label" options={DRIVING_OPTIONS}
+                    value={form.drivingExperience} onChange={handleChange} />
+                </div>
 
-            <div className="profile-field">
-              <span className="profile-label" id="profile-purchase-label">구매 예정</span>
-              <ChoiceGroup name="purchaseTiming" labelledBy="profile-purchase-label" options={PURCHASE_OPTIONS}
-                value={form.purchaseTiming} onChange={handleChange} />
-            </div>
+                <div className="profile-field">
+                  <span className="profile-label" id="profile-purchase-label">구매 예정</span>
+                  <ChoiceGroup name="purchaseTiming" labelledBy="profile-purchase-label" options={PURCHASE_OPTIONS}
+                    value={form.purchaseTiming} onChange={handleChange} />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="profile-column">
             <h3 className="profile-column-title">개인 정보</h3>
-            <p className="profile-card-desc">연령대별 추천 · 통계에 사용합니다. 다른 회원에게 보이지 않습니다.</p>
+            <p className="profile-card-desc">추천·통계에 사용되며 다른 회원에게 공개되지 않습니다.</p>
 
             <div className="profile-field">
               <label htmlFor="profile-birth">생년월일<span className="form-required" aria-hidden="true"> *</span></label>
@@ -436,14 +427,14 @@ export default function ProfilePage() {
                 {ageError ? (
                   // 만 18세 미만: 저장하지 않고, 다시 확인하거나 탈퇴하도록 안내 (서버도 AGE_RESTRICTED 로 거절)
                   <p className="profile-age-error" role="alert">
-                    <strong>만 {MIN_SIGNUP_AGE}세 이상만 입력할 수 있습니다.</strong> 생년월일을 다시 확인해 주세요.<br />
+                    <strong>만 {MIN_SIGNUP_AGE}세 이상 이용 가능합니다.</strong> 생년월일을 다시 확인해 주세요.<br />
                     만 {MIN_SIGNUP_AGE}세 미만이라면 서비스를 이용할 수 없으니 아래 계정 관리의{' '}
                     <a href="#profile-withdraw">회원 탈퇴</a>를 해 주세요.
                   </p>
                 ) : errors.birthDate ? (
                   <p className="profile-error">{errors.birthDate}</p>
                 ) : (
-                  <p className="profile-hint">만 {MIN_SIGNUP_AGE}세 이상만 입력할 수 있습니다.</p>
+                  <p className="profile-hint">만 {MIN_SIGNUP_AGE}세 이상 이용 가능합니다.</p>
                 )}
               </div>
             </div>
@@ -484,7 +475,7 @@ export default function ProfilePage() {
         <div className="profile-section-head">
           <div>
             <h2 id="profile-account-title">계정 관리</h2>
-            <p>각 항목은 누르면 바로 처리됩니다. (위 저장 버튼과 별개)</p>
+            <p>계정 관리 항목은 변경 즉시 적용됩니다.</p>
           </div>
         </div>
         <ul className="profile-account-list">
@@ -523,7 +514,7 @@ export default function ProfilePage() {
                   )}
                 </ul>
               )}
-              <small>모르는 기기가 있으면 [로그아웃]을 누르고 비밀번호를 바꿔 주세요. 이미 열려 있던 화면은 최대 30분 안에 로그아웃됩니다.</small>
+              <small>모르는 기기가 있다면 로그아웃하고 비밀번호를 변경해 주세요.</small>
             </div>
             <button className="my-outline-button profile-small-button" type="button" onClick={handleLogoutOthers}
               disabled={sessionBusy || sessionStatus !== 'done' || otherSessions.length === 0}>
@@ -550,19 +541,16 @@ export default function ProfilePage() {
               <button className="my-outline-button" type="button" onClick={() => setModal('password')}>변경</button>
             </li>
           )}
-          <li>
-            <strong>이메일 알림</strong>
-            <div>
-              <span>{notificationLabel}</span>
-              <small>{agreementNote}</small>
-            </div>
-            <button className="my-outline-button" type="button" onClick={() => setModal('notification')} disabled={!agreement}>설정</button>
-          </li>
         </ul>
         <div className="profile-withdraw" id="profile-withdraw">
           {me.role === 'SUPER_ADMIN' ? (
-            // 7단계: 총관리자는 탈퇴할 수 없다 (관리자 권한을 줄 사람이 없어지므로 — 서버도 403 SUPER_ADMIN_WITHDRAW)
-            <span>총관리자는 탈퇴할 수 없습니다. 다른 총관리자를 먼저 지정해 주세요.</span>
+            // 본인 확인 후 서버에서 마지막 총관리자인지 검사한다.
+            <button type="button" onClick={() => setModal('account')}>
+              회원 탈퇴
+            </button>
+          ) : me.role === 'ADMIN' ? (
+            // 11-05: 일반 관리자도 직접 탈퇴하지 않는다 — 총관리자가 권한을 빼면 일반 회원이 되어 탈퇴할 수 있다 (서버도 403 ADMIN_WITHDRAW)
+            <span>관리자는 직접 탈퇴할 수 없습니다. 총관리자에게 관리자 권한 해제를 요청한 뒤 탈퇴해 주세요.</span>
           ) : (
             <>
               <span>탈퇴하면 개인 정보 · 취향 결과가 모두 삭제되며 되돌릴 수 없습니다.</span>
@@ -576,9 +564,6 @@ export default function ProfilePage() {
       {modal === 'password' && <PasswordChangeModal email={me.email} onChange={handleChangePassword} onClose={() => setModal(null)} />}
       {modal === 'password-setup' && (
         <PasswordResetModal mode="setup" initialEmail={me.email} onDone={handlePasswordCreated} onClose={() => setModal(null)} />
-      )}
-      {modal === 'notification' && (
-        <EmailNotificationModal currentValue={notification} onSave={handleSaveNotification} onClose={() => setModal(null)} />
       )}
       {modal === 'account' && <AccountManageModal socialOnly={me.socialOnly} onWithdraw={handleWithdraw} onClose={() => setModal(null)} />}
     </div>

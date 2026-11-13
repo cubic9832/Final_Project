@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface AdminOverviewMapper {
 
-    // 생년월일 또는 성별이 비어 있는 회원 수 (user_profiles 행이 없는 회원 포함)
+    // 생년월일 또는 성별이 비어 있는 회원 수. 명시된 데모·로컬 테스트 이메일은 제외한다.
     int countProfileMissing();
 
     int countDiagnoses();

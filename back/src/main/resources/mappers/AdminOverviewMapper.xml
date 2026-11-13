@@ -8,6 +8,9 @@
         SELECT COUNT(*) FROM users u
         LEFT JOIN user_profiles p ON p.user_id = u.id
         WHERE u.role &lt;&gt; 'WITHDRAWN' AND (p.birth_date IS NULL OR p.gender IS NULL)
+          <!-- 프로젝트 데모 데이터와 로컬 권한 테스트 계정의 명시적인 이메일 표식 -->
+          AND u.email NOT LIKE '%@demo.compa.local'
+          AND u.email NOT LIKE '%@compa.test'
     </select>
 
     <!-- 진단 수는 회원의 기록만 (탈퇴하면 user_id 가 NULL 이 되어 빠진다) -->

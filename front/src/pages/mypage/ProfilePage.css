@@ -252,8 +252,10 @@
 }
 
 .profile-save-error {
-  margin-right: auto;
+  align-self: center;
+  margin: 0 4px 0 0;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 /* 로그인된 기기 · 계정 관리 */
@@ -744,4 +746,46 @@
 .profile-breadcrumb a:hover {
   color: var(--color-primary);
   text-decoration: underline;
+}
+
+/* 11-04: 마이페이지 · 로그인과 버튼 통일 — 주 버튼(저장 · 중복 확인)은 로그인 버튼과 같은 남색,
+   보조 버튼(취소 · 변경 · 설정 · 만들기 · 다른 기기 모두 로그아웃)은 마이페이지 보조 버튼과 같은 연한 파랑 */
+.profile-page .profile-dark-button {
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+}
+
+.profile-page .profile-dark-button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.profile-page .my-outline-button {
+  height: 42px;
+  min-width: 72px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-blue-tint);
+  color: var(--color-primary);
+  font-size: 13px;
+}
+
+.profile-page .my-outline-button:hover:not(:disabled) {
+  background: #dde9f7;
+}
+
+.profile-page .my-outline-button.profile-small-button {
+  height: 36px;
+}
+
+/* [취소] 는 옆 [저장] 과 같은 높이 */
+.profile-page .profile-edit-buttons .my-outline-button {
+  height: 42px;
+}
+
+/* 11-05: 기본 정보 · 개인 정보 2칸이 화면 끝까지 퍼지지 않게 가운데 1120px (회원가입과 같은 폭)
+   960px 은 차량 구매 정보 선택 버튼 글자가 빽빽했다 */
+.profile-page {
+  max-width: 1120px;
+  width: 100%;
+  margin-inline: auto;
 }

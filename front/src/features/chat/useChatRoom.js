@@ -11,11 +11,17 @@ const mergeMessages = (prev, incoming) => {
 
 // 8단계: 상담방 하나의 대화 — 지난 메시지(REST) + 실시간(WebSocket). 회원 상담 화면 · 관리자 상담 탭이 같이 쓴다
 // onSystem: 연결 · 넘김 · 종료 안내(SYSTEM)를 받으면 부르는 함수 → 화면이 방 상태를 다시 읽는다
-export default function useChatRoom(roomId, onSystem) {
+// live: false 면 지난 대화(REST)만 읽고 WebSocket 은 열지 않는다
+//   11-05 (멘토링): 종료된 상담은 더 받을 메시지가 없으니 연결을 닫는다 → [새로 상담하기] 로 대기가 되면 다시 연결
+export default function useChatRoom(roomId, onSystem, live = true) {
   const [messages, setMessages] = useState([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
   const clientRef = useRef(null);
+  const historyRef = useRef(null);
+  const olderPending = useRef(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const onSystemRef = useRef(onSystem);
   useEffect(() => {
     onSystemRef.current = onSystem; // 최신 함수를 기억 (연결을 다시 맺지 않도록 의존성에서 뺀다)
@@ -24,10 +30,22 @@ export default function useChatRoom(roomId, onSystem) {
   useEffect(() => {
     if (!roomId) return undefined;
 
+    const controller = new AbortController();
+    historyRef.current = controller;
+    olderPending.current = false;
+    setLoadingOlder(false);
     // 1) 지난 메시지 (REST)
-    getMessages(roomId)
-      .then((list) => setMessages((prev) => mergeMessages(prev, list)))
-      .catch((err) => setError(chatErrorMessage(err, '지난 대화를 불러오지 못했습니다.')));
+    getMessages(roomId, undefined, controller.signal)
+      .then(list => { if (!controller.signal.aborted) { setMessages(prev => mergeMessages(prev, list)); setHasMore(list.length === 30); setError(''); } })
+      .catch(err => { if (!controller.signal.aborted) setError(chatErrorMessage(err, '지난 대화를 불러오지 못했습니다.')); });
+
+    if (!live) {
+      return () => {
+        controller.abort();
+        setMessages([]);
+        setError('');
+      };
+    }
 
     // 2) 실시간 메시지 (WebSocket) — 서버 StompAuthInterceptor 가 이 방을 볼 수 있는지 확인한다
     const client = createStompClient();
@@ -49,13 +67,14 @@ export default function useChatRoom(roomId, onSystem) {
 
     // 화면을 떠나거나 방이 바뀌면 연결을 끊고 대화를 비운다 (다음 방의 메시지와 섞이지 않게)
     return () => {
+      controller.abort();
       client.deactivate();
       clientRef.current = null;
       setConnected(false);
       setMessages([]);
       setError('');
     };
-  }, [roomId]);
+  }, [roomId, live]);
 
   // 보내기: 화면에는 바로 그리지 않는다 → 서버가 저장하고 돌려준 메시지가 오면 그때 그린다 (번호 · 시각이 정확하게)
   const send = useCallback((text) => {
@@ -65,5 +84,15 @@ export default function useChatRoom(roomId, onSystem) {
     return true;
   }, [roomId]);
 
-  return { messages, connected, error, send };
+  async function loadOlder() {
+    if (olderPending.current || !historyRef.current || historyRef.current.signal.aborted) return;
+    const signal = historyRef.current.signal;
+    olderPending.current = true; setLoadingOlder(true);
+    try {
+      const list = await getMessages(roomId, messages[0]?.id, signal);
+      if (!signal.aborted) { setMessages(prev => mergeMessages(prev, list)); setHasMore(list.length === 30); setError(''); }
+    } catch (err) { if (!signal.aborted) setError(chatErrorMessage(err, '이전 대화를 불러오지 못했습니다. 다시 시도해 주세요.')); }
+    finally { if (!signal.aborted) { olderPending.current = false; setLoadingOlder(false); } }
+  }
+  return { messages, connected, error, send, hasMore, loadingOlder, loadOlder };
 }
