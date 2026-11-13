@@ -5,6 +5,9 @@
 .recommendation-board-search button:hover { background: var(--color-blue-tint); }
 .recommendation-board-counts { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-12); margin-bottom: var(--space-16); color: var(--color-muted); font-size: var(--font-caption); font-weight: 400; }
 .recommendation-board-counts > span + span { padding-left: var(--space-12); border-left: 1px solid var(--color-border-input); }
+.recommendation-board-warnings { display: grid; gap: var(--space-8); margin: 0 0 var(--space-16); padding: var(--space-12); list-style: none; border-radius: var(--radius-sm); background: var(--color-warning-tint); color: var(--color-text-sub); font-size: var(--font-caption); }
+.recommendation-board-warnings li { display: flex; align-items: flex-start; gap: var(--space-8); overflow-wrap: anywhere; }
+.recommendation-board-warnings svg { flex: none; margin-top: 1px; }
 .recommendation-board td { color: var(--color-primary); }
 .recommendation-board-subject { display: block; width: 100%; border: 0; padding: var(--space-4) 0; background: transparent; color: inherit; font: inherit; font-weight: 400; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
 .recommendation-board-subject span { display: block; margin-top: var(--space-4); color: var(--color-muted); font-size: var(--font-caption); }

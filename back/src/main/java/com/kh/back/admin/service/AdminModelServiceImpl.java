@@ -1,6 +1,7 @@
 package com.kh.back.admin.service;
 
 import com.kh.back.admin.dto.AdminCandidate;
+import com.kh.back.admin.dto.AdminCandidateList;
 import com.kh.back.admin.dto.AdminModelComparison;
 import com.kh.back.admin.dto.AdminModelComparison.ModelRow;
 import com.kh.back.admin.dto.AdminModelReport;
@@ -273,35 +274,56 @@ public class AdminModelServiceImpl implements AdminModelService {
                 report.path("limitation").asString(null), List.of(), history, versions);
     }
 
+    // 첫 번째로 응답한 서버의 후보가 기준이다. 다른 모델은 학습 시점 스냅샷이 달라 같은 차량 값이 다를 수 있으므로
+    // 목록을 막지 않고 기준 값으로 보여 주며, 다른 서버 · 조회에 실패한 서버는 경고로 알린다
     @Override
-    public List<AdminCandidate> getCandidates() {
-        try {
-            List<Upstream> alive = registry.upstreams().stream().filter(Upstream::up).toList();
-            if (alive.isEmpty()) throw new IllegalStateException("No recommendation server");
-            Map<String, JsonNode> runtime = new java.util.LinkedHashMap<>();
-            for (Upstream upstream : alive) {
-                for (JsonNode vehicle : registry.candidates(upstream)) {
-                    String id = vehicle.path("id").asString();
-                    JsonNode previous = runtime.putIfAbsent(id, vehicle);
-                    if (previous != null && !previous.equals(vehicle)) throw new IllegalStateException("Runtime catalogs disagree");
-                }
+    public AdminCandidateList getCandidates() {
+        List<Upstream> alive = registry.upstreams().stream().filter(Upstream::up).toList();
+        Map<String, JsonNode> runtime = new java.util.LinkedHashMap<>();
+        List<String> warnings = new ArrayList<>();
+        String baseModel = null;
+        for (Upstream upstream : alive) {
+            JsonNode vehicles;
+            try {
+                vehicles = registry.candidates(upstream);
+            } catch (Exception e) {
+                log.warn("admin candidates: {} unavailable: {}", upstream.baseUrl(), e.getMessage());
+                warnings.add(serverName(upstream) + " 서버의 후보를 불러오지 못해 목록에서 제외했습니다.");
+                continue;
             }
-            List<AdminCandidate> candidates = new ArrayList<>();
-            for (JsonNode v : runtime.values()) {
-                candidates.add(new AdminCandidate(v.path("id").asString(null), v.path("brand").asString(null),
-                        v.path("model").asString(null), v.path("trim").asString(null), v.path("year").asString(null),
-                        longOrNull(v.path("price")), v.path("fuel").asString(null),
-                        v.path("efficiency").isNumber() ? v.path("efficiency").asDouble() : null,
-                        v.path("length_mm").isNumber() ? v.path("length_mm").asInt() : null,
-                        v.path("seats_label").asString(null), v.path("seats_status").asString(null),
-                        v.path("seats_note").asString(null), v.path("source_url").asString(null),
-                        v.path("checked_on").asString(null), v.path("quality").asString(null)));
+            int mismatched = 0;
+            for (JsonNode vehicle : vehicles) {
+                JsonNode previous = runtime.putIfAbsent(vehicle.path("id").asString(), vehicle);
+                if (previous != null && !previous.equals(vehicle)) mismatched++;
             }
-            return candidates;
-        } catch (Exception e) {
-            log.warn("admin candidates: runtime catalog unavailable: {}", e.getMessage());
+            if (baseModel == null) {
+                baseModel = serverName(upstream);
+            } else if (mismatched > 0) {
+                log.warn("admin candidates: {} differs from base catalog in {} vehicles", upstream.baseUrl(), mismatched);
+                warnings.add(serverName(upstream) + " 서버의 차량 " + mismatched + "건이 기준 서버(" + baseModel
+                        + ")와 다릅니다. 목록은 기준 서버 값으로 보여 줍니다.");
+            }
+        }
+        if (baseModel == null) {
+            log.warn("admin candidates: no runtime catalog from {} upstreams", alive.size());
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "실행 중인 추천 후보를 확인하지 못했습니다. 추천 서버와 카탈로그 동기화 상태를 확인해 주세요.");
         }
+        List<AdminCandidate> candidates = new ArrayList<>();
+        for (JsonNode v : runtime.values()) {
+            candidates.add(new AdminCandidate(v.path("id").asString(null), v.path("brand").asString(null),
+                    v.path("model").asString(null), v.path("trim").asString(null), v.path("year").asString(null),
+                    longOrNull(v.path("price")), v.path("fuel").asString(null),
+                    v.path("efficiency").isNumber() ? v.path("efficiency").asDouble() : null,
+                    v.path("length_mm").isNumber() ? v.path("length_mm").asInt() : null,
+                    v.path("seats_label").asString(null), v.path("seats_status").asString(null),
+                    v.path("seats_note").asString(null), v.path("source_url").asString(null),
+                    v.path("checked_on").asString(null), v.path("quality").asString(null)));
+        }
+        return new AdminCandidateList(candidates, warnings);
+    }
+
+    private static String serverName(Upstream upstream) {
+        return upstream.modelBundle() != null ? upstream.modelBundle() : upstream.baseUrl();
     }
 
     // 서버를 프로젝트 맨 위에서 켜도, back 폴더에서 켜도 찾게 두 곳을 본다 (dev.sh 는 back 에서 켬)

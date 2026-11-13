@@ -2,7 +2,7 @@ import AdminListHeader from './components/AdminListHeader.jsx';
 import AdminDataTable from './components/AdminDataTable.jsx';
 import AdminDetailRow from './components/AdminDetailRow.jsx';
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { Car, ExternalLink, Search } from 'lucide-react';
+import { AlertTriangle, Car, ExternalLink, Search } from 'lucide-react';
 import theme from '../../styles/theme';
 import Pagination from '../../components/Pagination.jsx';
 import { getRecommendationCandidates } from '../../features/admin/adminApi';
@@ -26,7 +26,7 @@ const tableColumns = [
 ];
 
 export default function AdminRecommendationsPanel() {
-  const [state, setState] = useState({ status: 'loading', data: [], error: '' });
+  const [state, setState] = useState({ status: 'loading', data: [], warnings: [], error: '' });
   const [reload, setReload] = useState(0);
   const [keyword, setKeyword] = useState('');
   const [query, setQuery] = useState({ keyword: '', page: 0 });
@@ -35,10 +35,10 @@ export default function AdminRecommendationsPanel() {
 
   useEffect(() => {
     const controller = new AbortController();
-    getRecommendationCandidates(controller.signal).then(data => {
-      if (!controller.signal.aborted) setState({ status: 'done', error: '', data: data.map((car, index) => ({ ...car, listNumber: data.length - index, image: candidateModelImages[`${car.brand}::${car.model}`] ?? null })) });
+    getRecommendationCandidates(controller.signal).then(({ candidates, warnings }) => {
+      if (!controller.signal.aborted) setState({ status: 'done', error: '', warnings: warnings ?? [], data: candidates.map((car, index) => ({ ...car, listNumber: candidates.length - index, image: candidateModelImages[`${car.brand}::${car.model}`] ?? null })) });
     }).catch(() => {
-      if (!controller.signal.aborted) setState({ status: 'error', data: [], error: '추천 후보 차량을 불러오지 못했습니다.' });
+      if (!controller.signal.aborted) setState({ status: 'error', data: [], warnings: [], error: '추천 후보 차량을 불러오지 못했습니다.' });
     });
     return () => controller.abort();
   }, [reload]);
@@ -60,8 +60,9 @@ export default function AdminRecommendationsPanel() {
     </AdminListHeader>
     <p>실행 중인 추천 서버 후보의 통합 목록입니다. 학습 당시 스냅샷과 구분합니다.</p>
     {state.status === 'loading' && <p className="admin-empty" role="status">추천 후보 차량을 불러오는 중…</p>}
-    {state.status === 'error' && <p className="admin-empty" role="alert">{state.error} <button type="button" className="admin-text-button" onClick={() => { setState({ status: 'loading', data: [], error: '' }); setReload(value => value + 1); }}>다시 시도</button></p>}
+    {state.status === 'error' && <p className="admin-empty" role="alert">{state.error} <button type="button" className="admin-text-button" onClick={() => { setState({ status: 'loading', data: [], warnings: [], error: '' }); setReload(value => value + 1); }}>다시 시도</button></p>}
     {state.status === 'done' && <>
+      {state.warnings.length > 0 && <ul className="recommendation-board-warnings" role="status">{state.warnings.map(warning => <li key={warning}><AlertTriangle size={theme.iconSize.sm} aria-hidden="true" /><span>{warning}</span></li>)}</ul>}
       <p className="recommendation-board-counts" role="status"><span>차종 {counts.models.toLocaleString()}개</span><span>이미지 없는 차종 {counts.noImage.toLocaleString()}개</span><span>정원 확인 필요 {counts.seatCheck.toLocaleString()}건</span></p>
       <AdminDataTable className="recommendation-board" caption="추천 후보 목록과 승차 정원 확인 상태" columns={tableColumns} minWidth="1040px" sort={sort} onSort={sortBy}>
         {rows.length === 0 ? <tr><td colSpan={tableColumns.length} className="recommendation-board-empty">조건에 맞는 추천 후보가 없습니다.</td></tr> : rows.map(car => {

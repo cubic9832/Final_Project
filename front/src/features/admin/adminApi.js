@@ -105,8 +105,8 @@ export const updateModelTraffic = async (allocations) => {
   await client.put('/admin/model-traffic', { allocations });
 };
 
-// 추천 관리: 추천 서버가 쓰는 후보 차량 전체 (학습 결과 폴더의 catalog.json)
-// → [{ id, brand, model, trim, year, price, fuel, efficiency, lengthMm, seatsLabel, seatsStatus, seatsNote, sourceUrl, checkedOn, quality }]
+// 추천 관리: 켜진 추천 서버들의 후보 차량 통합 목록 (같은 차량은 기준 서버 값, 서버끼리 다르면 warnings 에 안내 문장)
+// → { candidates: [{ id, brand, model, trim, year, price, fuel, efficiency, lengthMm, seatsLabel, seatsStatus, seatsNote, sourceUrl, checkedOn, quality }], warnings: [문장] }
 export const getRecommendationCandidates = async (signal) => {
   const res = await client.get('/admin/recommendation-candidates', { signal });
   return res.data.data;
