@@ -82,6 +82,16 @@ function DreamCarPlannerPageContent({ catalog }) {
       return true;
     } catch (error) { setNotice(error.message || '브라우저 저장 공간을 사용할 수 없습니다.'); return false; }
   }
+  function saveCosts(nextInputs) {
+    const nextPlan = { ...plan, inputs: nextInputs };
+    const nextResult = calculatePurchasePlan(vehicle.price / 10000, nextInputs);
+    if (!nextResult) throw new Error('구매 계획 입력값을 확인해 주세요.');
+    savePurchasePlanWithProgress(nextPlan, nextResult.target, currentDate(), vehicle, { startProgress: false });
+    setPlan(nextPlan);
+    setSavedPlan(nextPlan);
+    setNotice('계산 기준을 저장했습니다.');
+    setCostsOpen(false);
+  }
   function field(name, label, unit, min) {
     return <PlanField key={name} {...{ name, label, unit, min, inputs }} onChange={change} />;
   }
@@ -122,6 +132,6 @@ function DreamCarPlannerPageContent({ catalog }) {
       {step < 2 ? <button type="button" className="dream-save" disabled={!stepValid} onClick={() => { setNotice(''); setStep(step + 1); }}>다음</button> : <button type="button" className="dream-save" disabled={!valid} onClick={() => { if (save()) allowLeave(() => navigate('/dream-car/progress')); }}>구매 계획 저장</button>}
     </div>
     {notice && <p className="dream-flow-notice" role="status">{notice}</p>}
-    {costsOpen && <PurchaseCostDialog vehicle={vehicle} inputs={inputs} onClose={() => setCostsOpen(false)} onSave={next => { setPlan(current => ({ ...current, inputs: next })); setNotice('계산 기준을 적용했습니다.'); setCostsOpen(false); }} />}
+    {costsOpen && <PurchaseCostDialog vehicle={vehicle} inputs={inputs} onClose={() => setCostsOpen(false)} onSave={saveCosts} />}
   </div>;
 }

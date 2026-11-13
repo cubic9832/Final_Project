@@ -20,7 +20,7 @@ export function mergeExecutionSettings(active, purchase, target, asOfDate) {
   return { ...next, target, purchaseInputs: { ...purchase.inputs } };
 }
 
-export function savePurchasePlanWithProgress(purchase, target, asOfDate, vehicle) {
+export function savePurchasePlanWithProgress(purchase, target, asOfDate, vehicle, { startProgress = true } = {}) {
   const previousPurchase = localStorage.getItem(dreamCarStorageKey(planStorageKey));
   const previousProgress = localStorage.getItem(dreamCarStorageKey(progressStorageKey));
   const plans = previousProgress ? JSON.parse(previousProgress) : [];
@@ -30,10 +30,10 @@ export function savePurchasePlanWithProgress(purchase, target, asOfDate, vehicle
     const next = mergeExecutionSettings(plans[index], purchase, target, asOfDate);
     plans[index] = { ...next, vehicleId: vehicle.id, name: `${vehicle.brand} ${vehicle.model}`, trim: vehicle.trim };
   }
-  if (!plans.length) plans.push(createProgressPlan(vehicle, purchase.inputs, target, asOfDate, crypto.randomUUID()));
+  if (!plans.length && startProgress) plans.push(createProgressPlan(vehicle, purchase.inputs, target, asOfDate, crypto.randomUUID()));
   try {
     localStorage.setItem(dreamCarStorageKey(planStorageKey), JSON.stringify(purchase));
-    localStorage.setItem(dreamCarStorageKey(progressStorageKey), JSON.stringify(plans));
+    if (plans.length) localStorage.setItem(dreamCarStorageKey(progressStorageKey), JSON.stringify(plans));
   } catch (error) {
     if (previousPurchase === null) localStorage.removeItem(dreamCarStorageKey(planStorageKey)); else localStorage.setItem(dreamCarStorageKey(planStorageKey), previousPurchase);
     throw error;

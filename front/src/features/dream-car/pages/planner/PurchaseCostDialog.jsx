@@ -36,18 +36,18 @@ export default function PurchaseCostDialog({ vehicle, inputs, onClose, onSave })
       setError('입력값을 확인해 주세요. 유효한 숫자를 입력하면 계산 기준을 적용할 수 있어요.');
       return;
     }
-    onSave(calculationInputs);
-    if (guard.confirming) guard.confirmLeave();
+    try {
+      onSave(calculationInputs);
+      if (guard.confirming) guard.confirmLeave();
+    } catch (failure) {
+      guard.cancelLeave();
+      setError(failure.message || '계산 기준을 저장하지 못했습니다. 다시 시도해 주세요.');
+    }
   }
   const change = (name, value) => { setDraft(current => ({ ...current, [name]: value })); setError(''); };
   const field = (name, label, unit, min) => <PlanField key={name} {...{ name, label, unit, min }} inputs={calculationInputs} readOnly={Object.hasOwn(defaults.inputs, name)} onChange={change} />;
   return createPortal(<dialog ref={dialog} className="purchase-cost-dialog" aria-labelledby={titleId}
-    onCancel={event => { event.preventDefault(); close(); }}
-    onClick={event => {
-      if (event.target !== dialog.current) return;
-      const bounds = dialog.current.getBoundingClientRect();
-      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) close();
-    }}>
+    onCancel={event => event.preventDefault()}>
     <header><h2 id={titleId}>구매·유지비 계산 기준</h2><button type="button" aria-label="닫기" onClick={close}><X size={theme.iconSize.md} aria-hidden /></button></header>
     {guard.confirming ? <div className="purchase-cost-content">
       <p>저장하지 않은 변경사항이 있습니다. 저장하시겠습니까?</p>
