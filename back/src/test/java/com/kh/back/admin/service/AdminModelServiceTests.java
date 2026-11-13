@@ -58,7 +58,48 @@ class AdminModelServiceTests {
         var upstream=new Upstream("http://runtime.test",true,"model-a","test",true,1,1);
         when(registry.upstreams()).thenReturn(List.of(upstream));
         when(registry.candidates(upstream)).thenReturn(JsonMapper.builder().build().readTree("[{\"id\":\"runtime\",\"brand\":\"runtime brand\",\"price\":23980000}]"));
-        assertThat(service().getCandidates()).extracting(com.kh.back.admin.dto.AdminCandidate::id).containsExactly("runtime");
+        var result = service().getCandidates();
+        assertThat(result.candidates()).extracting(com.kh.back.admin.dto.AdminCandidate::id).containsExactly("runtime");
+        assertThat(result.warnings()).isEmpty();
+    }
+
+    @Test
+    void 카탈로그가_다른_서버가_있어도_기준_서버_값으로_보여_주고_경고한다() throws Exception {
+        var base=new Upstream("http://base.test",true,"model-a","test",true,2,2);
+        var other=new Upstream("http://other.test",true,"model-b","test",true,2,2);
+        var json=JsonMapper.builder().build();
+        when(registry.upstreams()).thenReturn(List.of(base, other));
+        when(registry.candidates(base)).thenReturn(json.readTree("[{\"id\":\"car-1\",\"price\":23980000},{\"id\":\"car-2\",\"price\":30000000}]"));
+        when(registry.candidates(other)).thenReturn(json.readTree("[{\"id\":\"car-1\",\"price\":25000000},{\"id\":\"car-3\",\"price\":40000000}]"));
+
+        var result = service().getCandidates();
+
+        assertThat(result.candidates()).extracting(com.kh.back.admin.dto.AdminCandidate::id, com.kh.back.admin.dto.AdminCandidate::price)
+                .containsExactly(org.assertj.core.groups.Tuple.tuple("car-1", 23980000L), org.assertj.core.groups.Tuple.tuple("car-2", 30000000L),
+                        org.assertj.core.groups.Tuple.tuple("car-3", 40000000L));
+        assertThat(result.warnings()).containsExactly("model-b 서버의 차량 1건이 기준 서버(model-a)와 다릅니다. 목록은 기준 서버 값으로 보여 줍니다.");
+    }
+
+    @Test
+    void 일부_서버_조회가_실패해도_나머지로_목록을_보여_준다() throws Exception {
+        var base=new Upstream("http://base.test",true,"model-a","test",true,1,1);
+        var broken=new Upstream("http://broken.test",true,"model-b","test",true,1,1);
+        when(registry.upstreams()).thenReturn(List.of(base, broken));
+        when(registry.candidates(base)).thenReturn(JsonMapper.builder().build().readTree("[{\"id\":\"car-1\",\"price\":23980000}]"));
+        when(registry.candidates(broken)).thenThrow(new IllegalStateException("Invalid runtime catalog"));
+
+        var result = service().getCandidates();
+
+        assertThat(result.candidates()).extracting(com.kh.back.admin.dto.AdminCandidate::id).containsExactly("car-1");
+        assertThat(result.warnings()).containsExactly("model-b 서버의 후보를 불러오지 못해 목록에서 제외했습니다.");
+    }
+
+    @Test
+    void 모든_서버_조회가_실패하면_빈_목록_대신_503을_낸다() {
+        var broken=new Upstream("http://broken.test",true,"model-b","test",true,1,1);
+        when(registry.upstreams()).thenReturn(List.of(broken));
+        when(registry.candidates(broken)).thenThrow(new IllegalStateException("Invalid runtime catalog"));
+        assertThatThrownBy(() -> service().getCandidates()).isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
     }
 
     @Test

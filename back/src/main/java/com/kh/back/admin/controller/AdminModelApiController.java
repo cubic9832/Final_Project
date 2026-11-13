@@ -1,6 +1,6 @@
 package com.kh.back.admin.controller;
 
-import com.kh.back.admin.dto.AdminCandidate;
+import com.kh.back.admin.dto.AdminCandidateList;
 import com.kh.back.admin.dto.AdminModelComparison;
 import com.kh.back.admin.dto.AdminModelReport;
 import com.kh.back.admin.dto.ModelServerRequest;
@@ -11,7 +11,6 @@ import com.kh.back.admin.service.AdminModelService;
 import com.kh.back.admin.service.AdminModelTrafficService;
 import com.kh.back.common.dto.ApiResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpStatus;
@@ -62,7 +61,7 @@ public class AdminModelApiController {
     // GET /api/v1/admin/recommendation-candidates — 추천 후보 차량 전체 (281건 정도라 화면이 검색 · 페이지를 나눈다)
     // 호출: AdminRecommendationsPanel.jsx → adminApi.getRecommendationCandidates
     @GetMapping("/recommendation-candidates")
-    public ApiResponse<List<AdminCandidate>> candidates() {
+    public ApiResponse<AdminCandidateList> candidates() {
         return ApiResponse.ok(adminModelService.getCandidates());
     }
 

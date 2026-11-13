@@ -116,8 +116,9 @@ class AdminAccessTests {
         mvc.perform(get("/api/v1/admin/recommendation-candidates")
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(1L, "ADMIN")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].brand").isNotEmpty())
-                .andExpect(jsonPath("$.data[0].price").isNumber());
+                .andExpect(jsonPath("$.data.candidates[0].brand").isNotEmpty())
+                .andExpect(jsonPath("$.data.candidates[0].price").isNumber())
+                .andExpect(jsonPath("$.data.warnings").isEmpty());
         mvc.perform(get("/api/v1/admin/recommendation-candidates")
                         .header("Authorization", "Bearer " + jwtProvider.createAccessToken(2L, "USER")))
                 .andExpect(status().isNotFound());
