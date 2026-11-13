@@ -197,7 +197,11 @@ def activate(release, manifest, settings):
         '[Service]\nExecStart=\nExecStart=/usr/bin/java -jar ' + str(current / 'backend/app.jar')
         + ' --spring.profiles.active=prod --spring.config.additional-location=file:' + str(PROJECT / 'config') + '/\n'
         + 'Environment="ML_MODEL_RUN_DIR=' + str(model) + '"\n'
-        + 'Environment="ML_MODEL_ROOT=' + str(current / 'ml/outputs/models') + '"\n',
+        + 'Environment="ML_MODEL_ROOT=' + str(current / 'ml/outputs/models') + '"\n'
+        # Admin model management may start extra recommendation servers (127.0.0.1, ports 8003-8010).
+        # Releases have no ml/.venv, so point the launcher at the shared CPU environment.
+        + 'Environment="RECOMMENDATION_LAUNCHER_ENABLED=true"\n'
+        + 'Environment="RECOMMENDATION_LAUNCHER_PYTHON=' + str(PYTHON) + '"\n',
         '[Service]\nExecStart=\nExecStart=/bin/bash ' + str(current / 'ml/serve-candidates.sh') + '\n'
         + 'Environment="PYTHON=' + str(PYTHON) + '"\nEnvironment="RUN=' + manifest['model'] + '"\n'
     ]
