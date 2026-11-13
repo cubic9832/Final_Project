@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ScrollText, Cpu, Database, Mail, Server, UserRoundPen, Car, MessagesSquare } from 'lucide-react';
+import { ArrowRight, ScrollText, Cpu, Database, Mail, Server, Car, MessagesSquare } from 'lucide-react';
 import theme from '../../styles/theme';
 import { describeLog, formatLogTime, logActor, logTarget } from './adminLogFormat';
 import { getAdminOverview, getAuditLogs, getMailStatus, getMemberSummary, getModelServerInfo, getSystemStatus } from '../../features/admin/adminApi';
@@ -105,7 +105,6 @@ export default function AdminOverviewPanel({ allowedScreens = ALL_SCREENS }) {
   const tasks = [
     { title: '검수 대기 차량', count: vehicles?.filter(vehicle => vehicle.status === '검수 대기').length, unit: '건', action: '차량 정보 검수 필요', note: '차량 제원과 가격을 확인하고 검수를 마친 차량만 공개해 주세요.', tab: 'vehicles', to: '/console?tab=vehicles&status=REVIEW', icon: Car },
     { title: '미처리 상담', count: waitingChats?.waiting, unit: '건', action: '대기 상담 배정 필요', note: '상담원이 아직 맡지 않은 대기 상담입니다. 1:1 상담에서 맡기를 선택해 주세요.', tab: 'chat', icon: MessagesSquare },
-    { title: '생년월일 · 성별 미입력 회원', count: overview?.profileMissing, action: '회원 입력 필요', note: '미입력 정보는 회원이 내 계정에서 직접 입력할 수 있습니다.', tab: 'members', icon: UserRoundPen },
     { title: '추천 서버 연결', count: model === null ? 1 : 0, unit: '', action: '서버 점검 필요', note: '연결 실패나 응답 지연일 수 있습니다. 모델 관리에서 상태를 확인하세요.', tab: 'models', icon: Cpu },
     { title: '인증 메일 발송 실패 (24시간)', count: mail?.failed, unit: '건', action: '발송 설정 점검 필요', note: '서비스 상태에서 실패 사유를 확인하세요. 해결 후에도 최근 24시간 실패 기록은 집계됩니다.', tab: 'overview', icon: Mail },
   ];
