@@ -54,13 +54,11 @@
 .savings-demo-banner,.savings-notice { padding:var(--space-24) var(--space-24); line-height:1.8; border-radius:var(--radius-md); background:var(--color-blue-tint); color:var(--color-primary); margin:var(--space-24) 0; }
 .savings-recurring .savings-section-heading { justify-content:flex-start; }
 .savings-recurring h2 { font-size:var(--font-subtitle); }
-.savings-recurring-rule { display:flex; justify-content:space-between; align-items:center; gap:var(--space-8); padding:var(--space-16) 0; border-bottom:1px solid var(--color-border); }
-.savings-recurring-rule strong { display:block; color:var(--color-primary); font-size:var(--font-body); }
-.savings-recurring-rule span,.savings-recurring-rule p { display:block; font-size:var(--font-caption); color:var(--color-muted); margin-top:var(--space-8); overflow-wrap:anywhere; }
 .savings-recurring-add { margin-top:var(--space-16); }
 .savings-recurring-add summary { min-height:40px; padding:var(--space-8) 0; cursor:pointer; font-weight:700; color:var(--color-primary); }
 .savings-recurring-add label { margin-top:var(--space-16); }
 .savings-recurring-add .savings-button { margin-top:var(--space-16); width:100%; }
+.savings-recurring-toggle { margin-top:var(--space-8); width:100%; }
 .savings-recurring-frequency { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-12); }
 .savings-error { padding:var(--space-12); color:var(--color-danger); font-size:var(--font-caption); }
 .savings-empty { text-align:center; padding:var(--space-64) var(--space-24); }
@@ -274,7 +272,8 @@
   .savings-main-content > .savings-overview { grid-column:1; grid-row:1; }
   .savings-main-grid .savings-goal-card { grid-column:2; grid-row:1; min-height:0; }
   .savings-main-content > .savings-flow-actions { grid-column:1; grid-row:2; margin-top:0; align-self:start; }
-  .savings-main-content > .savings-history { grid-column:1; margin-top:0; }
+  .savings-history-stack { grid-column:1; grid-row:3; align-self:start; }
+  .savings-history-stack > .savings-history:first-child { margin-top:0; }
   .savings-main-grid .savings-recurring { grid-column:2; grid-row:3; align-self:start; }
   .savings-main-grid .savings-sidebar-note { grid-column:2; align-self:start; }
 }

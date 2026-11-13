@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createProgressPlan, recordDailySaving } from './savingsProgress.js';
-import { addRecurringRule } from './recurringSavings.js';
+import { saveRecurringRule } from './recurringSavings.js';
 import { savingsNotificationEvents } from './savingsNotificationEvents.js';
 
 const today = '2026-11-04';
@@ -20,7 +20,7 @@ test('목표 금액 직전에는 알림이 없고 정확히 도달하면 계획�
 });
 
 test('정기 기록만 알리고 수동 기록과 미래 기록은 제외한다', () => {
-  let plan = addRecurringRule(base(), { id: 'rule', unit: 'month', interval: 1, startDate: today, amount: 10, memo: '', enabled: true }, today);
+  let plan = saveRecurringRule(base(), { id: 'rule', unit: 'month', interval: 1, startDate: today, amount: 10, memo: '', enabled: true }, today);
   plan = recordDailySaving(plan, today, 5, '', today, 'manual');
   plan.records.push({ id: 'future', scheduleId: 'rule', date: '2026-12-04', amount: 10, memo: '' });
   const events = savingsNotificationEvents([plan], [], today).events;
@@ -31,7 +31,7 @@ test('정기 기록만 알리고 수동 기록과 미래 기록은 제외한다'
 });
 
 test('기존 정기 기록은 최초 연결 시 기준점으로 보존하고 새 기록부터 알린다', () => {
-  const plan = addRecurringRule(base(), { id: 'rule', unit: 'day', interval: 1, startDate: today, amount: 10, memo: '', enabled: true }, today);
+  const plan = saveRecurringRule(base(), { id: 'rule', unit: 'day', interval: 1, startDate: today, amount: 10, memo: '', enabled: true }, today);
   const initial = savingsNotificationEvents([plan], [], today, true);
   assert.equal(initial.baseline.length, 1);
   assert.equal(initial.events.length, 0);

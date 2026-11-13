@@ -16,26 +16,36 @@ export function scheduledDate(rule, index) {
 }
 export function applyRecurringSavings(plan, asOfDate) {
   const records = [...(plan.records || [])];
-  const ids = new Set([...records.map(record => record.id), ...(plan.deletedRecurringIds || [])]);
-  for (const rule of plan.recurringRules || []) {
-    if (!isRecurringRule(rule)) throw new Error('정기 기록 설정을 확인해 주세요.');
-    if (!rule.enabled) continue;
-    for (let index = 0; index < 100000; index++) {
-      const date = scheduledDate(rule, index);
-      if (date > asOfDate) break;
-      if (date < (plan.startDate || `${plan.startMonth}-01`) || rule.skipThrough && date <= rule.skipThrough) continue;
-      const id = `recurring:${rule.id}:${date}`;
-      if (!ids.has(id)) { records.push({ id, date, amount: rule.amount, memo: rule.memo, scheduleId: rule.id }); ids.add(id); }
-    }
+  const rule = plan.recurringRules?.at(-1);
+  if (!rule) return plan;
+  if (!isRecurringRule(rule)) throw new Error('정기 기록 설정을 확인해 주세요.');
+  if (!rule.enabled) return plan;
+  const recordedDates = new Set(
+    [...records.map(record => record.id), ...(plan.deletedRecurringIds || [])]
+      .filter(id => id.startsWith('recurring:'))
+      .map(id => id.slice(-10)),
+  );
+  for (let index = 0; index < 100000; index++) {
+    const date = scheduledDate(rule, index);
+    if (date > asOfDate) break;
+    if (date < (plan.startDate || `${plan.startMonth}-01`) || rule.skipThrough && date <= rule.skipThrough) continue;
+    if (recordedDates.has(date)) continue;
+    const id = `recurring:${rule.id}:${date}`;
+    records.push({ id, date, amount: rule.amount, memo: rule.memo, scheduleId: rule.id });
   }
   return records.length === (plan.records || []).length ? plan : { ...plan, records };
 }
-export function addRecurringRule(plan, rule, asOfDate) {
+export function saveRecurringRule(plan, rule, asOfDate) {
   if (!isRecurringRule(rule) || rule.startDate < (plan.startDate || `${plan.startMonth}-01`)) throw new Error('시작일·금액·반복 간격을 확인해 주세요. 금액은 0보다 커야 합니다.');
   if ((plan.recurringRules || []).some(item => item.id === rule.id)) throw new Error('이미 등록된 설정입니다.');
-  return applyRecurringSavings({ ...plan, recurringRules: [...(plan.recurringRules || []), rule] }, asOfDate);
+  const previousDay = new Date(`${asOfDate}T00:00:00Z`);
+  previousDay.setUTCDate(previousDay.getUTCDate() - 1);
+  const nextRule = plan.recurringRules?.length ? { ...rule, skipThrough: previousDay.toISOString().slice(0, 10) } : rule;
+  return applyRecurringSavings({ ...plan, recurringRules: [nextRule] }, asOfDate);
 }
 export function toggleRecurringRule(plan, id, asOfDate) {
   const applied = applyRecurringSavings(plan, asOfDate);
-  return { ...applied, recurringRules: (applied.recurringRules || []).map(rule => rule.id === id ? { ...rule, enabled: !rule.enabled, ...(!rule.enabled ? { skipThrough: asOfDate } : {}) } : rule) };
+  const rule = applied.recurringRules?.at(-1);
+  if (rule?.id !== id) return applied;
+  return { ...applied, recurringRules: [{ ...rule, enabled: !rule.enabled, ...(!rule.enabled ? { skipThrough: asOfDate } : {}) }] };
 }
